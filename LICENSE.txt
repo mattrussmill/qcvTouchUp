@@ -2,7 +2,7 @@ You may use, distribute and copy the qcvTouch Up application and source
 code under the terms of GNU General Public License version 3, which is 
 displayed below (in accordance with the Qt terms and conditions). The third
 party license which applies to sections of the qcvTouchUp source code, and the
-application, can be found in LICENSE.CV.mg
+application, can be found in LICENSE.CV.mg (MATT FIX THIS FILE)
                     
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
