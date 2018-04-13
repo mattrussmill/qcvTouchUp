@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>menu.qml</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file>icons/adjustMenu/gray.png</file>
+        <file>icons/adjustMenu/rgb.png</file>
+    </qresource>
+</RCC>
