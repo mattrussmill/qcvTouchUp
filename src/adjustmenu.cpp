@@ -1,3 +1,29 @@
+/***********************************************************************
+* FILENAME :    adjustmenu.cpp
+*
+* DESCRIPTION :
+*       This menu is used for adjusting the color, brightness, contrast,
+*       pixel depth, hue, saturation, intensity including high and low
+*       adjustments to gamma correction. It collects all necessary slider
+*       values in a dynamically allocated array and passes the address to
+*       that array via a Qt signal to provide the necessary parameters for
+*       image processing.
+*
+* NOTES :
+*       This class is directly tied to adjustmenu.ui and has functionality
+*       tied to the ImageWorker class which uses the values selected here
+*       as a basis to control calculations on the image.
+*
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    January 02/15/2018
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           04/18/2018      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
+
 #include "adjustmenu.h"
 #include "ui_adjustmenu.h"
 #include <cmath>
@@ -26,6 +52,7 @@ AdjustMenu::AdjustMenu(QWidget *parent) :
     initializeSliders();
 }
 
+// destructor to remove sliderValues array allocated for inter-thread sharing
 AdjustMenu::~AdjustMenu()
 {
     if(!sliderValues)
@@ -33,6 +60,9 @@ AdjustMenu::~AdjustMenu()
     delete ui;
 }
 
+/* Function initializes the sliders and corresponding shared array (for passing
+ * slider values) while signals are blocked from being emitted from the class
+ * as to not signal the worker thread to re-perform operations during initialization*/
 void AdjustMenu::initializeSliders()
 {
     //disable signals from being emitted by object
