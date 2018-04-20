@@ -8,6 +8,7 @@
 #include <QMutex>
 #include "workereventloop.h"
 #include "adjustmenu.h"
+#include "filtermenu.h"
 
 #include <opencv2/core/core.hpp>
 
@@ -42,6 +43,7 @@ private:
     QMutex mutex;
     WorkerEventLoop *imageWorker;
     AdjustMenu *adjustMenu;
+    FilterMenu *filterMenu;
 
 };
 

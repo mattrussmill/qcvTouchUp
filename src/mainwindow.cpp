@@ -4,7 +4,6 @@
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
 #include "histogramwindow.h"
-#include "adjustmenu.h"
 #include <QWidget>
 #include <QApplication>
 #include <QFileDialog>
@@ -27,6 +26,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     adjustMenu = new AdjustMenu(this);
     adjustMenu->setVisible(false);
     ui->horizontalLayoutImageTools->addWidget(adjustMenu);
+    filterMenu = new FilterMenu(this);
+    filterMenu->setVisible(false);
+    ui->horizontalLayoutImageTools->addWidget(filterMenu);
 
     //mainwindow member initializations
     userImagePath = QDir::homePath();
@@ -75,14 +77,24 @@ void MainWindow::loadSubMenu(int menuIndex)
         case 1:
         {
             adjustMenu->setVisible(true);
+            filterMenu->setVisible(false);
+            break;
+        }
+        case 2:
+        {
+            filterMenu->setVisible(true);
+            adjustMenu->setVisible(false);
             break;
         }
         default:
         {
             adjustMenu->setVisible(false);
+            filterMenu->setVisible(false);
             break;
         }
         }
+
+        //make a state machine where visible menu is stored?
 }
 
 void MainWindow::imageOpenOperationFailed()

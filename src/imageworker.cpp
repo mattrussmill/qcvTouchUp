@@ -12,7 +12,7 @@ ImageWorker::ImageWorker(QMutex &m)
 {
     mutex = &m;
     masterRGBImage = nullptr;
-    srcRGBImage = nullptr; //when switching menus, this will be filled with dstRGB
+    srcRGBImage = nullptr;
     srcTmpImage = nullptr;
     dstRGBImage = nullptr;
     dstTmpImage = nullptr;
@@ -22,6 +22,7 @@ ImageWorker::ImageWorker(QMutex &m)
     splitChannelsTmp.push_back(cv::Mat());
 }
 
+// Deletes the dynamically allocated data before object is destroyed
 ImageWorker::~ImageWorker()
 {
     doClearImageBuffer();
@@ -141,6 +142,8 @@ void ImageWorker::doCopyRGBBufferToMasterBuffer()
     mutex->unlock();
 }
 
+// Reverts the image and histogram back to the most previously un-applied form (the master image
+// and source histogram) and displays them.
 void ImageWorker::doDisplayMasterBuffer()
 {
     if(!masterRGBImage || !dstRGBImage) return;
@@ -191,10 +194,10 @@ void ImageWorker::sortHistogramBuckets(float (ImageWorker::*newIntensityFunction
     }
 }
 
-
-
-
-
+/* Performs the image adjustment operations from the Adjust menu in the GUI. If the images
+ * exist in memory the function locks the mutex and copies the necessary parameters before
+ * performing the desired operations only for the corresponding sliders in the .ui file that
+ * have changed from their default value.*/
 void ImageWorker::doAdjustmentsComputation(float *parameterArray)
 {
     //check to make sure all working arrays are allocated
@@ -371,10 +374,6 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
     emit resultImageUpdate(imageWrapper); //inside or outside of mutex?
     emit resultHistoUpdate();
 }
-
-
-
-//figure out how best to compute the histogram after..
 
 
 
