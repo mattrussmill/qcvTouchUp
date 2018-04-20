@@ -27,7 +27,7 @@ ImageWorker::~ImageWorker()
 {
     doClearImageBuffer();
     dstRGBHisto = nullptr; //managed externally
-    if(!srcRGBHisto)
+    if(srcRGBHisto)
     {
         delete srcRGBHisto[HistogramWidget::Blue];
         delete srcRGBHisto[HistogramWidget::Green];
@@ -36,6 +36,8 @@ ImageWorker::~ImageWorker()
         srcRGBHisto = nullptr;
     }
 }
+
+////////////////////////--- Image Worker Assisting Functions ---////////////////////////
 
 // Opens an Image from a file path. Images always stored in 24-bit BGR format when loading.
 void ImageWorker::doOpenImage(const QString imagePath)
@@ -155,44 +157,9 @@ void ImageWorker::doDisplayMasterBuffer()
     emit resultHistoUpdate();
 }
 
-/* This member function is used when a histogram buffer must be directly operated on instead of
- * regenerating the histogram from a source image. Given the source and destination histogram
- * buffers of equal size, this function accepts a sorting function as a parameter which will
- * generate a destination index based on the source index for copying histogram information
- * from a source bucket (number of pixels at the init value) and moving it into a destination bucket
- * (number of pixels at the new value) based on the newIntensityFunction result. Said function should
- * expect pixel values of 0 to 255 (8-bit) color depth. An additional value, if the function
- * requires a value to be passed, is included and must be cast to the appropriate type within
- * newIntensityFunction. The passed function shall output a floating point value as the new bucket
- * index (pixel intensity). This function is used to avoid rewriting iterative code in accessing the
- * histograms.*/
-void ImageWorker::sortHistogramBuckets(float (ImageWorker::*newIntensityFunction)(int, void*), uint **source,
-                                       uint** destination, void* fnPtrParameter, int numberOfChannels)
-{
-    float newIndexF;
-    uint newIndex;
-    if (!destination || numberOfChannels < 1)
-        return;
 
-    HistogramWidget::clear(destination, numberOfChannels);
-    for(int index = 0; index < HISTO_SIZE; index++)
-    {
-        // Tests bound of pixel intensity so it truncates inside the range of the histogram buffer.
-        newIndexF = (this->*newIntensityFunction)(index, fnPtrParameter);
-        if(newIndexF < 0)
-            newIndex = 0;
-        else if(newIndexF > HISTO_SIZE - 1)
-            newIndex = HISTO_SIZE - 1;
-        else
-            newIndex = newIndexF;
 
-        // Adds the contents in the histogram source bucket to the destination bucket based on newIndex
-        for(int c = 0; c < numberOfChannels; c++)
-        {
-            destination[c][newIndex] += source[c][index];
-        }
-    }
-}
+///////////////////////////////--- Adjust Menu Computations ---///////////////////////////////
 
 /* Performs the image adjustment operations from the Adjust menu in the GUI. If the images
  * exist in memory the function locks the mutex and copies the necessary parameters before
@@ -368,11 +335,76 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
 
     //after computation is complete, push image and histogram to GUI if changes were made
     *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
-    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto); //use two buffers to fix histo problem on resize?
+    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
     emit updateStatus(""); //THIS IS NOT WORKING
     mutex->unlock();
-    emit resultImageUpdate(imageWrapper); //inside or outside of mutex?
+    emit resultImageUpdate(imageWrapper);
     emit resultHistoUpdate();
+} //end doAdjustmentsComputation
+
+
+///////////////////////////////--- Filter Menu Computations ---///////////////////////////////
+
+void ImageWorker::doSmoothFilterComputation(float *parameterArray)
+{
+    mutex->lock();
+    switch (static_cast<int>(parameterArray[0])) //index 0 indicates the filter to use
+    {
+
+    case 1:
+    {
+
+        break;
+    }
+    case 2:
+    {
+
+        break;
+    }
+    case 3:
+    {
+
+        break;
+    }
+    default:
+    {
+        //test which is faster? Filter2D uses fourier with 11x11 and larger kernels
+
+        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(1,1));
+        //vs
+        cv::filter2D(*masterRGBImage, *dstRGBImage, CV_8U, );
+        break;
+    }
+
+    }
+
+    //after computation is complete, push image and histogram to GUI if changes were made
+    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
+    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
+    mutex->unlock();
+    emit resultImageUpdate(imageWrapper);
+    emit resultHistoUpdate();
+
+}
+
+void ImageWorker::doSharpenFilterComputation(float *parameterArray)
+{
+
+}
+
+void ImageWorker::doEdgeFilterComputation(float *parameterArray)
+{
+
+}
+
+void ImageWorker::doNoiseFilterComputation(float *parameterArray)
+{
+
+}
+
+void ImageWorker::doReconstructFilterComputation(float *parameterArray)
+{
+
 }
 
 
@@ -387,12 +419,46 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
 
 
 
-
-
-
-
-
 ///////////////////////////////--- Adjust Menu Computations ---///////////////////////////////
+
+/* This member function is used when a histogram buffer must be directly operated on instead of
+ * regenerating the histogram from a source image. Given the source and destination histogram
+ * buffers of equal size, this function accepts a sorting function as a parameter which will
+ * generate a destination index based on the source index for copying histogram information
+ * from a source bucket (number of pixels at the init value) and moving it into a destination bucket
+ * (number of pixels at the new value) based on the newIntensityFunction result. Said function should
+ * expect pixel values of 0 to 255 (8-bit) color depth. An additional value, if the function
+ * requires a value to be passed, is included and must be cast to the appropriate type within
+ * newIntensityFunction. The passed function shall output a floating point value as the new bucket
+ * index (pixel intensity). This function is used to avoid rewriting iterative code in accessing the
+ * histograms.*/
+void ImageWorker::sortHistogramBuckets(float (ImageWorker::*newIntensityFunction)(int, void*), uint **source,
+                                       uint** destination, void* fnPtrParameter, int numberOfChannels)
+{
+    float newIndexF;
+    uint newIndex;
+    if (!destination || numberOfChannels < 1)
+        return;
+
+    HistogramWidget::clear(destination, numberOfChannels);
+    for(int index = 0; index < HISTO_SIZE; index++)
+    {
+        // Tests bound of pixel intensity so it truncates inside the range of the histogram buffer.
+        newIndexF = (this->*newIntensityFunction)(index, fnPtrParameter);
+        if(newIndexF < 0)
+            newIndex = 0;
+        else if(newIndexF > HISTO_SIZE - 1)
+            newIndex = HISTO_SIZE - 1;
+        else
+            newIndex = newIndexF;
+
+        // Adds the contents in the histogram source bucket to the destination bucket based on newIndex
+        for(int c = 0; c < numberOfChannels; c++)
+        {
+            destination[c][newIndex] += source[c][index];
+        }
+    }
+}
 
 /* Function performs a contrast operation on the RGB image (i' = ai + b where i = image matrix) given an
  * alpha value. The alpha value expected is between 0.1 and 2.4. The function calculates the brightness

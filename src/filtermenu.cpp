@@ -10,9 +10,18 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Smooth->addItem("Gaussian");
     ui->comboBox_Smooth->addItem("Median");
     ui->comboBox_Smooth->addItem("Bilateral");
+
+    menuValues = new float [5];
 }
 
 FilterMenu::~FilterMenu()
 {
+    if(menuValues)
+        delete menuValues;
     delete ui;
+}
+
+void FilterMenu::on_pushButton_Smooth_released()
+{
+
 }

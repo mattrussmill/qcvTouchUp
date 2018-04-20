@@ -15,8 +15,12 @@ public:
     explicit FilterMenu(QWidget *parent = 0);
     ~FilterMenu();
 
+private slots:
+    void on_pushButton_Smooth_released();
+
 private:
     Ui::FilterMenu *ui;
+    float *menuValues;
 };
 
 #endif // FILTERMENU_H

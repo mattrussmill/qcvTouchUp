@@ -45,71 +45,112 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QGroupBox" name="groupBox_Smooth">
-      <property name="title">
-       <string>Smooth</string>
+     <layout class="QHBoxLayout" name="horizontalLayout_SmoothCombo">
+      <item>
+       <widget class="QRadioButton" name="radioButton_SmoothEnable">
+        <property name="text">
+         <string>Smooth</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox_Smooth">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_SmoothWeight">
+      <item>
+       <widget class="QLabel" name="label_SmoothWeight">
+        <property name="text">
+         <string>Weight</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="horizontalSlider_SmoothWeight">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>%</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_SmoothRadius">
+      <item>
+       <widget class="QLabel" name="label_SmoothRadius">
+        <property name="text">
+         <string>Radius</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSlider" name="horizontalSlider_SmoothRadius">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_SmoothPx">
+        <property name="text">
+         <string>px</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_SmoothButton">
+      <item>
+       <spacer name="horizontalSpacer_Smooth">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_Smooth">
+        <property name="text">
+         <string>Filter</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>%</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1" colspan="2">
-        <widget class="QComboBox" name="comboBox_Smooth">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Weight</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QRadioButton" name="radioButton_SmoothEnable">
-         <property name="text">
-          <string>Filter</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>Radius</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QSlider" name="horizontalSlider_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>px</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QRadioButton" name="radioButton_10">
+      <property name="text">
+       <string>Filter</string>
+      </property>
      </widget>
     </item>
     <item>
@@ -118,21 +159,28 @@
        <string>Sharpen</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="1" column="2">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Weight</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>%</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="2" column="1">
         <widget class="QSlider" name="horizontalSlider_2">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
-       <item row="0" column="1" colspan="2">
+       <item row="1" column="1" colspan="2">
         <widget class="QComboBox" name="comboBox_4">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -142,35 +190,21 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Weight</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QRadioButton" name="radioButton_10">
-         <property name="text">
-          <string>Filter</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>Radius</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="3" column="1">
         <widget class="QSlider" name="horizontalSlider_6">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
+       <item row="3" column="2">
         <widget class="QLabel" name="label_14">
          <property name="text">
           <string>px</string>
@@ -513,5 +547,70 @@
   </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>radioButton_SmoothEnable</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>comboBox_Smooth</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>39</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>102</x>
+     <y>23</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_SmoothEnable</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>horizontalSlider_SmoothWeight</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>53</x>
+     <y>25</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>87</x>
+     <y>47</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_SmoothEnable</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>horizontalSlider_SmoothRadius</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>61</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>109</x>
+     <y>80</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_SmoothEnable</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>pushButton_Smooth</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>32</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>195</x>
+     <y>110</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

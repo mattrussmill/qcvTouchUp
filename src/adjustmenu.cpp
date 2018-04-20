@@ -55,7 +55,7 @@ AdjustMenu::AdjustMenu(QWidget *parent) :
 // destructor to remove sliderValues array allocated for inter-thread sharing
 AdjustMenu::~AdjustMenu()
 {
-    if(!sliderValues)
+    if(sliderValues)
         delete sliderValues;
     delete ui;
 }
