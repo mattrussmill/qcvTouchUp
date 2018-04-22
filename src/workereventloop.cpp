@@ -30,6 +30,13 @@ WorkerEventLoop::WorkerEventLoop(QMutex &m)
     //connect adjustmenu signals
     connect(this, SIGNAL(operateAdjustments(float*)), worker, SLOT(doAdjustmentsComputation(float*)));
 
+    //connect filtermenu signals
+    connect(this, SIGNAL(operateSmoothImage(int*)), worker, SLOT(doSmoothFilterComputation(int*)));
+    connect(this, SIGNAL(operateSharpenImage(int*)), worker, SLOT(doSharpenFilterComputation(int*)));
+    connect(this, SIGNAL(operateEdgeDetectImage(int*)), worker, SLOT(doEdgeFilterComputation(int*)));
+    connect(this, SIGNAL(operateNoiseRemoveImage(int*)), worker, SLOT(doNoiseFilterComputation(int*)));
+    connect(this, SIGNAL(operateReconstructImage(int*)), worker, SLOT(doReconstructFilterComputation(int*)));
+
     workerThread.start();
 }
 

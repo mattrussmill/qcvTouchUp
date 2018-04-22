@@ -23,11 +23,11 @@ public slots:
     void doCopyRGBBufferToMasterBuffer();
     void doDisplayMasterBuffer();
     void doAdjustmentsComputation(float *parameterArray);
-    void doSmoothFilterComputation(float *parameterArray);
-    void doSharpenFilterComputation(float *parameterArray);
-    void doEdgeFilterComputation(float *parameterArray);
-    void doNoiseFilterComputation(float *parameterArray);
-    void doReconstructFilterComputation(float *parameterArray);
+    void doSmoothFilterComputation(int *parameterArray);
+    void doSharpenFilterComputation(int *parameterArray);
+    void doEdgeFilterComputation(int *parameterArray);
+    void doNoiseFilterComputation(int *parameterArray);
+    void doReconstructFilterComputation(int *parameterArray);
 
 
 signals:

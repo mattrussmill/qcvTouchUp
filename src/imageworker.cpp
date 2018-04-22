@@ -345,64 +345,68 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
 
 ///////////////////////////////--- Filter Menu Computations ---///////////////////////////////
 
-void ImageWorker::doSmoothFilterComputation(float *parameterArray)
+/* Performs the smoothing operations from the Filter menu in the GUI. Switch statement
+ * selects the type of smoothing that will be applied to the image in the master buffer.
+ * The parameterArray passes all the necessary parameters to the worker thread based on
+ * the openCV functions it calls. The kernel size cannot be larger than 21 px, limited
+ * by the slider in the FilterMenu.*/
+void ImageWorker::doSmoothFilterComputation(int *parameterArray)
 {
+    //check to make sure all working arrays are allocated
+    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
+        return;
+
     mutex->lock();
-    switch (static_cast<int>(parameterArray[0])) //index 0 indicates the filter to use
+    emit updateStatus("Applying changes...");
+
+    switch (parameterArray[0]) //index 0 indicates the filter to use
     {
 
     case 1:
     {
-
+        //For Gaussian, parameterArray[2] ranges from 1 to 100. Divide by 10 to get sigma.
+        cv::GaussianBlur(*masterRGBImage, *dstRGBImage, cv::Size(parameterArray[1],parameterArray[1]),
+                parameterArray[2] / 10.0, parameterArray[2] / 10.0);
         break;
     }
     case 2:
     {
-
-        break;
-    }
-    case 3:
-    {
-
+        cv::medianBlur(*masterRGBImage, *dstRGBImage, parameterArray[1]);
         break;
     }
     default:
     {
-        //test which is faster? Filter2D uses fourier with 11x11 and larger kernels
-
-        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(1,1));
-        //vs
-        cv::filter2D(*masterRGBImage, *dstRGBImage, CV_8U, );
+        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(parameterArray[1],parameterArray[1]));
         break;
     }
-
     }
 
     //after computation is complete, push image and histogram to GUI if changes were made
     *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
     HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
+    emit updateStatus("");
     mutex->unlock();
     emit resultImageUpdate(imageWrapper);
     emit resultHistoUpdate();
 
 }
 
-void ImageWorker::doSharpenFilterComputation(float *parameterArray)
+void ImageWorker::doSharpenFilterComputation(int *parameterArray)
 {
 
 }
 
-void ImageWorker::doEdgeFilterComputation(float *parameterArray)
+void ImageWorker::doEdgeFilterComputation(int *parameterArray)
 {
 
 }
 
-void ImageWorker::doNoiseFilterComputation(float *parameterArray)
+void ImageWorker::doNoiseFilterComputation(int *parameterArray)
 {
 
 }
 
-void ImageWorker::doReconstructFilterComputation(float *parameterArray)
+void ImageWorker::doReconstructFilterComputation(int *parameterArray)
 {
 
 }

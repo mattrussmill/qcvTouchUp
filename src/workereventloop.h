@@ -34,6 +34,11 @@ signals:
     void operateApplyRGBChangesToMasterBuffer();
     void operateDisplayMasterBuffer();
     void operateAdjustments(float*);
+    void operateSmoothImage(int*);
+    void operateSharpenImage(int*);
+    void operateEdgeDetectImage(int*);
+    void operateNoiseRemoveImage(int*);
+    void operateReconstructImage(int*);
 
 
 

@@ -15,12 +15,27 @@ public:
     explicit FilterMenu(QWidget *parent = 0);
     ~FilterMenu();
 
+public slots:
+    void initializeMenu();
+//    void setVisible(bool visible) override;
+
+signals:
+    performImageBlur(int*);
+    performImageSharpen(int*);
+    performImageEdgeDetect(int*);
+    performImageNoiseRemove(int*);
+    performImageReconstruct(int*);
+    cancelAdjustments();
+    applyAdjustments();
+
 private slots:
-    void on_pushButton_Smooth_released();
+    void collectBlurParameters();
+
+    void on_comboBox_Smooth_currentIndexChanged(int index);
 
 private:
     Ui::FilterMenu *ui;
-    float *menuValues;
+    int *menuValues;
 };
 
 #endif // FILTERMENU_H

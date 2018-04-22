@@ -48,10 +48,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(imageWorker, SIGNAL(updateDisplayedImage(const QImage*)), ui->iw, SLOT(updateDisplayedImage(const QImage*)));
     connect(imageWorker, SIGNAL(updateDisplayedHistogram()), this, SLOT(updateHistogram()));
 
-    //connect necessary worker thread - side menu / ui slots
+    //connect necessary worker thread - adjustmenu / ui slots
     connect(adjustMenu, SIGNAL(performImageAdjustments(float*)), imageWorker, SIGNAL(operateAdjustments(float*)));
     connect(adjustMenu, SIGNAL(cancelAdjustments()), imageWorker, SIGNAL(operateDisplayMasterBuffer()));
     connect(adjustMenu, SIGNAL(applyAdjustments()), imageWorker, SIGNAL(operateApplyRGBChangesToMasterBuffer()));
+
+    //connect necessary worker thread - filtermenu / ui slots
+    connect(filterMenu, SIGNAL(performImageBlur(int*)), imageWorker, SIGNAL(operateSmoothImage(int*)));
+    connect(filterMenu, SIGNAL(performImageSharpen(int*)), imageWorker, SIGNAL(operateSharpenImage(int*)));
+    connect(filterMenu, SIGNAL(performImageEdgeDetect(int*)), imageWorker, SIGNAL(operateEdgeDetectImage(int*)));
+    connect(filterMenu, SIGNAL(performImageNoiseRemove(int*)), imageWorker, SIGNAL(operateNoiseRemoveImage(int*)));
+    connect(filterMenu, SIGNAL(performImageReconstruct(int*)), imageWorker, SIGNAL(operateReconstructImage(int*)));
+    connect(filterMenu, SIGNAL(cancelAdjustments()), imageWorker, SIGNAL(operateDisplayMasterBuffer()));
+    connect(filterMenu, SIGNAL(applyAdjustments()), imageWorker, SIGNAL(operateApplyRGBChangesToMasterBuffer()));
 
 
 }
@@ -72,29 +81,27 @@ void MainWindow::loadSubMenu(int menuIndex)
         else
             ui->histo->setMinimumWidth(150);
 
+        adjustMenu->setVisible(false);
+        filterMenu->setVisible(false);
+
         switch(menuIndex)
         {
         case 1:
         {
             adjustMenu->setVisible(true);
-            filterMenu->setVisible(false);
             break;
         }
         case 2:
         {
             filterMenu->setVisible(true);
-            adjustMenu->setVisible(false);
             break;
         }
         default:
         {
-            adjustMenu->setVisible(false);
-            filterMenu->setVisible(false);
+            //nothing else to do
             break;
         }
         }
-
-        //make a state machine where visible menu is stored?
 }
 
 void MainWindow::imageOpenOperationFailed()
@@ -138,6 +145,7 @@ void MainWindow::updateHistogram()
     ui->histo->update();
 }
 
+// MainWindow's "Open..." action creates a dialog box listing supported file types and a file dialog window.
 void MainWindow::on_actionOpen_triggered()
 {
     statusBar()->showMessage("Opening...");
@@ -169,7 +177,7 @@ void MainWindow::on_actionAbout_triggered()
     //GO FIX MENU BACKEND
 }
 
-
+// Displays a histogram window with x and y axis plot when triggered.
 void MainWindow::on_actionHistogram_triggered()
 {
     statusBar()->showMessage("Histogram...");
