@@ -1,6 +1,6 @@
-License Agreement
-For Open Source Computer Vision Library
-(3-clause BSD License)
+                        License Agreement
+     For Open Source Computer Vision Library in/and qcvTouchUp
+                      (3-clause BSD License)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
