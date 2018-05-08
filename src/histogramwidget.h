@@ -46,7 +46,7 @@
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           02/19/2018      Matthew R. Miller       Initial Rev
 * 0.2           03/11/2018      Matthew R. Miller       Notes 0.2
-*
+* 
 ************************************************************************/
 #ifndef HISTOGRAMWIDGET_H
 #define HISTOGRAMWIDGET_H
