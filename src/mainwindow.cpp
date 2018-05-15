@@ -9,18 +9,23 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QFileInfo>
+#include <QThread>
 #include <QDebug>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    //main operation setup and mutex
+    //main operation setup, members, and mutex
     ui->setupUi(this);
     setWindowTitle("qcvTouchUp");
+    userImagePath = QDir::homePath();
     ui->iw->setMutex(mutex);
-    imageWorker = new WorkerEventLoop(mutex);
 
+    //setup worker thread event loop for ImageWorker
+    imageWorker = new ImageWorker(mutex);
+    imageWorker->moveToThread(&workerThread);
+    connect(&workerThread, SIGNAL(finished), imageWorker, SLOT(deleteLater()));
 
     //image menus initializations - signals are connected after to not be emitted during initialization
     adjustMenu = new AdjustMenu(this);
@@ -29,9 +34,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     filterMenu = new FilterMenu(this);
     filterMenu->setVisible(false);
     ui->horizontalLayoutImageTools->addWidget(filterMenu);
-
-    //mainwindow member initializations
-    userImagePath = QDir::homePath();
 
     //connect necessary internal mainwindow/ui slots
     connect(ui->actionZoom_In, SIGNAL(triggered()), ui->iw, SLOT(zoomIn()));
@@ -42,31 +44,38 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->iw, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
 
     //connect necessary worker thread - mainwindow/ui slots
-    connect(imageWorker, SIGNAL(workerReady()), this, SLOT(initializeWorkerThreadData()));
-    connect(imageWorker, SIGNAL(setDisplayedImage(const QImage*)), ui->iw, SLOT(setImage(const QImage*)));
-    connect(imageWorker, SIGNAL(setDisplayedImage(const QImage*)), this, SLOT(updateImageInformation(const QImage*)));
-    connect(imageWorker, SIGNAL(updateDisplayedImage(const QImage*)), ui->iw, SLOT(updateDisplayedImage(const QImage*)));
-    connect(imageWorker, SIGNAL(updateDisplayedHistogram()), this, SLOT(updateHistogram()));
+    connect(&workerThread, SIGNAL(started()), this, SLOT(initializeWorkerThreadData()));
+    connect(imageWorker, SIGNAL(resultImageSet(const QImage*)), this, SLOT(updateImageInformation(const QImage*)));
+    connect(imageWorker, SIGNAL(resultImageSet(const QImage*)), ui->iw, SLOT(setImage(const QImage*)));
+    connect(imageWorker, SIGNAL(resultImageUpdate(const QImage*)), ui->iw, SLOT(updateDisplayedImage(const QImage*)));
+    connect(imageWorker, SIGNAL(resultHistoUpdate()), this, SLOT(updateHistogram()));
+    connect(imageWorker, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
     //connect necessary worker thread - adjustmenu / ui slots
-    connect(adjustMenu, SIGNAL(performImageAdjustments(float*)), imageWorker, SIGNAL(operateAdjustments(float*)));
-    connect(adjustMenu, SIGNAL(cancelAdjustments()), imageWorker, SIGNAL(operateDisplayMasterBuffer()));
-    connect(adjustMenu, SIGNAL(applyAdjustments()), imageWorker, SIGNAL(operateApplyRGBChangesToMasterBuffer()));
+    connect(adjustMenu, SIGNAL(performImageAdjustments(float*)), imageWorker, SLOT(doAdjustmentsComputation(float*)));
+    connect(adjustMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
+    connect(adjustMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 
     //connect necessary worker thread - filtermenu / ui slots
-    connect(filterMenu, SIGNAL(performImageBlur(int*)), imageWorker, SIGNAL(operateSmoothImage(int*)));
-    connect(filterMenu, SIGNAL(performImageSharpen(int*)), imageWorker, SIGNAL(operateSharpenImage(int*)));
-    connect(filterMenu, SIGNAL(performImageEdgeDetect(int*)), imageWorker, SIGNAL(operateEdgeDetectImage(int*)));
-    connect(filterMenu, SIGNAL(performImageNoiseRemove(int*)), imageWorker, SIGNAL(operateNoiseRemoveImage(int*)));
-    connect(filterMenu, SIGNAL(performImageReconstruct(int*)), imageWorker, SIGNAL(operateReconstructImage(int*)));
-    connect(filterMenu, SIGNAL(cancelAdjustments()), imageWorker, SIGNAL(operateDisplayMasterBuffer()));
-    connect(filterMenu, SIGNAL(applyAdjustments()), imageWorker, SIGNAL(operateApplyRGBChangesToMasterBuffer()));
+    connect(filterMenu, SIGNAL(performImageBlur(int*)), imageWorker, SLOT(doSmoothFilterComputation(int*)));
+    connect(filterMenu, SIGNAL(performImageSharpen(int*)), imageWorker, SLOT(doSharpenFilterComputation(int*)));
+    connect(filterMenu, SIGNAL(performImageEdgeDetect(int*)), imageWorker, SLOT(doEdgeFilterComputation(int*)));
+    connect(filterMenu, SIGNAL(performImageNoiseRemove(int*)), imageWorker, SLOT(doNoiseFilterComputation(int*)));
+    connect(filterMenu, SIGNAL(performImageReconstruct(int*)), imageWorker, SLOT(doNoiseFilterComputation(int*)));
+    connect(filterMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
+    connect(filterMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 
-
+    //start worker thread event loop
+    workerThread.start();
 }
 
 MainWindow::~MainWindow()
 {
+    //end worker thread once event loop finishes
+    workerThread.quit();
+    workerThread.wait();
+
+    //delete heap data not a child of mainwindow
     delete imageWorker;
     delete ui;
 }
@@ -133,8 +142,8 @@ void MainWindow::updateImageInformation(const QImage *image)
  * initialization informatoin (such as shared heap data) that is necessary to maintain correct operation */
 void MainWindow::initializeWorkerThreadData()
 {
-    //signals the worker to set its histogram-dst data for the displayed image to the buffer managed by the ui.
-    imageWorker->operateSetWorkerHistoBufferDest(const_cast<uint**>(ui->histo->data()));
+    //signals the worker to set its histogram dst data for the displayed image to the buffer managed by the ui.
+    imageWorker->doSetHistogramDstAddress(const_cast<uint**>(ui->histo->data()));
 }
 
 /* Allows the worker thread to override the initialized value of the mainwindow histogram widget and update
@@ -161,7 +170,7 @@ void MainWindow::on_actionOpen_triggered()
     }
     ui->iw->clearImage();
     ui->histo->clear();
-    imageWorker->operateOpenImage(userImagePath.absolutePath());
+    imageWorker->doOpenImage(userImagePath.absolutePath());
 }
 
 
@@ -171,7 +180,7 @@ void MainWindow::on_actionAbout_triggered()
 {
     QString testDir("U:/miller/Pictures/Dual Monitor/1227736622214.jpg");
     //QString testDir("U:/miller/Pictures/Pictures Taken/100KC743/100_0579.JPG");
-    imageWorker->operateOpenImage(testDir);
+    imageWorker->doOpenImage(testDir);
 
 
     //GO FIX MENU BACKEND

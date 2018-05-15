@@ -6,7 +6,8 @@
 #include <QString>
 #include <QImage>
 #include <QMutex>
-#include "workereventloop.h"
+#include <QThread>
+#include "imageworker.h"
 #include "adjustmenu.h"
 #include "filtermenu.h"
 
@@ -19,6 +20,7 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    QThread workerThread;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -41,7 +43,7 @@ private:
     Ui::MainWindow *ui;
     QDir userImagePath;
     QMutex mutex;
-    WorkerEventLoop *imageWorker;
+    ImageWorker *imageWorker;
     AdjustMenu *adjustMenu;
     FilterMenu *filterMenu;
 
