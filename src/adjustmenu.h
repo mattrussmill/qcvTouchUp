@@ -53,6 +53,7 @@
 #define ADJUSTMENU_H
 
 #include <QScrollArea>
+#include <QVector>
 
 namespace Ui {
 class AdjustMenu;
@@ -65,13 +66,26 @@ class AdjustMenu : public QScrollArea
 public:
     explicit AdjustMenu(QWidget *parent = 0);
     ~AdjustMenu();
+    enum ParameterIndex
+    {
+        Brightness  = 0,
+        Contrast    = 1,
+        Depth       = 2,
+        Hue         = 3,
+        Saturation  = 4,
+        Intensity   = 5,
+        Gamma       = 6,
+        Highlight   = 7,
+        Shadows     = 8,
+        Color       = 9
+    };
 
 public slots:
     void initializeSliders();
     void setVisible(bool visible) override;
 
 signals:
-    performImageAdjustments(float*);
+    performImageAdjustments(QVector<float>);
     cancelAdjustments();
     applyAdjustments();
 
@@ -79,7 +93,7 @@ signals:
 private:
 
     Ui::AdjustMenu *ui;
-    float *sliderValues;
+    QVector<float> sliderValues;
 
 
 private slots:

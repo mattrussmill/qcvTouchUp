@@ -73,15 +73,13 @@ AdjustMenu::AdjustMenu(QWidget *parent) :
     ui->horizontalSlider_Highlight->installEventFilter(wheelFilter);
     ui->horizontalSlider_Shadows->installEventFilter(wheelFilter);
 
-    sliderValues = new float [10];
+    sliderValues.resize(10);
     initializeSliders();
 }
 
 // destructor to remove sliderValues array allocated for inter-thread sharing
 AdjustMenu::~AdjustMenu()
 {
-    if(sliderValues)
-        delete sliderValues;
     delete ui;
 }
 
@@ -110,16 +108,16 @@ void AdjustMenu::initializeSliders()
     this->blockSignals(false);
 
     //Set initial parameter array for sliders
-    sliderValues[0] = 0.0;      //Brightness
-    sliderValues[1] = 1.0;      //Contrast
-    sliderValues[2] = 255.0;      //Depth
-    sliderValues[3] = 0.0;       //Hue
-    sliderValues[4] = 0.0;       //Saturation
-    sliderValues[5] = 0.0;       //Intensity
-    sliderValues[6] = 1.0;       //Gamma
-    sliderValues[7] = 1.0;       //Highlight
-    sliderValues[8] = 1.0;       //Shadows
-    sliderValues[9] = 1.0;        //Color
+    sliderValues[Brightness] = 0.0;
+    sliderValues[Contrast] = 1.0;
+    sliderValues[Depth] = 255.0;
+    sliderValues[Hue] = 0.0;
+    sliderValues[Saturation] = 0.0;
+    sliderValues[Intensity] = 0.0;
+    sliderValues[Gamma] = 1.0;
+    sliderValues[Highlight] = 1.0;
+    sliderValues[Shadows] = 1.0;
+    sliderValues[Color] = 1.0;
 }
 
 /* Slot signals contrast worker when triggered. When working with images represented by 8-bits per channel,
@@ -129,7 +127,7 @@ void AdjustMenu::on_horizontalSlider_Contrast_valueChanged(int value)
 {
     //if > 1, increase range from 1 to 2.4 while keeping 1 the slider center point by using log10
     if(value > 100) value *= log10(value / 10.0);
-    sliderValues[1] = value / 100.0;
+    sliderValues[Contrast] = value / 100.0;
     emit performImageAdjustments(sliderValues);
 }
 
@@ -138,7 +136,7 @@ void AdjustMenu::on_horizontalSlider_Contrast_valueChanged(int value)
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
 void AdjustMenu::on_horizontalSlider_Brightness_valueChanged(int value)
 {
-    sliderValues[0] = value;
+    sliderValues[Brightness] = value;
     emit performImageAdjustments(sliderValues);
 }
 
@@ -147,7 +145,7 @@ void AdjustMenu::on_horizontalSlider_Brightness_valueChanged(int value)
  * approaches 1 for the image. To the user, change is less noticeable the closer it is to 255.*/
 void AdjustMenu::on_horizontalSlider_Depth_valueChanged(int value)
 {
-    sliderValues[2] = pow(value, value / 255.0); // difference more noticeable to the eye closer to 1
+    sliderValues[Depth] = pow(value, value / 255.0); // difference more noticeable to the eye closer to 1
     emit performImageAdjustments(sliderValues);
 }
 
@@ -156,7 +154,7 @@ void AdjustMenu::on_horizontalSlider_Depth_valueChanged(int value)
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
 void AdjustMenu::on_horizontalSlider_Hue_valueChanged(int value)
 {
-    sliderValues[3] = value;
+    sliderValues[Hue] = value;
     emit performImageAdjustments(sliderValues);
 }
 
@@ -165,7 +163,7 @@ void AdjustMenu::on_horizontalSlider_Hue_valueChanged(int value)
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
 void AdjustMenu::on_horizontalSlider_Saturation_valueChanged(int value)
 {
-    sliderValues[4] = value;
+    sliderValues[Saturation] = value;
     emit performImageAdjustments(sliderValues);
 }
 
@@ -174,7 +172,7 @@ void AdjustMenu::on_horizontalSlider_Saturation_valueChanged(int value)
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
 void AdjustMenu::on_horizontalSlider_Intensity_valueChanged(int value)
 {
-    sliderValues[5] = value;
+    sliderValues[Intensity] = value;
     emit performImageAdjustments(sliderValues);
 }
 
@@ -188,14 +186,14 @@ void AdjustMenu::on_pushButton_Cancel_released()
 //Sets radio button to generate a color image
 void AdjustMenu::on_radioButton_Color_released()
 {
-    sliderValues[9] = 1.0;
+    sliderValues[Color] = 1.0;
     emit performImageAdjustments(sliderValues);
 }
 
 //Sets radio button to generate a grayscale image
 void AdjustMenu::on_radioButton_Grayscale_released()
 {
-    sliderValues[9] = -1.0;
+    sliderValues[Color] = -1.0;
     emit performImageAdjustments(sliderValues);
 }
 
@@ -212,23 +210,23 @@ void AdjustMenu::on_pushButton_Apply_released()
 void AdjustMenu::on_horizontalSlider_Gamma_valueChanged(int value)
 {
     if (value < 0)
-        sliderValues[6] = (value / 150.0) + 1;
+        sliderValues[Gamma] = (value / 150.0) + 1;
     else
-        sliderValues[6] = (value / 50.0) + 1;
+        sliderValues[Gamma] = (value / 50.0) + 1;
     emit performImageAdjustments(sliderValues);
 }
 
 /* Slot shifts the gamma adjustment plot vertically between 80 and -80 for values affected between 149 and 255*/
 void AdjustMenu::on_horizontalSlider_Highlight_valueChanged(int value)
 {
-    sliderValues[7] = value; //should use highlight method with equations provided
+    sliderValues[Highlight] = value; //should use highlight method with equations provided
     emit performImageAdjustments(sliderValues);
 }
 
 /* Slot shifts the gamma adjustment plot vertically between 80 and -80 for values affected between 0 and 106*/
 void AdjustMenu::on_horizontalSlider_Shadows_valueChanged(int value)
 {
-    sliderValues[8] = value;
+    sliderValues[Shadows] = value;
     emit performImageAdjustments(sliderValues);
 }
 

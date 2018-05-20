@@ -23,6 +23,8 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
 
     //setup sharpen menu options
+    ui->comboBox_Sharpen->addItem("Sharpen");   //index 0 (default)
+    ui->comboBox_Sharpen->addItem("Unsharpen"); //index 1
 
     menuValues = new int [5];
 }

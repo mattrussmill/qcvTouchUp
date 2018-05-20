@@ -22,7 +22,7 @@ public slots:
     void doSetHistogramDstAddress(uint **histo);
     void doCopyRGBBufferToMasterBuffer();
     void doDisplayMasterBuffer();
-    void doAdjustmentsComputation(float *parameterArray);
+    void doAdjustmentsComputation(QVector<float> parameter);
     void doSmoothFilterComputation(int *parameterArray);
     void doSharpenFilterComputation(int *parameterArray);
     void doEdgeFilterComputation(int *parameterArray);

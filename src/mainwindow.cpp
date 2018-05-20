@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(imageWorker, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
     //connect necessary worker thread - adjustmenu / ui slots
-    connect(adjustMenu, SIGNAL(performImageAdjustments(float*)), imageWorker, SLOT(doAdjustmentsComputation(float*)));
+    connect(adjustMenu, SIGNAL(performImageAdjustments(QVector<float>)), imageWorker, SLOT(doAdjustmentsComputation(QVector<float>)));
     connect(adjustMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
     connect(adjustMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 

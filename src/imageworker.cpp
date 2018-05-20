@@ -1,6 +1,7 @@
 #include "imageworker.h"
 #include "histogramwidget.h"
 #include "bufferwrappersqcv.h"
+#include "adjustmenu.h"
 #include <QImage>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -164,34 +165,22 @@ void ImageWorker::doDisplayMasterBuffer()
 /* Performs the image adjustment operations from the Adjust menu in the GUI. If the images
  * exist in memory the function locks the mutex and copies the necessary parameters before
  * performing the desired operations only for the corresponding sliders in the .ui file that
- * have changed from their default value.*/
-void ImageWorker::doAdjustmentsComputation(float *parameterArray)
+ * have changed from their default value. Using a QVector forces a copy when passing information*/
+void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
 {
     //check to make sure all working arrays are allocated
     if(dstRGBImage == nullptr || masterRGBImage == nullptr)
         return;
 
     mutex->lock();
-    emit updateStatus("Applying changes..."); //THIS IS NOT WORKING
-    //create local copies of all parameters so a race condition does not exist mid-operation
-    float alpha = parameterArray[1];
-    float beta = parameterArray[0];
-    float depth = parameterArray[2];
-    float hue = parameterArray[3];
-    float saturation = parameterArray[4];
-    float intensity = parameterArray[5];
-    float gamma = parameterArray[6];
-    float highlight = parameterArray[7];
-    float shadow = parameterArray[8];
-    float color = parameterArray[9];
-
+    emit updateStatus("Applying changes...");
     *dstRGBImage = masterRGBImage->clone();
 
-    //adjust the number of colors available of not at initial value of 255 --- PUT THIS AT BEGINNING?
-    if(depth < 255)
+    //adjust the number of colors available of not at initial value of 255
+    if(parameter.at(AdjustMenu::Depth) < 255)
     {
         //create and normalize LUT from 0 to largest intensity value, then scale from 0 to 255
-        float scaleFactor = depth / 255;
+        float scaleFactor = parameter.at(AdjustMenu::Depth) / 255;
         cv::Mat lookUpTable(1, 256, CV_8U);
         for(int i = 0; i < 256; i++)
             lookUpTable.data[i] = round(round(i * scaleFactor) / scaleFactor);
@@ -201,22 +190,23 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
     }
 
     //perform operations on hue, intensity, and saturation channels.
-    if(hue != 0.0 || intensity != 0.0 || saturation != 0.0 || gamma != 1.0
-            || highlight != 0.0 || shadow != 0.0)
+    if(parameter.at(AdjustMenu::Hue) != 0.0 || parameter.at(AdjustMenu::Intensity) != 0.0
+            || parameter.at(AdjustMenu::Saturation) != 0.0 || parameter.at(AdjustMenu::Gamma) != 1.0
+            || parameter.at(AdjustMenu::Highlight) != 0.0 || parameter.at(AdjustMenu::Shadows) != 0.0)
     {
         cv::cvtColor(*dstRGBImage, *srcTmpImage, cv::COLOR_RGB2HLS);
         cv::split(*srcTmpImage, splitChannelsTmp);
 
         /* openCv hue is stored as 360/2 since uchar cannot store above 255 so a LUT is populated
          * from 0 to 180 and phase shifted between -180 and 180 based on slider input. */
-        if(hue != 0.0)
+        if(parameter.at(AdjustMenu::Hue) != 0.0)
         {
             //populate LUT to map the current values to correct phase (only 180 cells used)
             int hueShifted;
             cv::Mat lookUpTable(1, 256, CV_8UC1);
             for(int i = 0; i < 180; i++)
             {
-                hueShifted = i + hue;
+                hueShifted = i + parameter.at(AdjustMenu::Hue);
                 if(hueShifted < 0)
                     hueShifted += 180;
                 else if(hueShifted > 179)
@@ -227,15 +217,16 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
         }
 
         //adjust the intensity
-        if(intensity != 0)
-            splitChannelsTmp.at(1).convertTo(splitChannelsTmp[1], -1, 1.0, intensity); 
+        if(parameter.at(AdjustMenu::Intensity) != 0)
+            splitChannelsTmp.at(1).convertTo(splitChannelsTmp[1], -1, 1.0, parameter.at(AdjustMenu::Intensity));
 
         //adjust the saturation
-        if(saturation != 0)
-            splitChannelsTmp.at(2).convertTo(splitChannelsTmp[2], -1, 1.0, saturation);
+        if(parameter.at(AdjustMenu::Saturation) != 0)
+            splitChannelsTmp.at(2).convertTo(splitChannelsTmp[2], -1, 1.0, parameter.at(AdjustMenu::Saturation));
 
         //adjust gamma by 255(i/255)^(1/gamma) where gamma 0.5 to 3.0
-        if(gamma != 1.0 || highlight != 0.0 || shadow != 0.0)
+        if(parameter.at(AdjustMenu::Gamma) != 1.0 || parameter.at(AdjustMenu::Highlight) != 0.0
+                || parameter.at(AdjustMenu::Shadows) != 0.0)
         {
             //fill LUT for gamma adjustment
             float tmpGamma;
@@ -243,27 +234,27 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
             for(int i = 0; i < 256; i++)
             {
                 //adjust gamma
-                tmpGamma = 255.0 * pow(i / 255.0, 1.0 / gamma);
+                tmpGamma = 255.0 * pow(i / 255.0, 1.0 / parameter.at(AdjustMenu::Gamma));
 
                 /* Bound the shadow adjustment to all pixels below 149 such that the x axis is not
                  * crossed (output is not fliped) in the adjustment equation -(x/50.0)^4 + x and is
                  * handled as a step function. Function is deisned to taper towards zero as the bound
                  * is approached in conjunction with the highlight adjustment. Equation inverted for
                  * subtraction. Shadow operates on the gamma adjusted LUT from a range of -80 to 80*/
-                if(i < 149 && shadow != 0.0)
+                if(i < 149 && parameter.at(AdjustMenu::Shadows) != 0.0)
                 {
                     float tmpShadow;
-                    if(shadow > 0.0)
+                    if(parameter.at(AdjustMenu::Shadows) > 0.0)
                     {
                         //-(x/50.0)^4 + shadow
-                        tmpShadow = -1 * pow(i / 50.0, 4) + shadow;
+                        tmpShadow = -1 * pow(i / 50.0, 4) + parameter.at(AdjustMenu::Shadows);
                         if(tmpShadow > 0)
                             tmpGamma += tmpShadow;
                     }
                     else
                     {
                         //(x/50.0)^4 - shadow .. (shadow is negative)
-                        tmpShadow = pow(i / 50.0, 4) + shadow;
+                        tmpShadow = pow(i / 50.0, 4) + parameter.at(AdjustMenu::Shadows);
                         if(tmpShadow < 0)
                             tmpGamma += tmpShadow;
                     }
@@ -274,20 +265,20 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
                  * handled as a step function. Function is deisned to taper towards zero as the bound
                  * is approached in conjunction with the highlight adjustment.Equation inverted for
                  * subtraction. Highlight operates on the gamma adjusted LUT from a range of -80 to 80*/
-                if(i > 106 && highlight != 0.0)
+                if(i > 106 && parameter.at(AdjustMenu::Highlight) != 0.0)
                 {
                     float tmpHighlight;
-                    if(highlight > 0.0)
+                    if(parameter.at(AdjustMenu::Highlight) > 0.0)
                     {
                         //-(x/50.0 - 5.1)^4 + highlight
-                        tmpHighlight = -1 * pow(i / 50.0 - 5.1, 4) + highlight;
+                        tmpHighlight = -1 * pow(i / 50.0 - 5.1, 4) + parameter.at(AdjustMenu::Highlight);
                         if(tmpHighlight > 0)
                             tmpGamma += tmpHighlight;
                     }
                     else
                     {
                         //(x/50.0 - 5.1)^4 - highlight .. (highlight is negative)
-                        tmpHighlight = pow(i / 50.0 - 5.1, 4) + highlight;
+                        tmpHighlight = pow(i / 50.0 - 5.1, 4) + parameter.at(AdjustMenu::Highlight);
                         if(tmpHighlight < 0)
                             tmpGamma += tmpHighlight;
                     }
@@ -312,7 +303,7 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
     }
 
     //convert from color to grayscale if != 1.0
-    if(color != 1.0)
+    if(parameter.at(AdjustMenu::Color) != 1.0)
     {
         cv::cvtColor(*dstRGBImage, splitChannelsTmp[0], cv::COLOR_RGB2GRAY);
         splitChannelsTmp.at(0).copyTo(splitChannelsTmp.at(1));
@@ -321,8 +312,11 @@ void ImageWorker::doAdjustmentsComputation(float *parameterArray)
     }
 
     //perform contrast and brightness operation if sliders are not at initial positions
-    if (beta != 0.0 || alpha != 1.0)
+    if (parameter.at(AdjustMenu::Brightness) != 0.0 || parameter.at(AdjustMenu::Contrast) != 1.0)
     {
+        float alpha = parameter.at(AdjustMenu::Contrast);
+        float beta = parameter.at(AdjustMenu::Brightness);
+
         //calculate brightness correction
         if(alpha >= 1)
             beta += -72.8 * log2(alpha);
@@ -394,6 +388,10 @@ void ImageWorker::doSmoothFilterComputation(int *parameterArray)
 void ImageWorker::doSharpenFilterComputation(int *parameterArray)
 {
 
+    //https://stackoverflow.com/questions/4993082/how-to-sharpen-an-image-in-opencv
+    //http://answers.opencv.org/question/184384/sharpen-image-by-blurring-and-then-adding-both-images/
+    //https://en.wikipedia.org/wiki/Unsharp_masking
+
 }
 
 void ImageWorker::doEdgeFilterComputation(int *parameterArray)
@@ -423,7 +421,7 @@ void ImageWorker::doReconstructFilterComputation(int *parameterArray)
 
 
 
-///////////////////////////////--- Adjust Menu Computations ---///////////////////////////////
+///////////////////////--- OTHER Computations NOT SURE IF KEEPING? ---/////////////////////////
 
 /* This member function is used when a histogram buffer must be directly operated on instead of
  * regenerating the histogram from a source image. Given the source and destination histogram

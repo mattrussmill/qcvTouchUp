@@ -44,10 +44,14 @@
 
 #include "mainwindow.h"
 #include <QApplication>
+#include <QMetaType>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    //types registered for queued signal/slot connections
+    qRegisterMetaType<QVector<float>>("QVector<float>");
 
     MainWindow w;
     w.show();
