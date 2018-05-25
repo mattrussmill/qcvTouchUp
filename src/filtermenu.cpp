@@ -3,6 +3,7 @@
 #include "ui_filtermenu.h"
 #include <QDebug>
 
+
 FilterMenu::FilterMenu(QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::FilterMenu)
@@ -11,9 +12,9 @@ FilterMenu::FilterMenu(QWidget *parent) :
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
 
     //setup smooth menu options
-    ui->comboBox_Smooth->addItem("Average");    //index 0 (default)
-    ui->comboBox_Smooth->addItem("Gaussian");   //index 1
-    ui->comboBox_Smooth->addItem("Median");     //index 2
+    ui->comboBox_Smooth->addItem("Average");    //comboBox index 0 (default)
+    ui->comboBox_Smooth->addItem("Gaussian");   //comboBox index 1
+    ui->comboBox_Smooth->addItem("Median");     //comboBox index 2
     ui->comboBox_Smooth->installEventFilter(wheelFilter);
     ui->horizontalSlider_SmoothRadius->installEventFilter(wheelFilter);
     ui->horizontalSlider_SmoothWeight->installEventFilter(wheelFilter);
@@ -23,16 +24,14 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
 
     //setup sharpen menu options
-    ui->comboBox_Sharpen->addItem("Sharpen");   //index 0 (default)
-    ui->comboBox_Sharpen->addItem("Unsharpen"); //index 1
+    ui->comboBox_Sharpen->addItem("Sharpen");   //comboBox index 0 (default)
+    ui->comboBox_Sharpen->addItem("Unsharpen"); //comboBox index 1
 
-    menuValues = new int [5];
+    menuValues.resize(5);
 }
 
 FilterMenu::~FilterMenu()
 {
-    if(menuValues)
-        delete menuValues;
     delete ui;
 }
 
@@ -47,9 +46,9 @@ void FilterMenu::collectBlurParameters()
     //if filter not enabled, do nothing
     if(!ui->radioButton_SmoothEnable->isChecked()) return;
 
-    menuValues[0] = ui->comboBox_Smooth->currentIndex();
-    menuValues[1] = ui->horizontalSlider_SmoothRadius->value() | 1; //r must be odd
-    menuValues[2] = ui->horizontalSlider_SmoothWeight->value();
+    menuValues[KernelType] = ui->comboBox_Smooth->currentIndex();
+    menuValues[KernelRadius] = ui->horizontalSlider_SmoothRadius->value() | 1; //r must be odd
+    menuValues[KernelWeight] = ui->horizontalSlider_SmoothWeight->value();
 
     emit performImageBlur(menuValues);
 }
@@ -57,7 +56,7 @@ void FilterMenu::collectBlurParameters()
 //Sets the SmoothWeight (sigma) slider to be disabled when Gaussian Blur is not selected.
 void FilterMenu::on_comboBox_Smooth_currentIndexChanged(int index)
 {
-    if(index == 1)
+    if(index == FilterGaussian) // 1
         ui->horizontalSlider_SmoothWeight->setEnabled(true);
     else
         ui->horizontalSlider_SmoothWeight->setEnabled(false);

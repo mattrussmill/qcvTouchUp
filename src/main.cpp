@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 
     //types registered for queued signal/slot connections
     qRegisterMetaType<QVector<float>>("QVector<float>");
+    qRegisterMetaType<QVector<int>>("QVector<int>");
 
     MainWindow w;
     w.show();

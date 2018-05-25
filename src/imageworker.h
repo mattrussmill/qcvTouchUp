@@ -23,11 +23,11 @@ public slots:
     void doCopyRGBBufferToMasterBuffer();
     void doDisplayMasterBuffer();
     void doAdjustmentsComputation(QVector<float> parameter);
-    void doSmoothFilterComputation(int *parameterArray);
-    void doSharpenFilterComputation(int *parameterArray);
-    void doEdgeFilterComputation(int *parameterArray);
-    void doNoiseFilterComputation(int *parameterArray);
-    void doReconstructFilterComputation(int *parameterArray);
+    void doSmoothFilterComputation(QVector<int> parameter);
+    void doSharpenFilterComputation(QVector<int> parameter);
+    void doEdgeFilterComputation(QVector<int> parameter);
+    void doNoiseFilterComputation(QVector<int> parameter);
+    void doReconstructFilterComputation(QVector<int> parameter);
 
 
 signals:

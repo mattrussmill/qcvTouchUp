@@ -2,6 +2,7 @@
 #include "histogramwidget.h"
 #include "bufferwrappersqcv.h"
 #include "adjustmenu.h"
+#include "filtermenu.h"
 #include <QImage>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -176,7 +177,8 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
     emit updateStatus("Applying changes...");
     *dstRGBImage = masterRGBImage->clone();
 
-    //adjust the number of colors available of not at initial value of 255
+
+    //--adjust the number of colors available of not at initial value of 255
     if(parameter.at(AdjustMenu::Depth) < 255)
     {
         //create and normalize LUT from 0 to largest intensity value, then scale from 0 to 255
@@ -189,7 +191,8 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
         cv::LUT(*dstRGBImage, lookUpTable, *dstRGBImage);
     }
 
-    //perform operations on hue, intensity, and saturation channels.
+
+    //--perform operations on hue, intensity, and saturation color space if values are not set to initial
     if(parameter.at(AdjustMenu::Hue) != 0.0 || parameter.at(AdjustMenu::Intensity) != 0.0
             || parameter.at(AdjustMenu::Saturation) != 0.0 || parameter.at(AdjustMenu::Gamma) != 1.0
             || parameter.at(AdjustMenu::Highlight) != 0.0 || parameter.at(AdjustMenu::Shadows) != 0.0)
@@ -297,12 +300,12 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
             cv::LUT(splitChannelsTmp.at(1), lookUpTable, splitChannelsTmp[1]);
         }
 
-
         cv::merge(splitChannelsTmp, *dstTmpImage);
         cv::cvtColor(*dstTmpImage, *dstRGBImage, cv::COLOR_HLS2RGB);
     }
 
-    //convert from color to grayscale if != 1.0
+
+    //--convert from color to grayscale if != 1.0
     if(parameter.at(AdjustMenu::Color) != 1.0)
     {
         cv::cvtColor(*dstRGBImage, splitChannelsTmp[0], cv::COLOR_RGB2GRAY);
@@ -311,7 +314,8 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
         cv::merge(splitChannelsTmp, *dstRGBImage);
     }
 
-    //perform contrast and brightness operation if sliders are not at initial positions
+
+    //--perform contrast and brightness operation if sliders are not at initial positions
     if (parameter.at(AdjustMenu::Brightness) != 0.0 || parameter.at(AdjustMenu::Contrast) != 1.0)
     {
         float alpha = parameter.at(AdjustMenu::Contrast);
@@ -327,10 +331,11 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
         dstRGBImage->convertTo(*dstRGBImage, -1, alpha, beta);
     }
 
+
     //after computation is complete, push image and histogram to GUI if changes were made
     *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
     HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
-    emit updateStatus(""); //THIS IS NOT WORKING
+    emit updateStatus("");
     mutex->unlock();
     emit resultImageUpdate(imageWrapper);
     emit resultHistoUpdate();
@@ -344,7 +349,7 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
  * The parameterArray passes all the necessary parameters to the worker thread based on
  * the openCV functions it calls. The kernel size cannot be larger than 21 px, limited
  * by the slider in the FilterMenu.*/
-void ImageWorker::doSmoothFilterComputation(int *parameterArray)
+void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
     if(dstRGBImage == nullptr || masterRGBImage == nullptr)
@@ -353,24 +358,26 @@ void ImageWorker::doSmoothFilterComputation(int *parameterArray)
     mutex->lock();
     emit updateStatus("Applying changes...");
 
-    switch (parameterArray[0]) //index 0 indicates the filter to use
+    switch (parameter.at(FilterMenu::KernelType))
     {
 
-    case 1:
+    case FilterMenu::FilterGaussian:
     {
         //For Gaussian, parameterArray[2] ranges from 1 to 100. Divide by 10 to get sigma.
-        cv::GaussianBlur(*masterRGBImage, *dstRGBImage, cv::Size(parameterArray[1],parameterArray[1]),
-                parameterArray[2] / 10.0, parameterArray[2] / 10.0);
+        cv::GaussianBlur(*masterRGBImage, *dstRGBImage,
+                         cv::Size(parameter.at(FilterMenu::KernelRadius), parameter.at(FilterMenu::KernelRadius)),
+                         parameter.at(FilterMenu::KernelWeight) / 10.0, parameter.at(FilterMenu::KernelWeight) / 10.0);
         break;
     }
-    case 2:
+    case FilterMenu::FilterMedian:
     {
-        cv::medianBlur(*masterRGBImage, *dstRGBImage, parameterArray[1]);
+        cv::medianBlur(*masterRGBImage, *dstRGBImage, parameter.at(FilterMenu::KernelRadius));
         break;
     }
-    default:
+    default: //FilterMenu::FilterAverage
     {
-        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(parameterArray[1],parameterArray[1]));
+        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(parameter.at(FilterMenu::KernelRadius),
+                                                         parameter.at(FilterMenu::KernelRadius)));
         break;
     }
     }
@@ -385,7 +392,7 @@ void ImageWorker::doSmoothFilterComputation(int *parameterArray)
 
 }
 
-void ImageWorker::doSharpenFilterComputation(int *parameterArray)
+void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 {
 
     //https://stackoverflow.com/questions/4993082/how-to-sharpen-an-image-in-opencv
@@ -394,17 +401,17 @@ void ImageWorker::doSharpenFilterComputation(int *parameterArray)
 
 }
 
-void ImageWorker::doEdgeFilterComputation(int *parameterArray)
+void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 {
 
 }
 
-void ImageWorker::doNoiseFilterComputation(int *parameterArray)
+void ImageWorker::doNoiseFilterComputation(QVector<int> parameter)
 {
 
 }
 
-void ImageWorker::doReconstructFilterComputation(int *parameterArray)
+void ImageWorker::doReconstructFilterComputation(QVector<int> parameter)
 {
 
 }

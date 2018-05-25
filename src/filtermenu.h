@@ -2,6 +2,7 @@
 #define FILTERMENU_H
 
 #include <QScrollArea>
+#include <QVector>
 
 namespace Ui {
 class FilterMenu;
@@ -14,17 +15,32 @@ class FilterMenu : public QScrollArea
 public:
     explicit FilterMenu(QWidget *parent = 0);
     ~FilterMenu();
+    enum ParameterIndex
+    {
+        FilterAverage   = 0,
+        FilterGaussian  = 1,
+        FilterMedian    = 2,
+        FilterSharpen   = 0,
+        FilterUnsharpen = 1,
+
+        KernelType      = 0,
+        KernelRadius    = 1,
+        KernelWeight    = 2
+
+
+
+    };
 
 public slots:
     void initializeMenu();
 //    void setVisible(bool visible) override;
 
 signals:
-    performImageBlur(int*);
-    performImageSharpen(int*);
-    performImageEdgeDetect(int*);
-    performImageNoiseRemove(int*);
-    performImageReconstruct(int*);
+    performImageBlur(QVector<int>);
+    performImageSharpen(QVector<int>);
+    performImageEdgeDetect(QVector<int>);
+    performImageNoiseRemove(QVector<int>);
+    performImageReconstruct(QVector<int>);
     cancelAdjustments();
     applyAdjustments();
 
@@ -35,7 +51,7 @@ private slots:
 
 private:
     Ui::FilterMenu *ui;
-    int *menuValues;
+    QVector<int> menuValues;
 };
 
 #endif // FILTERMENU_H

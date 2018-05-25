@@ -57,11 +57,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(adjustMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 
     //connect necessary worker thread - filtermenu / ui slots
-    connect(filterMenu, SIGNAL(performImageBlur(int*)), imageWorker, SLOT(doSmoothFilterComputation(int*)));
-    connect(filterMenu, SIGNAL(performImageSharpen(int*)), imageWorker, SLOT(doSharpenFilterComputation(int*)));
-    connect(filterMenu, SIGNAL(performImageEdgeDetect(int*)), imageWorker, SLOT(doEdgeFilterComputation(int*)));
-    connect(filterMenu, SIGNAL(performImageNoiseRemove(int*)), imageWorker, SLOT(doNoiseFilterComputation(int*)));
-    connect(filterMenu, SIGNAL(performImageReconstruct(int*)), imageWorker, SLOT(doNoiseFilterComputation(int*)));
+    connect(filterMenu, SIGNAL(performImageBlur(QVector<int>)), imageWorker, SLOT(doSmoothFilterComputation(QVector<int>)));
+    connect(filterMenu, SIGNAL(performImageSharpen(QVector<int>)), imageWorker, SLOT(doSharpenFilterComputation(QVector<int>)));
+    connect(filterMenu, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker, SLOT(doEdgeFilterComputation(QVector<int>)));
+    connect(filterMenu, SIGNAL(performImageNoiseRemove(QVector<int>)), imageWorker, SLOT(doNoiseFilterComputation(QVector<int>)));
+    connect(filterMenu, SIGNAL(performImageReconstruct(QVector<int>)), imageWorker, SLOT(doNoiseFilterComputation(QVector<int>)));
     connect(filterMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
     connect(filterMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 
