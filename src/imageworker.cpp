@@ -343,12 +343,31 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
 
 
 ///////////////////////////////--- Filter Menu Computations ---///////////////////////////////
+/* Sets the kernel radius for a filter to a maximum of 0.015 times the smallest image dimension.
+ * The kernel size is then scaled between 1 and 100% of its maximum size through weightPercent.
+ * The result of this function must also always be odd. */
+int ImageWorker::kernelSize(QSize image, int weightPercent)
+{
+    int ksize;
+    if(image.width() > image.height())
+        ksize = image.height();
+    else
+        ksize = image.width();
+
+    if(weightPercent > 100)
+        weightPercent = 100;
+    else if(weightPercent < 1)
+        weightPercent = 1;
+
+    ksize *= 0.015 * (weightPercent / 100.0);
+
+    return ksize | 1;
+}
 
 /* Performs the smoothing operations from the Filter menu in the GUI. Switch statement
  * selects the type of smoothing that will be applied to the image in the master buffer.
  * The parameterArray passes all the necessary parameters to the worker thread based on
- * the openCV functions it calls. The kernel size cannot be larger than 21 px, limited
- * by the slider in the FilterMenu.*/
+ * the openCV functions it calls.*/
 void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
@@ -358,26 +377,26 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
     mutex->lock();
     emit updateStatus("Applying changes...");
 
+    int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
+                          parameter.at(FilterMenu::KernelWeight));
+
     switch (parameter.at(FilterMenu::KernelType))
     {
 
     case FilterMenu::FilterGaussian:
     {
-        //For Gaussian, parameterArray[2] ranges from 1 to 100. Divide by 10 to get sigma.
-        cv::GaussianBlur(*masterRGBImage, *dstRGBImage,
-                         cv::Size(parameter.at(FilterMenu::KernelRadius), parameter.at(FilterMenu::KernelRadius)),
-                         parameter.at(FilterMenu::KernelWeight) / 10.0, parameter.at(FilterMenu::KernelWeight) / 10.0);
+        //For Gaussian, sigma should be 1/4 size of kernel.
+        cv::GaussianBlur(*masterRGBImage, *dstRGBImage, cv::Size(ksize, ksize), ksize * 0.25);
         break;
     }
     case FilterMenu::FilterMedian:
     {
-        cv::medianBlur(*masterRGBImage, *dstRGBImage, parameter.at(FilterMenu::KernelRadius));
+        cv::medianBlur(*masterRGBImage, *dstRGBImage, ksize);
         break;
     }
     default: //FilterMenu::FilterAverage
     {
-        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(parameter.at(FilterMenu::KernelRadius),
-                                                         parameter.at(FilterMenu::KernelRadius)));
+        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(ksize, ksize));
         break;
     }
     }
@@ -394,6 +413,43 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 
 void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 {
+    //check to make sure all working arrays are allocated
+    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
+        return;
+
+    mutex->lock();
+    emit updateStatus("Applying changes...");
+
+    int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
+                          parameter.at(FilterMenu::KernelWeight));
+
+    switch (parameter.at(FilterMenu::KernelType))
+    {
+
+    case FilterMenu::FilterUnsharpen:
+    {
+        cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(ksize, ksize), ksize * 0.25);
+        cv::addWeighted(*masterRGBImage, 1.5, *srcTmpImage, -0.5, 0, *dstRGBImage, masterRGBImage->depth());
+        break;
+    }
+    default: //FilterMenu::FilterSharpen
+    {
+        //cv::Laplacian(*masterRGBImage, *dstRGBImage, CV_8USC, parameter.at(FilterMenu::KernelRadius));
+        //add highpass filter results to master?
+        //qDebug() << QString::number(masterRGBImage->depth());
+        break;
+    }
+    }
+
+
+    //after computation is complete, push image and histogram to GUI if changes were made
+    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
+    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
+    emit updateStatus("");
+    mutex->unlock();
+    emit resultImageUpdate(imageWrapper);
+    emit resultHistoUpdate();
+
 
     //https://stackoverflow.com/questions/4993082/how-to-sharpen-an-image-in-opencv
     //http://answers.opencv.org/question/184384/sharpen-image-by-blurring-and-then-adding-both-images/

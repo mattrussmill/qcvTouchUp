@@ -46,6 +46,7 @@ private:
                               uint** destination, void *fnPtrParameter = nullptr, int numberOfChannels = 3);
     float histogramContrastSorter(int pixel, void *alpha);
     float histogramBrightnessSorter(int pixel, void *beta);
+    int kernelSize(QSize image, int weightPercent);
 
     //working image buffers (if heap allocated - for sharing between threads)
     std::vector <cv::Mat> splitChannelsTmp;

@@ -24,8 +24,7 @@ public:
         FilterUnsharpen = 1,
 
         KernelType      = 0,
-        KernelRadius    = 1,
-        KernelWeight    = 2
+        KernelWeight    = 1
 
 
 
@@ -46,8 +45,7 @@ signals:
 
 private slots:
     void collectBlurParameters();
-
-    void on_comboBox_Smooth_currentIndexChanged(int index);
+    void collectSharpenParameters();
 
 private:
     Ui::FilterMenu *ui;
