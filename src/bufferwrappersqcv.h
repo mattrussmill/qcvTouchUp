@@ -58,6 +58,7 @@ namespace qcv
     QString getMatType(const Mat &image);
     QImage cvMatToQImage(const Mat &image, const bool implicitBuffer = true);
     Mat qImageToCvMat(const QImage &image, const bool implicitBuffer = true);
+    void printMatToDebug(const Mat &mat);
 }
 
 #endif // BUFFERWRAPPERSQCV_H

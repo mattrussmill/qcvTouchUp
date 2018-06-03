@@ -20,8 +20,9 @@ public:
         FilterAverage   = 0,
         FilterGaussian  = 1,
         FilterMedian    = 2,
-        FilterSharpen   = 0,
-        FilterUnsharpen = 1,
+
+        FilterUnsharpen = 0,
+        FilterLaplacian = 1,
 
         KernelType      = 0,
         KernelWeight    = 1

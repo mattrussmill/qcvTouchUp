@@ -24,14 +24,12 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
 
     //setup sharpen menu options
-    ui->comboBox_Sharpen->addItem("Sharpen");   //comboBox index 0 (default)
-    ui->comboBox_Sharpen->addItem("Unsharpen"); //comboBox index 1
+    ui->comboBox_Sharpen->addItem("Unsharpen"); //comboBox index 0 (default)
+    ui->comboBox_Sharpen->addItem("Laplacian"); //comboBox index 1
     ui->comboBox_Sharpen->installEventFilter(wheelFilter);
-    //ui->horizontalSlider_SharpenRadius->installEventFilter(wheelFilter);
     ui->horizontalSlider_SharpenWeight->installEventFilter(wheelFilter);
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(collectSharpenParameters()));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
-   // connect(ui->horizontalSlider_SharpenRadius, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
 
     menuValues.resize(5);

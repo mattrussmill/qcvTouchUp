@@ -364,6 +364,64 @@ int ImageWorker::kernelSize(QSize image, int weightPercent)
     return ksize | 1;
 }
 
+/* Creates
+ *
+ */
+cv::Mat ImageWorker::makeLaplacianKernel(int size)
+{
+    Q_ASSERT(size > 0);
+
+    size |= 1; //must be odd
+    int matCenter = size >> 1;
+
+    //fill new kernel with zeroes
+    cv::Mat newKernel = cv::Mat::zeros(size, size, CV_32F);
+
+    //fill matrix from center; traverse approx 1/4 elements
+    int kernelPoint;
+    int kernelSum = 0;
+    for(int i = 0; i < matCenter + 1; i++)
+    {
+        for(int j = 0; j < matCenter + 1; j++)
+        {
+            kernelPoint = -(1 + i + j - matCenter);
+            if (kernelPoint > 0) kernelPoint = 0;
+
+            //top left
+            newKernel.at<float>(cv::Point(i, j)) = kernelPoint;
+
+            //bottom right
+            newKernel.at<float>(cv::Point(size - i - 1, size - j - 1)) = kernelPoint;
+
+            //do not write & count multiple times and to sum properly
+            if(i != size >> 1 && j != size >> 1)
+            {
+                kernelSum += kernelPoint * 4;
+
+                //top right
+                newKernel.at<float>(cv::Point(size - i - 1, j)) = kernelPoint;
+
+                //bottom left
+                newKernel.at<float>(cv::Point(i, size - j - 1)) = kernelPoint;
+            }
+            else
+            {
+                kernelSum += kernelPoint * 2;
+            }
+        }
+    }
+
+    //adjust the kernel sum to exclude the center point. Invert and set as center.
+    kernelSum -= newKernel.at<float>(cv::Point(matCenter, matCenter)) * 2;
+    newKernel.at<float>(cv::Point(matCenter, matCenter)) = -kernelSum;
+
+
+    //print matrix for testing purposes
+    qcv::printMatToDebug<float>(newKernel);
+
+    return newKernel;
+}
+
 /* Performs the smoothing operations from the Filter menu in the GUI. Switch statement
  * selects the type of smoothing that will be applied to the image in the master buffer.
  * The parameterArray passes all the necessary parameters to the worker thread based on
@@ -426,21 +484,19 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     switch (parameter.at(FilterMenu::KernelType))
     {
 
-    case FilterMenu::FilterUnsharpen:
+    case FilterMenu::FilterLaplacian:
+    {
+        makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight));
+        //cv::filter2D(*masterRGBImage, *dstRGBImage, CV_8U, )
+        break;
+    }
+    default: //FilterMenu::FilterUnsharpen
     {
         cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(ksize, ksize), ksize * 0.25);
         cv::addWeighted(*masterRGBImage, 1.5, *srcTmpImage, -0.5, 0, *dstRGBImage, masterRGBImage->depth());
         break;
     }
-    default: //FilterMenu::FilterSharpen
-    {
-        //cv::Laplacian(*masterRGBImage, *dstRGBImage, CV_8USC, parameter.at(FilterMenu::KernelRadius));
-        //add highpass filter results to master?
-        //qDebug() << QString::number(masterRGBImage->depth());
-        break;
     }
-    }
-
 
     //after computation is complete, push image and histogram to GUI if changes were made
     *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
@@ -449,12 +505,6 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     mutex->unlock();
     emit resultImageUpdate(imageWrapper);
     emit resultHistoUpdate();
-
-
-    //https://stackoverflow.com/questions/4993082/how-to-sharpen-an-image-in-opencv
-    //http://answers.opencv.org/question/184384/sharpen-image-by-blurring-and-then-adding-both-images/
-    //https://en.wikipedia.org/wiki/Unsharp_masking
-
 }
 
 void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
