@@ -369,8 +369,8 @@ int ImageWorker::kernelSize(QSize image, int weightPercent)
  */
 cv::Mat ImageWorker::makeLaplacianKernel(int size)
 {
-    Q_ASSERT(size > 0);
-
+    if(size < 1)
+        size = 1;
     size |= 1; //must be odd
     int matCenter = size >> 1;
 
@@ -414,11 +414,6 @@ cv::Mat ImageWorker::makeLaplacianKernel(int size)
     //adjust the kernel sum to exclude the center point. Invert and set as center.
     kernelSum -= newKernel.at<float>(cv::Point(matCenter, matCenter)) * 2;
     newKernel.at<float>(cv::Point(matCenter, matCenter)) = -kernelSum;
-
-
-    //print matrix for testing purposes
-    qcv::printMatToDebug<float>(newKernel);
-
     return newKernel;
 }
 
@@ -486,8 +481,9 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 
     case FilterMenu::FilterLaplacian:
     {
-        makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight));
-        //cv::filter2D(*masterRGBImage, *dstRGBImage, CV_8U, )
+        cv::filter2D(*masterRGBImage, *srcTmpImage, CV_8U,
+                     makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight) / 2));
+        cv::addWeighted(*masterRGBImage, .9, *srcTmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth());
         break;
     }
     default: //FilterMenu::FilterUnsharpen

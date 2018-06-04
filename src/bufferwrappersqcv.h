@@ -58,7 +58,28 @@ namespace qcv
     QString getMatType(const Mat &image);
     QImage cvMatToQImage(const Mat &image, const bool implicitBuffer = true);
     Mat qImageToCvMat(const QImage &image, const bool implicitBuffer = true);
-    void printMatToDebug(const Mat &mat);
+
+    /* Prints a single channel <float> Mat's contents to the debug stream in Qt.
+     * Convolution Kernels for input must be 32F for openCV, hence no template
+     * Templates must be instantiated in the header so it is visible to the
+     * translation unit that uses it (or separate header & included)*/
+    template <typename T> void printKernelMatToDebug(const Mat &mat)
+    {
+        if(mat.empty())
+        {
+            qDebug("cv::mat is empty - cannot print to debug");
+        }
+
+        QString output;
+
+        for(int i = 0; i < mat.cols * mat.rows; i++)
+        {
+            output.append(QString::number(mat.at<T>(i)) + " ");
+            if((i + 1) % mat.cols == 0)
+                output.append('\n');
+        }
+        qDebug(output.toLatin1());
+    }
 }
 
 #endif // BUFFERWRAPPERSQCV_H

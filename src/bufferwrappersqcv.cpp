@@ -156,24 +156,4 @@ namespace qcv
         return Mat();
     }
 
-    //Prints a single channel matrix's contents to the debug stream in Qt
-    template <typename T>
-    void printMatToDebug(const Mat &mat)
-    {
-        if(mat.empty())
-        {
-            qDebug("cv::mat is empty - cannot print to debug");
-        }
-
-        QString output;
-
-        for(int i = 0; i < mat.cols * mat.rows; i++)
-        {
-            output.append(QString::number(mat.at<T>(i)) + " ");
-            if((i + 1) % mat.cols == 0)
-                output.append('\n');
-        }
-        qDebug(output.toLatin1());
-    }
-
 }
