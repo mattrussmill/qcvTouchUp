@@ -364,9 +364,9 @@ int ImageWorker::kernelSize(QSize image, int weightPercent)
     return ksize | 1;
 }
 
-/* Creates
- *
- */
+/* Generates a 2D Laplacian kernel for use with OpenCV's Filter2D function. If the desired size is
+ * negative, the kernel will output a Mat with one element of 1. If passed an even size, the next
+ * greatest odd size is used.*/
 cv::Mat ImageWorker::makeLaplacianKernel(int size)
 {
     if(size < 1)
@@ -464,6 +464,10 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 
 }
 
+/* Performs the Sharpening operations from the Filter menu in the GUI. Switch statement
+ * selects the type of smoothing that will be applied to the image in the master buffer.
+ * The parameterArray passes all the necessary parameters to the worker thread based on
+ * the openCV functions it calls.*/
 void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
@@ -483,7 +487,7 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     {
         cv::filter2D(*masterRGBImage, *srcTmpImage, CV_8U,
                      makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight) / 2));
-        cv::addWeighted(*masterRGBImage, .9, *srcTmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth());
+        cv::addWeighted(*masterRGBImage, .9, *srcTmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth()); //<- fix brightness adjust
         break;
     }
     default: //FilterMenu::FilterUnsharpen
@@ -505,11 +509,57 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 
 void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 {
+    //check to make sure all working arrays are allocated
+    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
+        return;
 
+    mutex->lock();
+    emit updateStatus("Applying changes...");
+
+    //kernel size?
+
+    switch (parameter.at(FilterMenu::KernelType))
+    {
+
+    case FilterMenu::FilterLaplacian:
+    {
+        break;
+    }
+
+    case FilterMenu::FilterSobel:
+    {
+        break;
+    }
+
+    case FilterMenu::FilterDifferential:
+    {
+         //differential https://en.wikipedia.org/wiki/Edge_detection
+        //have to make this kernel and use filter2D + other stuff
+        break;
+    }
+
+    default: //FilterMenu::FilterCanny
+    {
+
+        break;
+    }
+    }
+
+    //v^v^v^ the starting and stopping operations can be function calls prepWorkerImageOp postWorkerImageOp
+
+    //after computation is complete, push image and histogram to GUI if changes were made
+    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
+    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
+    emit updateStatus("");
+    mutex->unlock();
+    emit resultImageUpdate(imageWrapper);
+    emit resultHistoUpdate();
 }
 
 void ImageWorker::doNoiseFilterComputation(QVector<int> parameter)
 {
+    //cv2.fastNlMeansDenoisingColored() https://docs.opencv.org/3.3.1/d5/d69/tutorial_py_non_local_means.html
+    //http://www.bogotobogo.com/python/OpenCV_Python/python_opencv3_Image_Non-local_Means_Denoising_Algorithm_Noise_Reduction.php
 
 }
 

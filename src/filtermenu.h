@@ -17,15 +17,19 @@ public:
     ~FilterMenu();
     enum ParameterIndex
     {
-        FilterAverage   = 0,
-        FilterGaussian  = 1,
-        FilterMedian    = 2,
+        FilterAverage       = 0,
+        FilterGaussian      = 1,
+        FilterMedian        = 2,
 
-        FilterUnsharpen = 0,
-        FilterLaplacian = 1,
+        FilterUnsharpen     = 0,
+        FilterLaplacian     = 1,
 
-        KernelType      = 0,
-        KernelWeight    = 1
+        FilterCanny         = 0,
+        FilterSobel         = 2,
+        FilterDifferential  = 3,
+
+        KernelType          = 0,
+        KernelWeight        = 1
 
 
 
@@ -47,6 +51,7 @@ signals:
 private slots:
     void collectBlurParameters();
     void collectSharpenParameters();
+    void collectEdgeDetectParameters();
 
 private:
     Ui::FilterMenu *ui;
