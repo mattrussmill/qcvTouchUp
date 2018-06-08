@@ -48,6 +48,8 @@ private:
     float histogramBrightnessSorter(int pixel, void *beta);
     int kernelSize(QSize image, int weightPercent);
     cv::Mat makeLaplacianKernel(int size);
+    void preImageOperationMutex();
+    void postImageOperationMutex();
 
     //working image buffers (if heap allocated - for sharing between threads)
     std::vector <cv::Mat> splitChannelsTmp;

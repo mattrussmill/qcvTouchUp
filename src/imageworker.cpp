@@ -159,6 +159,31 @@ void ImageWorker::doDisplayMasterBuffer()
     emit resultHistoUpdate();
 }
 
+/* Function does the pre-image checks and locks for the corresponding menu functions in the worker
+ * thread. First the destination and master buffers are checked for allocation. If they are the
+ * Mutex is locked and the statusbar updated to indicate work is being performed. */
+void ImageWorker::preImageOperationMutex()
+{
+    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
+        return;
+
+    mutex->lock();
+    emit updateStatus("Applying changes...");
+}
+
+/* Post image worker thread computation actions for corresponding menu functions. Push image in the
+ * destination buffer to the GUI after wrapping in compatible QImage. Generate histogram. Then
+ * unlock mutex and push both buffers to GUI to display changes.*/
+void ImageWorker::postImageOperationMutex()
+{
+    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
+    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
+    emit updateStatus("");
+    mutex->unlock();
+    emit resultImageUpdate(imageWrapper);
+    emit resultHistoUpdate();
+}
+
 
 
 ///////////////////////////////--- Adjust Menu Computations ---///////////////////////////////
@@ -169,14 +194,10 @@ void ImageWorker::doDisplayMasterBuffer()
  * have changed from their default value. Using a QVector forces a copy when passing information*/
 void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
 {
-    //check to make sure all working arrays are allocated
-    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
-        return;
+    preImageOperationMutex();
 
-    mutex->lock();
-    emit updateStatus("Applying changes...");
+    //clone necessary because internal checks will prevent GUI image from cycling.
     *dstRGBImage = masterRGBImage->clone();
-
 
     //--adjust the number of colors available of not at initial value of 255
     if(parameter.at(AdjustMenu::Depth) < 255)
@@ -333,12 +354,7 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
 
 
     //after computation is complete, push image and histogram to GUI if changes were made
-    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
-    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
-    emit updateStatus("");
-    mutex->unlock();
-    emit resultImageUpdate(imageWrapper);
-    emit resultHistoUpdate();
+    postImageOperationMutex();
 } //end doAdjustmentsComputation
 
 
@@ -424,11 +440,7 @@ cv::Mat ImageWorker::makeLaplacianKernel(int size)
 void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
-    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
-        return;
-
-    mutex->lock();
-    emit updateStatus("Applying changes...");
+    preImageOperationMutex();
 
     int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
                           parameter.at(FilterMenu::KernelWeight));
@@ -455,12 +467,7 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
     }
 
     //after computation is complete, push image and histogram to GUI if changes were made
-    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
-    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
-    emit updateStatus("");
-    mutex->unlock();
-    emit resultImageUpdate(imageWrapper);
-    emit resultHistoUpdate();
+    postImageOperationMutex();
 
 }
 
@@ -471,11 +478,7 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
-    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
-        return;
-
-    mutex->lock();
-    emit updateStatus("Applying changes...");
+    preImageOperationMutex();
 
     int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
                           parameter.at(FilterMenu::KernelWeight));
@@ -499,30 +502,23 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     }
 
     //after computation is complete, push image and histogram to GUI if changes were made
-    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
-    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
-    emit updateStatus("");
-    mutex->unlock();
-    emit resultImageUpdate(imageWrapper);
-    emit resultHistoUpdate();
+    postImageOperationMutex();
 }
 
 void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 {
-    //check to make sure all working arrays are allocated
-    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
-        return;
+    preImageOperationMutex();
 
-    mutex->lock();
-    emit updateStatus("Applying changes...");
-
-    //kernel size?
+    int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
+                          parameter.at(FilterMenu::KernelWeight));
 
     switch (parameter.at(FilterMenu::KernelType))
     {
 
     case FilterMenu::FilterLaplacian:
     {
+        cv::Laplacian(*masterRGBImage, *srcTmpImage, CV_8U, (ksize / 2) | 1);
+        //check if 1 channel. If so need to splice into 3 channels -> if all 3 do that, splice after.
         break;
     }
 
@@ -548,12 +544,7 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
     //v^v^v^ the starting and stopping operations can be function calls prepWorkerImageOp postWorkerImageOp
 
     //after computation is complete, push image and histogram to GUI if changes were made
-    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
-    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
-    emit updateStatus("");
-    mutex->unlock();
-    emit resultImageUpdate(imageWrapper);
-    emit resultHistoUpdate();
+    postImageOperationMutex();
 }
 
 void ImageWorker::doNoiseFilterComputation(QVector<int> parameter)
