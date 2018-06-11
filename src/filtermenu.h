@@ -26,7 +26,6 @@ public:
 
         FilterCanny         = 0,
         FilterSobel         = 2,
-        FilterDifferential  = 3,
 
         KernelType          = 0,
         KernelWeight        = 1
@@ -49,6 +48,7 @@ signals:
     applyAdjustments();
 
 private slots:
+    void adjustSharpenSliderRange(int value);
     void collectBlurParameters();
     void collectSharpenParameters();
     void collectEdgeDetectParameters();

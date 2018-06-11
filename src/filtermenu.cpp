@@ -28,13 +28,13 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->horizontalSlider_SharpenWeight->installEventFilter(wheelFilter);
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(collectSharpenParameters()));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
+    connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustSharpenSliderRange(int)));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
 
     //setup edge detect menu options
     ui->comboBox_Edge->addItem("Canny");        //comboBox index 0 (default)
     ui->comboBox_Edge->addItem("Laplacian");    //comboBox index 1 - must match above
     ui->comboBox_Edge->addItem("Sobel");        //comboBox index 2
-    ui->comboBox_Edge->addItem("Differential"); //comboBox index 3
     ui->comboBox_Edge->installEventFilter(wheelFilter);
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(collectEdgeDetectParameters()));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(collectEdgeDetectParameters()));
@@ -52,6 +52,24 @@ FilterMenu::~FilterMenu()
 void FilterMenu::initializeMenu()
 {
 
+}
+
+//Changes the slider range for the SharpenSlider based on the needs of the filter selected from the combo box.
+void FilterMenu::adjustSharpenSliderRange(int value)
+{
+    //if not default filter (unsharpen), switch to maximum value of 50 for no gap in slider values
+    if(value == FilterLaplacian)
+    {
+        ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->value() / 2);
+        ui->horizontalSlider_SharpenWeight->setMaximum(50);
+        ui->horizontalSlider_SharpenWeight->setPageStep(2);
+    }
+    else
+    {
+        ui->horizontalSlider_SharpenWeight->setMaximum(100);
+        ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->value() * 2);
+        ui->horizontalSlider_SharpenWeight->setPageStep(3);
+    }
 }
 
 //Populates the menuValues parameter and passes it to a worker slot for the Smooth operation.
@@ -87,5 +105,5 @@ void FilterMenu::collectEdgeDetectParameters()
     menuValues[KernelType] = ui->comboBox_Edge->currentIndex();
     menuValues[KernelWeight] = ui->horizontalSlider_EdgeWeight->value();
 
-    emit performImageSharpen(menuValues);
+    emit performImageEdgeDetect(menuValues);
 }

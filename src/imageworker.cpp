@@ -7,6 +7,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/photo/photo.hpp>
 #include <cmath>
 #include <QDebug>
 
@@ -161,14 +162,16 @@ void ImageWorker::doDisplayMasterBuffer()
 
 /* Function does the pre-image checks and locks for the corresponding menu functions in the worker
  * thread. First the destination and master buffers are checked for allocation. If they are the
- * Mutex is locked and the statusbar updated to indicate work is being performed. */
-void ImageWorker::preImageOperationMutex()
+ * Mutex is locked and the statusbar updated to indicate work is being performed. Returns false if
+ * allocation did not yet occur.*/
+bool ImageWorker::preImageOperationMutex()
 {
     if(dstRGBImage == nullptr || masterRGBImage == nullptr)
-        return;
+        return false;
 
     mutex->lock();
     emit updateStatus("Applying changes...");
+    return true;
 }
 
 /* Post image worker thread computation actions for corresponding menu functions. Push image in the
@@ -194,7 +197,7 @@ void ImageWorker::postImageOperationMutex()
  * have changed from their default value. Using a QVector forces a copy when passing information*/
 void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
 {
-    preImageOperationMutex();
+    if(!preImageOperationMutex()) return;
 
     //clone necessary because internal checks will prevent GUI image from cycling.
     *dstRGBImage = masterRGBImage->clone();
@@ -440,7 +443,7 @@ cv::Mat ImageWorker::makeLaplacianKernel(int size)
 void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
-    preImageOperationMutex();
+    if(!preImageOperationMutex()) return;
 
     int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
                           parameter.at(FilterMenu::KernelWeight));
@@ -478,7 +481,7 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
 void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
-    preImageOperationMutex();
+    if(!preImageOperationMutex()) return;
 
     int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
                           parameter.at(FilterMenu::KernelWeight));
@@ -488,9 +491,13 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 
     case FilterMenu::FilterLaplacian:
     {
-        cv::filter2D(*masterRGBImage, *srcTmpImage, CV_8U,
-                     makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight) / 2));
-        cv::addWeighted(*masterRGBImage, .9, *srcTmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth()); //<- fix brightness adjust
+        //blur first to reduce noise
+        cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(3, 3), 0);
+        cv::filter2D(*srcTmpImage, *srcTmpImage, CV_8U,
+                     makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight)));
+
+        //instead of blending, try to use lighten / darken on only the pixels visible per certain threshold in laplacian mask?
+        cv::addWeighted(*masterRGBImage, .9, *srcTmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth());
         break;
     }
     default: //FilterMenu::FilterUnsharpen
@@ -507,7 +514,7 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
 
 void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 {
-    preImageOperationMutex();
+    if(!preImageOperationMutex()) return;
 
     int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
                           parameter.at(FilterMenu::KernelWeight));
@@ -517,29 +524,29 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 
     case FilterMenu::FilterLaplacian:
     {
-        cv::Laplacian(*masterRGBImage, *srcTmpImage, CV_8U, (ksize / 2) | 1);
-        //check if 1 channel. If so need to splice into 3 channels -> if all 3 do that, splice after.
+        cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(3, 3), 0);
+        cv::Laplacian(*masterRGBImage, *dstRGBImage, CV_8U, ksize); //can have aperature size of 1/3/5/7
         break;
     }
 
     case FilterMenu::FilterSobel:
     {
-        break;
-    }
-
-    case FilterMenu::FilterDifferential:
-    {
-         //differential https://en.wikipedia.org/wiki/Edge_detection
-        //have to make this kernel and use filter2D + other stuff
+        //cv::Sobel(*masterRGBImage, *dstRGBImage, CV_8U, ) //can have aperature size of 1/3/5/7
+                qDebug() << "channels:" << QString::number(dstRGBImage->channels());
+                //https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/sobel_derivatives/sobel_derivatives.html
         break;
     }
 
     default: //FilterMenu::FilterCanny
     {
-
+        //cv::Canny()
         break;
     }
     }
+
+//    splitChannelsTmp.at(0).copyTo(splitChannelsTmp.at(1));
+//    splitChannelsTmp.at(0).copyTo(splitChannelsTmp.at(2));
+//    cv::merge(splitChannelsTmp, *dstRGBImage);
 
     //v^v^v^ the starting and stopping operations can be function calls prepWorkerImageOp postWorkerImageOp
 
@@ -551,6 +558,8 @@ void ImageWorker::doNoiseFilterComputation(QVector<int> parameter)
 {
     //cv2.fastNlMeansDenoisingColored() https://docs.opencv.org/3.3.1/d5/d69/tutorial_py_non_local_means.html
     //http://www.bogotobogo.com/python/OpenCV_Python/python_opencv3_Image_Non-local_Means_Denoising_Algorithm_Noise_Reduction.php
+
+    //denoise in photo.hpp?
 
 }
 
@@ -647,8 +656,8 @@ float ImageWorker::histogramBrightnessSorter(int pixel, void *beta)
 
 
 
-
-
+//explore cv photo lib for other menues later on
+//https://www.learnopencv.com/non-photorealistic-rendering-using-opencv-python-c/
 
 
 
