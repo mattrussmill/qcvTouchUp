@@ -27,8 +27,8 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Sharpen->installEventFilter(wheelFilter);
     ui->horizontalSlider_SharpenWeight->installEventFilter(wheelFilter);
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(collectSharpenParameters()));
-    connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustSharpenSliderRange(int)));
+    connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
 
     //setup edge detect menu options
@@ -37,6 +37,7 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Edge->addItem("Sobel");        //comboBox index 2
     ui->comboBox_Edge->installEventFilter(wheelFilter);
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(collectEdgeDetectParameters()));
+    connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustEdgeSliderRange(int)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(collectEdgeDetectParameters()));
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
@@ -72,6 +73,21 @@ void FilterMenu::adjustSharpenSliderRange(int value)
     }
 }
 
+//Changes the slider range for the EdgeSlider based on the needs of the filter selected from the combo box.
+void FilterMenu::adjustEdgeSliderRange(int value)
+{
+    //if canny filter, switch to minimum value to 1 (1*2+1=3) in passing slot for no gap in slider values
+    if(value == FilterCanny)
+    {
+        ui->horizontalSlider_EdgeWeight->setValue(1);
+        ui->horizontalSlider_EdgeWeight->setMinimum(1);
+    }
+    else
+    {
+        ui->horizontalSlider_EdgeWeight->setMinimum(0);
+    }
+}
+
 //Populates the menuValues parameter and passes it to a worker slot for the Smooth operation.
 void FilterMenu::collectBlurParameters()
 {
@@ -102,8 +118,9 @@ void FilterMenu::collectEdgeDetectParameters()
     //if filter not enabled, do nothing
     if(!ui->radioButton_EdgeEnable->isChecked()) return;
 
+    //sends values of 1/3/5/7 for opencv functions. Slider ranges from 0 to 3
     menuValues[KernelType] = ui->comboBox_Edge->currentIndex();
-    menuValues[KernelWeight] = ui->horizontalSlider_EdgeWeight->value();
+    menuValues[KernelWeight] = ui->horizontalSlider_EdgeWeight->value() * 2 + 1;
 
     emit performImageEdgeDetect(menuValues);
 }

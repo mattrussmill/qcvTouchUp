@@ -49,6 +49,7 @@ signals:
 
 private slots:
     void adjustSharpenSliderRange(int value);
+    void adjustEdgeSliderRange(int value);
     void collectBlurParameters();
     void collectSharpenParameters();
     void collectEdgeDetectParameters();

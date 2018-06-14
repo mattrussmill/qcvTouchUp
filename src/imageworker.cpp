@@ -495,8 +495,6 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
         cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(3, 3), 0);
         cv::filter2D(*srcTmpImage, *srcTmpImage, CV_8U,
                      makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight)));
-
-        //instead of blending, try to use lighten / darken on only the pixels visible per certain threshold in laplacian mask?
         cv::addWeighted(*masterRGBImage, .9, *srcTmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth());
         break;
     }
@@ -516,51 +514,51 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 {
     if(!preImageOperationMutex()) return;
 
-    int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
-                          parameter.at(FilterMenu::KernelWeight));
+    //blur first to reduce noise for high pass filter
+    cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(3, 3), 0);
 
     switch (parameter.at(FilterMenu::KernelType))
     {
 
+    //these opencv functions can have aperature size of 1/3/5/7
     case FilterMenu::FilterLaplacian:
     {
-        cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(3, 3), 0);
-        cv::Laplacian(*masterRGBImage, *dstRGBImage, CV_8U, ksize); //can have aperature size of 1/3/5/7
+        cv::Laplacian(*srcTmpImage, *dstRGBImage, CV_8U, parameter.at(FilterMenu::KernelWeight));
         break;
     }
 
     case FilterMenu::FilterSobel:
     {
-        //cv::Sobel(*masterRGBImage, *dstRGBImage, CV_8U, ) //can have aperature size of 1/3/5/7
-                qDebug() << "channels:" << QString::number(dstRGBImage->channels());
-                //https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/sobel_derivatives/sobel_derivatives.html
+        cv::Sobel(*srcTmpImage, *dstRGBImage, CV_8U, 1, 0, parameter.at(FilterMenu::KernelWeight));
+        cv::Sobel(*srcTmpImage, *srcTmpImage, CV_8U, 0, 1, parameter.at(FilterMenu::KernelWeight));
+        cv::addWeighted(*srcTmpImage, 0.5, *dstRGBImage, 0.5, 0, *dstRGBImage, masterRGBImage->depth());
         break;
     }
 
     default: //FilterMenu::FilterCanny
     {
-        //cv::Canny()
+        cv::Canny(*srcTmpImage, *dstRGBImage, 80, 200, parameter.at(FilterMenu::KernelWeight));
+        qDebug() << "channels:" << QString::number(dstRGBImage->channels());
         break;
     }
     }
-
-//    splitChannelsTmp.at(0).copyTo(splitChannelsTmp.at(1));
-//    splitChannelsTmp.at(0).copyTo(splitChannelsTmp.at(2));
-//    cv::merge(splitChannelsTmp, *dstRGBImage);
-
-    //v^v^v^ the starting and stopping operations can be function calls prepWorkerImageOp postWorkerImageOp
-
     //after computation is complete, push image and histogram to GUI if changes were made
     postImageOperationMutex();
 }
 
 void ImageWorker::doNoiseFilterComputation(QVector<int> parameter)
 {
+    //check to make sure all working arrays are allocated
+    if(!preImageOperationMutex()) return;
+
     //cv2.fastNlMeansDenoisingColored() https://docs.opencv.org/3.3.1/d5/d69/tutorial_py_non_local_means.html
     //http://www.bogotobogo.com/python/OpenCV_Python/python_opencv3_Image_Non-local_Means_Denoising_Algorithm_Noise_Reduction.php
+    cv::fastNlMeansDenoisingColored(*masterRGBImage, *dstRGBImage);
 
-    //denoise in photo.hpp?
+    //win search multiple of 3 of win size. h is weight slider for filter strength
 
+    //after computation is complete, push image and histogram to GUI if changes were made
+    postImageOperationMutex();
 }
 
 void ImageWorker::doReconstructFilterComputation(QVector<int> parameter)
