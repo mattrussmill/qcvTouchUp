@@ -29,21 +29,17 @@ public:
 
         KernelType          = 0,
         KernelWeight        = 1
-
-
-
     };
 
 public slots:
     void initializeMenu();
-//    void setVisible(bool visible) override;
+    void setVisible(bool visible) override;
 
 signals:
     performImageBlur(QVector<int>);
     performImageSharpen(QVector<int>);
     performImageEdgeDetect(QVector<int>);
     performImageNoiseRemove(QVector<int>);
-    performImageReconstruct(QVector<int>);
     cancelAdjustments();
     applyAdjustments();
 
@@ -53,6 +49,7 @@ private slots:
     void collectBlurParameters();
     void collectSharpenParameters();
     void collectEdgeDetectParameters();
+    void changeSampleImage();
 
 private:
     Ui::FilterMenu *ui;

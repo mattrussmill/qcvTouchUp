@@ -74,8 +74,7 @@ contains(QT_ARCH, i386):{
             -lopencv_highgui331d \
             -lopencv_imgcodecs331d \
             -lopencv_imgproc331d \
-            -lopencv_features2d331d \
-            -lopencv_calib3d331d
+            -lopencv_photo331d
     }
     CONFIG(release, debug|release){
         LIBS += -L$$(OPENCV3_SDK_DIR)/x86/mingw53/bin \
@@ -83,8 +82,7 @@ contains(QT_ARCH, i386):{
             -lopencv_highgui331 \
             -lopencv_imgcodecs331 \
             -lopencv_imgproc331 \
-            -lopencv_features2d331 \
-            -lopencv_calib3d331
+            -lopencv_photo331
     }
 }
 
@@ -97,8 +95,7 @@ contains(QT_ARCH, x86_64):{
             -lopencv_highgui331 \
             -lopencv_imgcodecs331 \
             -lopencv_imgproc331 \
-            -lopencv_features2d331 \
-            -lopencv_calib3d331
+            -lopencv_photo331
     } else:message(x86_64 debug NOT configured!)
 }
 

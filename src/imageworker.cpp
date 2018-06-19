@@ -550,20 +550,11 @@ void ImageWorker::doNoiseFilterComputation(QVector<int> parameter)
 {
     //check to make sure all working arrays are allocated
     if(!preImageOperationMutex()) return;
-
-    //cv2.fastNlMeansDenoisingColored() https://docs.opencv.org/3.3.1/d5/d69/tutorial_py_non_local_means.html
-    //http://www.bogotobogo.com/python/OpenCV_Python/python_opencv3_Image_Non-local_Means_Denoising_Algorithm_Noise_Reduction.php
-    cv::fastNlMeansDenoisingColored(*masterRGBImage, *dstRGBImage);
-
-    //win search multiple of 3 of win size. h is weight slider for filter strength
+    float h = parameter.at(FilterMenu::KernelWeight) / 10.0;
+    cv::fastNlMeansDenoisingColored(*masterRGBImage, *dstRGBImage, h, h);
 
     //after computation is complete, push image and histogram to GUI if changes were made
     postImageOperationMutex();
-}
-
-void ImageWorker::doReconstructFilterComputation(QVector<int> parameter)
-{
-
 }
 
 

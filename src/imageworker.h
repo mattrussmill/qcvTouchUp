@@ -27,7 +27,6 @@ public slots:
     void doSharpenFilterComputation(QVector<int> parameter);
     void doEdgeFilterComputation(QVector<int> parameter);
     void doNoiseFilterComputation(QVector<int> parameter);
-    void doReconstructFilterComputation(QVector<int> parameter);
 
 
 signals:

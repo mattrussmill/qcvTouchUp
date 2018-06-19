@@ -2,6 +2,7 @@
 #include "filtermenu.h"
 #include "ui_filtermenu.h"
 #include <QDebug>
+#include <QPixmap>
 
 
 FilterMenu::FilterMenu(QWidget *parent) :
@@ -18,6 +19,7 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Smooth->installEventFilter(wheelFilter);
     ui->horizontalSlider_SmoothWeight->installEventFilter(wheelFilter);
     connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(collectBlurParameters()));
+    connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Smooth, SIGNAL(currentIndexChanged(int)), this, SLOT(collectBlurParameters()));
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
 
@@ -27,6 +29,7 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Sharpen->installEventFilter(wheelFilter);
     ui->horizontalSlider_SharpenWeight->installEventFilter(wheelFilter);
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(collectSharpenParameters()));
+    connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustSharpenSliderRange(int)));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
@@ -36,23 +39,30 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Edge->addItem("Laplacian");    //comboBox index 1 - must match above
     ui->comboBox_Edge->addItem("Sobel");        //comboBox index 2
     ui->comboBox_Edge->installEventFilter(wheelFilter);
+    ui->horizontalSlider_EdgeWeight->installEventFilter(wheelFilter);
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(collectEdgeDetectParameters()));
+    connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustEdgeSliderRange(int)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(collectEdgeDetectParameters()));
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
-
-    menuValues.resize(5);
+    menuValues.resize(2);
 }
 
+// destructor
 FilterMenu::~FilterMenu()
 {
     delete ui;
 }
 
+// Function initializes the necessary widget values to their starting values.
 void FilterMenu::initializeMenu()
 {
+    this->blockSignals(true);
 
+    //init stuff
+
+    this->blockSignals(false);
 }
 
 //Changes the slider range for the SharpenSlider based on the needs of the filter selected from the combo box.
@@ -123,4 +133,23 @@ void FilterMenu::collectEdgeDetectParameters()
     menuValues[KernelWeight] = ui->horizontalSlider_EdgeWeight->value() * 2 + 1;
 
     emit performImageEdgeDetect(menuValues);
+}
+
+//Sets the sample image based on the menu item selected.
+void FilterMenu::changeSampleImage()
+{
+    if(ui->radioButton_SmoothEnable->isChecked())
+        ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/blur.png")));
+    else if(ui->radioButton_SharpenEnable->isChecked())
+        ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/sharp.png")));
+    else if(ui->radioButton_EdgeEnable->isChecked())
+        ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/edge.png")));
+}
+
+//overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
+void FilterMenu::setVisible(bool visible)
+{
+    if(this->isVisible() && !visible)
+        emit cancelAdjustments();
+    QWidget::setVisible(visible);
 }

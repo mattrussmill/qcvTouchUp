@@ -5,5 +5,8 @@
     <qresource prefix="/img">
         <file>icons/adjustMenu/gray.png</file>
         <file>icons/adjustMenu/rgb.png</file>
+        <file>icons/filterMenu/blur.png</file>
+        <file>icons/filterMenu/edge.png</file>
+        <file>icons/filterMenu/sharp.png</file>
     </qresource>
 </RCC>

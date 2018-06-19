@@ -178,8 +178,8 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QString testDir("U:/miller/Pictures/Dual Monitor/1227736622214.jpg");
-    //QString testDir("U:/miller/Pictures/Pictures Taken/100KC743/100_0579.JPG");
+    //QString testDir("U:/miller/Pictures/Dual Monitor/1227736622214.jpg");
+    QString testDir("U:/miller/Pictures/Pictures Taken/100KC743/100_0579.JPG");
     imageWorker->doOpenImage(testDir);
 
 
