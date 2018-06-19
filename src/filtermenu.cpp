@@ -47,6 +47,7 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
     menuValues.resize(2);
+    initializeSliders();
 }
 
 // destructor
@@ -56,11 +57,17 @@ FilterMenu::~FilterMenu()
 }
 
 // Function initializes the necessary widget values to their starting values.
-void FilterMenu::initializeMenu()
+void FilterMenu::initializeSliders()
 {
     this->blockSignals(true);
 
-    //init stuff
+    ui->horizontalSlider_SmoothWeight->setValue(ui->horizontalSlider_SmoothWeight->minimum());
+    ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->minimum());
+    ui->horizontalSlider_EdgeWeight->setValue(ui->horizontalSlider_EdgeWeight->minimum());
+
+    ui->label_SmoothPercent->setText("0%");
+    ui->label_SharpenPercent->setText("0%");
+    ui->label_EdgePercent->setText("0%");
 
     this->blockSignals(false);
 }
@@ -152,4 +159,18 @@ void FilterMenu::setVisible(bool visible)
     if(this->isVisible() && !visible)
         emit cancelAdjustments();
     QWidget::setVisible(visible);
+}
+
+//Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
+void FilterMenu::on_pushButton_Apply_released()
+{
+    initializeSliders();
+    emit applyAdjustments();
+}
+
+//Sets sliders to initial positions and signals to the worker to display the starting buffer.
+void FilterMenu::on_pushButton_Cancel_released()
+{
+    initializeSliders();
+    emit cancelAdjustments();
 }

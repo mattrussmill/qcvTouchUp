@@ -32,7 +32,7 @@ public:
     };
 
 public slots:
-    void initializeMenu();
+    void initializeSliders();
     void setVisible(bool visible) override;
 
 signals:
@@ -50,6 +50,10 @@ private slots:
     void collectSharpenParameters();
     void collectEdgeDetectParameters();
     void changeSampleImage();
+
+    void on_pushButton_Apply_released();
+
+    void on_pushButton_Cancel_released();
 
 private:
     Ui::FilterMenu *ui;

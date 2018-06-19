@@ -97,7 +97,7 @@ void MainWindow::loadSubMenu(int menuIndex)
         {
         case 1:
         {
-            adjustMenu->setVisible(true);
+            adjustMenu->setVisible(true); //change to external widgets w/check so more than one won't be launched.
             break;
         }
         case 2:
@@ -113,6 +113,7 @@ void MainWindow::loadSubMenu(int menuIndex)
         }
 }
 
+// When an image fails at being opened, clears the image and generates a warning message box.
 void MainWindow::imageOpenOperationFailed()
 {
     ui->iw->clearImage();
