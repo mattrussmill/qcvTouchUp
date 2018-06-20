@@ -1,12 +1,13 @@
 #ifndef IMAGEWORKER_H
 #define IMAGEWORKER_H
 
-#include <QObject>
-#include <QMutex>
-#include <QString>
-#include <QDir>
-#include <QSize>
 #include <opencv2/core/core.hpp>
+#include <QObject>
+class QString;
+class QDir;
+class QSize;
+class QMutex;
+
 
 class ImageWorker : public QObject
 {

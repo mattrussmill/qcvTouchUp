@@ -50,12 +50,12 @@
 #define IMAGEWIDGET_H
 
 #include <QWidget>
-#include <QLabel>
-#include <QScrollArea>
-#include <QImage>
-#include <QMenu>
-#include <QPoint>
-#include <QMutex>
+class QLabel;
+class QScrollArea;
+class QImage;
+class QMenu;
+class QPoint;
+class QMutex;
 
 class ImageWidget : public QWidget
 {

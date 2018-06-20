@@ -51,10 +51,8 @@
 
 #include "adjustmenu.h"
 #include "ui_adjustmenu.h"
-#include <cmath>
 #include "mousewheeleatereventfilter.h"
-
-#include <QDebug>
+#include <cmath>
 
 AdjustMenu::AdjustMenu(QWidget *parent) :
     QScrollArea(parent),

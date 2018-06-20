@@ -1,7 +1,8 @@
 #include "mousewheeleatereventfilter.h"
 #include "filtermenu.h"
 #include "ui_filtermenu.h"
-#include <QDebug>
+#include <QScrollArea>
+#include <QVector>
 #include <QPixmap>
 
 

@@ -64,6 +64,7 @@
 #include <QQmlContext>
 #include <QHBoxLayout>
 #include <QSurfaceFormat>
+#include <QString>
 
 /* The QuickMenu constructor first creates a QQuickView to display and run
  * the QML code in the correct environment. The QML engine is then connected

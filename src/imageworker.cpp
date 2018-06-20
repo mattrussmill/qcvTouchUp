@@ -3,13 +3,17 @@
 #include "bufferwrappersqcv.h"
 #include "adjustmenu.h"
 #include "filtermenu.h"
+#include <cmath>
+#include <QDebug>
 #include <QImage>
+#include <QDir>
+#include <QSize>
+#include <QMutex>
+#include <QString>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/photo/photo.hpp>
-#include <cmath>
-#include <QDebug>
 
 ImageWorker::ImageWorker(QMutex &m)
 {

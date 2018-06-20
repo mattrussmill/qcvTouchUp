@@ -11,6 +11,10 @@
 #include <QFileInfo>
 #include <QThread>
 #include <QDebug>
+#include <QDir>
+#include <QString>
+#include <QImage>
+#include <QMutex>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),

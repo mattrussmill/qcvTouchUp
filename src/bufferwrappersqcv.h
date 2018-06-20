@@ -47,10 +47,11 @@
 #ifndef BUFFERWRAPPERSQCV_H
 #define BUFFERWRAPPERSQCV_H
 
-#include <QImage>
-#include <QPixmap>
 #include <QString>
+#include <QDebug>
 #include <opencv2/core/core.hpp>
+class QImage;
+class QPixmap;
 
 namespace qcv
 {

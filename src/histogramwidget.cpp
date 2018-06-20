@@ -50,7 +50,10 @@
 ************************************************************************/
 #include "histogramwidget.h"
 #include <QApplication>
+#include <QWidget>
+#include <QVector>
 #include <QPainter>
+#include <QColor>
 #include <QLineF>
 #include <QDebug>
 

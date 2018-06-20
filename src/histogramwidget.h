@@ -52,9 +52,9 @@
 #define HISTOGRAMWIDGET_H
 
 #include <QWidget>
-#include <QImage>
 #include <QVector>
-#include <QColor>
+class QImage;
+class QColor;
 
 #define HISTO_SIZE 256
 

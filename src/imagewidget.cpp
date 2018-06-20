@@ -53,6 +53,11 @@
 #include <QPalette>
 #include <QApplication>
 #include <QDebug>
+#include <QLabel>
+#include <QScrollArea>
+#include <QMenu>
+#include <QPoint>
+#include <QMutex>
 
 /* The ImageWidget constructor takes in one argument which is the parent QWidget
  * to handle desctuction at termination, else is set to nullptr by default. The

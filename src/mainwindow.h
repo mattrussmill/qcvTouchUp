@@ -2,16 +2,15 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QDir>
-#include <QString>
-#include <QImage>
-#include <QMutex>
-#include <QThread>
+
 #include "imageworker.h"
 #include "adjustmenu.h"
 #include "filtermenu.h"
-
 #include <opencv2/core/core.hpp>
+#include <QThread>
+#include <QMutex>
+#include <QDir>
+class QImage;
 
 namespace Ui {
 class MainWindow;

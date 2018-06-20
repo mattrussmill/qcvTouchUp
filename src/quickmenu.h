@@ -55,8 +55,8 @@
 #define QUICKMENU_H
 
 #include <QWidget>
-#include <QString>
-#include <QQuickView>
+class QString;
+class QQuickView;
 
 //potential fix for qml metatype pointer warning: http://www.qtcentre.org/threads/14835-How-to-use-Q_DECLARE_METATYPE?p=76295#post76295
 class QuickMenu : public QWidget
