@@ -66,6 +66,14 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->setupUi(this);
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
 
+    //fix radio buttons to work in separage group boxes (for asthetics)
+    connect(ui->radioButton_SmoothEnable, SIGNAL(toggled(bool)), this, SLOT(setSharpenUnchecked(bool)));
+    connect(ui->radioButton_SmoothEnable, SIGNAL(toggled(bool)), this, SLOT(setEdgeUnchecked(bool)));
+    connect(ui->radioButton_SharpenEnable, SIGNAL(toggled(bool)), this, SLOT(setEdgeUnchecked(bool)));
+    connect(ui->radioButton_SharpenEnable, SIGNAL(toggled(bool)), this, SLOT(setSmoothUnchecked(bool)));
+    connect(ui->radioButton_EdgeEnable, SIGNAL(toggled(bool)), this, SLOT(setSmoothUnchecked(bool)));
+    connect(ui->radioButton_EdgeEnable, SIGNAL(toggled(bool)), this, SLOT(setSharpenUnchecked(bool)));
+
     //setup smooth menu options
     ui->comboBox_Smooth->addItem("Average");    //comboBox index 0 (default)
     ui->comboBox_Smooth->addItem("Gaussian");   //comboBox index 1
@@ -201,7 +209,27 @@ void FilterMenu::changeSampleImage()
         ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/sharp.png")));
     else if(ui->radioButton_EdgeEnable->isChecked())
         ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/edge.png")));
-    ui->label_SampleImage->adjustSize();
+}
+
+//Unchecks the smooth radio button if "b" is true
+void FilterMenu::setSmoothUnchecked(bool b)
+{
+    if(b)
+        ui->radioButton_SmoothEnable->setChecked(false);
+}
+
+//Unchecks the sharpen radio button if "b" is true
+void FilterMenu::setSharpenUnchecked(bool b)
+{
+    if(b)
+        ui->radioButton_SharpenEnable->setChecked(false);
+}
+
+//Unchecks the edge radio button if "b" is true
+void FilterMenu::setEdgeUnchecked(bool b)
+{
+    if(b)
+        ui->radioButton_EdgeEnable->setChecked(false);
 }
 
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized

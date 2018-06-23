@@ -90,7 +90,7 @@ MainWindow::~MainWindow()
 void MainWindow::loadSubMenu(int menuIndex)
 {
         //switch statement for loading menus
-        qDebug() << QString::number(menuIndex);
+        qDebug() << "Menu Number:" << QString::number(menuIndex);
 
         if(menuIndex)
             ui->histo->setMinimumWidth(275);
@@ -104,7 +104,7 @@ void MainWindow::loadSubMenu(int menuIndex)
         {
         case 1:
         {
-            adjustMenu->setVisible(true); //change to external widgets w/check so more than one won't be launched.
+            adjustMenu->setVisible(true);
             break;
         }
         case 2:
