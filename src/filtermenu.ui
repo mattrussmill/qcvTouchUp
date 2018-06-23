@@ -115,13 +115,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QLabel" name="label_SmoothPercent">
-        <property name="text">
-         <string>%</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>
@@ -212,13 +205,6 @@
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_SharpenPercent">
-        <property name="text">
-         <string>%</string>
         </property>
        </widget>
       </item>
@@ -315,13 +301,6 @@
         </property>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_EdgePercent">
-        <property name="text">
-         <string>%</string>
         </property>
        </widget>
       </item>

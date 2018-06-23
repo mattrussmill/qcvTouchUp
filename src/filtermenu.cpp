@@ -119,10 +119,6 @@ void FilterMenu::initializeSliders()
     ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->minimum());
     ui->horizontalSlider_EdgeWeight->setValue(ui->horizontalSlider_EdgeWeight->minimum());
 
-    ui->label_SmoothPercent->setText("0%");
-    ui->label_SharpenPercent->setText("0%");
-    ui->label_EdgePercent->setText("0%");
-
     this->blockSignals(false);
 }
 
