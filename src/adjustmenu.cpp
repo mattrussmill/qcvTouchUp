@@ -30,9 +30,9 @@
 *       This menu is used for adjusting the color, brightness, contrast,
 *       pixel depth, hue, saturation, intensity including high and low
 *       adjustments to gamma correction. It collects all necessary slider
-*       values in a dynamically allocated array and passes the address to
-*       that array via a Qt signal to provide the necessary parameters for
-*       image processing.
+*       values in a QVector and copies the object through the signal/signal
+*       mechanism to provide the necessary parameters for image processing.
+*       The slider values are primed here as necessary for the worker thread.
 *
 * NOTES :
 *       This class is directly tied to adjustmenu.ui and has functionality
@@ -54,6 +54,8 @@
 #include "mousewheeleatereventfilter.h"
 #include <cmath>
 
+//Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
+//QVector appropriately, and establishes all signals/slots necessary for the ui.
 AdjustMenu::AdjustMenu(QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::AdjustMenu)

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -45,6 +45,19 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <spacer name="verticalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_SmoothCombo">
       <item>
        <widget class="QRadioButton" name="radioButton_SmoothEnable">
@@ -75,19 +88,6 @@
      </layout>
     </item>
     <item>
-     <spacer name="verticalSpacer_3">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_SmoothWeight">
       <item>
        <widget class="QLabel" name="label_SmoothWeight">
@@ -103,6 +103,9 @@
         </property>
         <property name="maximum">
          <number>100</number>
+        </property>
+        <property name="pageStep">
+         <number>3</number>
         </property>
         <property name="tracking">
          <bool>false</bool>
@@ -185,19 +188,6 @@
      </layout>
     </item>
     <item>
-     <spacer name="verticalSpacer_5">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_SharpenWeight">
       <item>
        <widget class="QLabel" name="label_SharpenWeight">
@@ -213,6 +203,9 @@
         </property>
         <property name="maximum">
          <number>100</number>
+        </property>
+        <property name="pageStep">
+         <number>3</number>
         </property>
         <property name="tracking">
          <bool>false</bool>
@@ -293,19 +286,6 @@
        </widget>
       </item>
      </layout>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_8">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_EdgeWeight">
@@ -405,14 +385,14 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>200</width>
-          <height>200</height>
+          <width>100</width>
+          <height>100</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>200</width>
-          <height>200</height>
+          <width>120</width>
+          <height>120</height>
          </size>
         </property>
         <property name="text">

@@ -1,3 +1,55 @@
+/***********************************************************************
+* FILENAME :    filtermenu.cpp
+*
+* LICENSE:
+*       qcvTouchUp provides an image processing toolset for editing
+*       photographs, purposed and packaged for use in a desktop application
+*       user environment. Copyright (C) 2018,  Matthew R. Miller
+*
+*       This program is free software: you can redistribute it and/or modify
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
+*       3-clause BSD License as agreed upon through the use of the Qt toolkit
+*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
+*       of the appropriate license files for qcvTouchup, and its source code,
+*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*
+*       This program is distributed in the hope that it will be useful,
+*       but WITHOUT ANY WARRANTY; without even the implied warranty of
+*       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*       GNU General Public License for more details.
+*
+*       You should have received a copy of the GNU General Public License and
+*       3-clause BSD License along with this program.  If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
+*
+*       If you wish to contact the developer about this project, please do so
+*       through their account at <https://github.com/mattrussmill>
+*
+* DESCRIPTION :
+*       This menu is used for filtering the image through 2D kernels by
+*       performing high and low pass filtering. This filtering includes
+*       sharpening, smoothing/blurring, and edge detection. It collects
+*       all necessary slider values in a QVector and copies the object
+*       through the signal/signal mechanism to provide the necessary
+*       parameters for image processing.
+*
+*
+* NOTES :
+*       This class is directly tied to filtermenu.ui and has functionality
+*       tied to the ImageWorker class which uses the values selected here
+*       as a basis to control calculations on the image.
+*
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    April 04/16/2018
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           06/23/2018      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
+
 #include "mousewheeleatereventfilter.h"
 #include "filtermenu.h"
 #include "ui_filtermenu.h"
@@ -5,7 +57,8 @@
 #include <QVector>
 #include <QPixmap>
 
-
+//Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
+//QVector appropriately, sets up the ComboBox(es) and establishes all signals/slots necessary.
 FilterMenu::FilterMenu(QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::FilterMenu)
@@ -152,6 +205,7 @@ void FilterMenu::changeSampleImage()
         ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/sharp.png")));
     else if(ui->radioButton_EdgeEnable->isChecked())
         ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/edge.png")));
+    ui->label_SampleImage->adjustSize();
 }
 
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
