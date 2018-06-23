@@ -44,8 +44,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->actionZoom_Out, SIGNAL(triggered()), ui->iw, SLOT(zoomOut()));
     connect(ui->actionZoom_Fit, SIGNAL(triggered()), ui->iw, SLOT(zoomFit()));
     connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->iw, SLOT(zoomActual()));
+    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
     connect(ui->quickMenu, SIGNAL(menuItemClicked(int)), this, SLOT(loadSubMenu(int)));
     connect(ui->iw, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
+    connect(ui->iw, SIGNAL(droppedImagePath(QString)), this, SLOT(openImage(QString)));
+    connect(ui->iw, SIGNAL(droppedImageError()), this, SLOT(imageOpenOperationFailed()));
 
     //connect necessary worker thread - mainwindow/ui slots
     connect(&workerThread, SIGNAL(started()), this, SLOT(initializeWorkerThreadData()));
@@ -122,7 +125,7 @@ void MainWindow::imageOpenOperationFailed()
 {
     ui->iw->clearImage();
     updateImageInformation(nullptr);
-    QMessageBox::warning(this, "Error", "Unable to access desired image. File type not supported.");
+    QMessageBox::warning(this, "Error", "Unable to access desired image.");
 }
 
 /* When an image address is passed to this slot, the information on the main window is updated according to that image.
@@ -159,8 +162,10 @@ void MainWindow::updateHistogram()
     ui->histo->update();
 }
 
-// MainWindow's "Open..." action creates a dialog box listing supported file types and a file dialog window.
-void MainWindow::on_actionOpen_triggered()
+/* Creates a dialog box listing supported file types by OpenCV and a file dialog window. If the open dialog
+ * box is closed, the status bar is cleared and function exits. If the dialog box has a path that is not NULL
+ * the absolute path is passed to the worker thread to open the image. */
+void MainWindow::openImage()
 {
     statusBar()->showMessage("Opening...");
     userImagePath.setPath(QFileDialog::getOpenFileName(this, "Select an Image", userImagePath.absolutePath(),
@@ -178,17 +183,20 @@ void MainWindow::on_actionOpen_triggered()
     imageWorker->doOpenImage(userImagePath.absolutePath());
 }
 
-
-
-
-void MainWindow::on_actionAbout_triggered()
+/* An overload of openImage without the use of a dialog box. Takes the image path directly as a parameter
+ * and preps the image widget for a new image. Then passes the image path to the worker thread to open the
+ * image. */
+void MainWindow::openImage(QString imagePath)
 {
-    //QString testDir("U:/miller/Pictures/Dual Monitor/1227736622214.jpg");
-    QString testDir("U:/miller/Pictures/Pictures Taken/100KC743/100_0579.JPG");
-    imageWorker->doOpenImage(testDir);
-
-
-    //GO FIX MENU BACKEND
+    if(imagePath.isEmpty())
+    {
+        statusBar()->showMessage("");
+        imageOpenOperationFailed();
+        return;
+    }
+    ui->iw->clearImage();
+    ui->histo->clear();
+    imageWorker->doOpenImage(imagePath);
 }
 
 // Displays a histogram window with x and y axis plot when triggered.

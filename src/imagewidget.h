@@ -43,7 +43,7 @@
 *
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           01/22/2018      Matthew R. Miller       Initial Rev
-*
+* 0.2           06/23/2018      Matthew R. Miller       Drag and Drop Open
 ************************************************************************/
 
 #ifndef IMAGEWIDGET_H
@@ -78,11 +78,13 @@ public:
 
 
 signals:
-    void imageSet();
-    void imageCleared();
-    void imageNull();
-    void imagePointSelected(QPoint selectedPoint);
-    void fillWidgetChanged(bool fillScrollArea);
+    imageSet();
+    imageCleared();
+    imageNull();
+    imagePointSelected(QPoint selectedPoint);
+    fillWidgetChanged(bool fillScrollArea);
+    droppedImagePath(QString imagePath);
+    droppedImageError();
 
 public slots:
     void setImage(const QImage *image);
@@ -99,6 +101,9 @@ protected:
     virtual void resizeEvent(QResizeEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void contextMenuEvent(QContextMenuEvent *event) override;
+    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+    virtual void dragLeaveEvent(QDragLeaveEvent *event) override;
+    virtual void dropEvent(QDropEvent *event) override;
 
 private:
     QPoint selectedPoint;

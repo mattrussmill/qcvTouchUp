@@ -11,6 +11,7 @@
 #include <QMutex>
 #include <QDir>
 class QImage;
+class QString;
 
 namespace Ui {
 class MainWindow;
@@ -31,10 +32,10 @@ private slots:
     void updateImageInformation(const QImage *image);
     void initializeWorkerThreadData();
     void updateHistogram();
+    void openImage();
+    void openImage(QString imagePath);
 
     //Generated from QDesigner
-    void on_actionOpen_triggered();
-    void on_actionAbout_triggered();
     void on_actionHistogram_triggered();
 
 private:

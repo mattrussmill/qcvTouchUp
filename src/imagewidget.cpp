@@ -1,5 +1,5 @@
 /***********************************************************************
-* FILENAME :    quickmenu.cpp
+* FILENAME :    imagewidget.cpp
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing
@@ -42,7 +42,7 @@
 *
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           01/22/2018      Matthew R. Miller       Initial Rev
-*
+* 0.2           06/23/2018      Matthew R. Miller       Drag and Drop Open
 ************************************************************************/
 
 #include "imagewidget.h"
@@ -58,6 +58,8 @@
 #include <QMenu>
 #include <QPoint>
 #include <QMutex>
+#include <QUrl>
+#include <QMimeData>
 
 /* The ImageWidget constructor takes in one argument which is the parent QWidget
  * to handle desctuction at termination, else is set to nullptr by default. The
@@ -99,6 +101,8 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     connect(zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
     connect(zoomFitAction, SIGNAL(triggered()), this, SLOT(zoomFit()));
     connect(zoomActualAction, SIGNAL(triggered()), this, SLOT(zoomActual()));
+
+    setAcceptDrops(true);
     mutex = nullptr;
 }
 
@@ -404,6 +408,58 @@ void ImageWidget::contextMenuEvent(QContextMenuEvent *event)
     zoomMenu->addAction(zoomActualAction);
     zoomMenu->exec(event->globalPos());
     delete zoomMenu;
+}
+
+/* An override of dragEnterEvent. When an object is dragged over top of this widget, the event
+ * checks to see if the object has a valid path. If the path is valid, the ImageWidget background
+ * is lightened to indicate the widget will accept the drop and accepts it, else it ignores the
+ * drop and stops.*/
+void ImageWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    if(event->mimeData()->hasUrls())
+    {
+        QPalette pal(QColor(0xaf, 0xaf, 0xaf));
+        scrollArea->setPalette(pal);
+        event->setAccepted(true);
+        event->acceptProposedAction();
+    }
+    else
+    {
+        event->setAccepted(false);
+    }
+
+}
+
+/* An override of dragLeaveEvent. If dragEnterEvent marks the dragged object over ImageWidget as
+ * "accepted" this event changes the background color back to its initial color upon exiting the
+ * widget.*/
+void ImageWidget::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    if(event->isAccepted())
+    {
+        QPalette pal(QColor(0xa0, 0xa0, 0xa0));
+        scrollArea->setPalette(pal);
+    }
+}
+
+/* An override of dropEvent. If dragEnterEvent "accepts" the event, dropEvent checks to make sure
+ * only 1 file was dropped in the ImageWidget area. If more than one was dropped an error is
+ * emitted. If only one file is dropped, the background color is reset to its initial color and
+ * the QString containing the image path emitted.*/
+void ImageWidget::dropEvent(QDropEvent *event)
+{
+    if(event->mimeData()->urls().size() == 1)
+    {
+        QPalette pal(QColor(0xa0, 0xa0, 0xa0));
+        scrollArea->setPalette(pal);
+        QString filePath = event->mimeData()->urls().at(0).toLocalFile();
+        emit droppedImagePath(filePath);
+    }
+    else
+    {
+        qDebug() << "Too many files dragged onto ImageWidget";
+        emit droppedImageError();
+    }
 }
 
 
