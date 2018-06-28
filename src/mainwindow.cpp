@@ -1,9 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "quickmenu.h"
+#include "adjustmenu.h"
+#include "filtermenu.h"
+#include "temperaturemenu.h"
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
 #include "histogramwindow.h"
+#include "imageworker.h"
 #include <QWidget>
 #include <QApplication>
 #include <QFileDialog>
@@ -38,6 +42,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     filterMenu = new FilterMenu(this);
     filterMenu->setVisible(false);
     ui->horizontalLayoutImageTools->addWidget(filterMenu);
+    temperatureMenu = new TemperatureMenu(this);
+    temperatureMenu->setVisible(false);
+    ui->horizontalLayoutImageTools->addWidget(temperatureMenu);
 
     //connect necessary internal mainwindow/ui slots
     connect(ui->actionZoom_In, SIGNAL(triggered()), ui->iw, SLOT(zoomIn()));
@@ -72,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(filterMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
     connect(filterMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 
+    //connect necessary worker thread - temperaturemenu / ui slots
+
     //start worker thread event loop
     workerThread.start();
 }
@@ -99,6 +108,7 @@ void MainWindow::loadSubMenu(int menuIndex)
 
         adjustMenu->setVisible(false);
         filterMenu->setVisible(false);
+        temperatureMenu->setVisible(false);
 
         switch(menuIndex)
         {
@@ -111,6 +121,10 @@ void MainWindow::loadSubMenu(int menuIndex)
         {
             filterMenu->setVisible(true);
             break;
+        }
+        case 3:
+        {
+            temperatureMenu->setVisible(true);
         }
         default:
         {

@@ -2,16 +2,16 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
-#include "imageworker.h"
-#include "adjustmenu.h"
-#include "filtermenu.h"
 #include <opencv2/core/core.hpp>
 #include <QThread>
 #include <QMutex>
 #include <QDir>
 class QImage;
 class QString;
+class ImageWorker;
+class AdjustMenu;
+class FilterMenu;
+class TemperatureMenu;
 
 namespace Ui {
 class MainWindow;
@@ -46,6 +46,7 @@ private:
     ImageWorker *imageWorker;
     AdjustMenu *adjustMenu;
     FilterMenu *filterMenu;
+    TemperatureMenu *temperatureMenu;
 
 };
 

@@ -69,17 +69,6 @@ Item {
             anchors.fill: parent
             layoutDirection: Qt.LeftToRight
 
-//            Image {
-//                id: leftImage
-//                source: "qrc:/img/filigree.png"
-//                Layout.alignment: Qt.AlignLeft
-//                Layout.fillHeight: true
-//                Layout.preferredWidth: 100
-//                cache: false
-//                mirror: true
-//                fillMode: Image.PreserveAspectFit
-//            }
-
             //This ListView, listMenu, dynamically generates the buttons from the ListModel items.
             ListView {
                 id: listMenu
@@ -185,17 +174,6 @@ Item {
 
             } //listMenu
 
-//            Image {
-//                id: rightImage
-//                source: "qrc:/img/filigree.png"
-//                Layout.alignment: Qt.AlignRight
-//                Layout.fillHeight: true
-//                Layout.preferredWidth: 100
-//                cache: false
-//                mirror: false
-//                fillMode: Image.PreserveAspectFit
-//            }
-
         } //RowLayout
 
 
@@ -208,7 +186,6 @@ Item {
 
             Rectangle {
                 Layout.alignment: Qt.AlignLeft
-                Layout.leftMargin: leftImage.width
                 Layout.preferredHeight: parent.height
                 Layout.preferredWidth: parent.height
                 antialiasing: false
@@ -221,7 +198,6 @@ Item {
 
             Rectangle {
                 Layout.alignment: Qt.AlignRight
-                Layout.rightMargin: rightImage.width
                 Layout.preferredHeight: parent.height
                 Layout.preferredWidth: parent.height
                 antialiasing: false
@@ -255,33 +231,23 @@ Item {
         }
 
         ListElement {
-            menuname: "Transform" //*
+            menuname: "Temperature" //*
             menuid: 3
         }
 
         ListElement {
-            menuname: "Equalize" //*
+            menuname: "Transform" //*
             menuid: 4
         }
 
         ListElement {
-            menuname: "Presets"
+            menuname: "Slice" //color slice (pick color and range and if attached region or not)
             menuid: 5
         }
 
         ListElement {
-            menuname: "SelectiveColor"
+            menuname: "Select" //selective color -> like slice but dynamicly add menu items to add more colors with range
             menuid: 6
-        }
-
-        ListElement {
-            menuname: "Distort"
-            menuid: 7
-        }
-
-        ListElement {
-            menuname: "AutoAdjust"
-            menuid: 8
         }
 
 //        {FAIL, LEVELS, FILTER, TRANSFORM, HISTOGRAM,

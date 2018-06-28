@@ -36,7 +36,8 @@ SOURCES += \
     adjustmenu.cpp \
     mousewheeleatereventfilter.cpp \
     bufferwrappersqcv.cpp \
-    filtermenu.cpp
+    filtermenu.cpp \
+    temperaturemenu.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -48,13 +49,15 @@ HEADERS += \
     adjustmenu.h \
     mousewheeleatereventfilter.h \
     bufferwrappersqcv.h \
-    filtermenu.h
+    filtermenu.h \
+    temperaturemenu.h
 
 FORMS += \
         mainwindow.ui \
     histogramwindow.ui \
     adjustmenu.ui \
-    filtermenu.ui
+    filtermenu.ui \
+    temperaturemenu.ui
 
 RESOURCES += \
     resources.qrc
