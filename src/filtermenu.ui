@@ -301,6 +301,9 @@
              <property name="checked">
               <bool>false</bool>
              </property>
+             <property name="autoExclusive">
+              <bool>false</bool>
+             </property>
             </widget>
            </item>
            <item>

@@ -102,9 +102,6 @@ private slots:
     void collectSharpenParameters();
     void collectEdgeDetectParameters();
     void changeSampleImage();
-    void setSmoothUnchecked(bool b);
-    void setSharpenUnchecked(bool b);
-    void setEdgeUnchecked(bool b);
 
     void on_pushButton_Apply_released();
 

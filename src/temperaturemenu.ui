@@ -45,85 +45,15 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="groupBox_Fine">
       <property name="title">
-       <string>Temperature</string>
+       <string>Fine</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="12" column="0">
-        <widget class="QRadioButton" name="radioButton_9">
-         <property name="text">
-          <string>5000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="20" column="0">
-        <widget class="QRadioButton" name="radioButton_17">
-         <property name="text">
-          <string>9000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QRadioButton" name="radioButton">
-         <property name="text">
-          <string>1000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="22" column="0">
-        <widget class="QRadioButton" name="radioButton_19">
-         <property name="text">
-          <string>10000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="16" column="0">
-        <widget class="QRadioButton" name="radioButton_13">
-         <property name="text">
-          <string>7000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QRadioButton" name="radioButton_3">
-         <property name="text">
-          <string>2000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="18" column="0">
-        <widget class="QRadioButton" name="radioButton_15">
-         <property name="text">
-          <string>8000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QRadioButton" name="radioButton_7">
-         <property name="text">
-          <string>4000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="14" column="0">
-        <widget class="QRadioButton" name="radioButton_11">
-         <property name="text">
-          <string>6000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QRadioButton" name="radioButton_5">
-         <property name="text">
-          <string>3000K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0" colspan="2">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QSlider" name="horizontalSlider">
+          <widget class="QSlider" name="horizontalSlider_Temperature">
            <property name="minimum">
             <number>10</number>
            </property>
@@ -138,7 +68,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="label_Low">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                <horstretch>0</horstretch>
@@ -164,7 +94,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="label_High">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                <horstretch>0</horstretch>
@@ -196,53 +126,29 @@
          </item>
         </layout>
        </item>
-       <item row="4" column="1">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>ImageLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0" colspan="2">
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="11" column="0" colspan="2">
-        <spacer name="verticalSpacer_8">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="15" column="0" colspan="2">
-        <spacer name="verticalSpacer_12">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="13" column="0" colspan="2">
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_Coarse">
+      <property name="title">
+       <string>Coarse</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="12" column="0" colspan="2">
         <spacer name="verticalSpacer_10">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -255,7 +161,20 @@
          </property>
         </spacer>
        </item>
-       <item row="19" column="0" colspan="2">
+       <item row="14" column="0" colspan="2">
+        <spacer name="verticalSpacer_12">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="18" column="0" colspan="2">
         <spacer name="verticalSpacer_17">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -268,20 +187,7 @@
          </property>
         </spacer>
        </item>
-       <item row="17" column="0" colspan="2">
-        <spacer name="verticalSpacer_14">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="7" column="0" colspan="2">
+       <item row="6" column="0" colspan="2">
         <spacer name="verticalSpacer_5">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -294,7 +200,20 @@
          </property>
         </spacer>
        </item>
-       <item row="21" column="0" colspan="2">
+       <item row="16" column="0" colspan="2">
+        <spacer name="verticalSpacer_14">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="20" column="0" colspan="2">
         <spacer name="verticalSpacer_18">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -307,7 +226,21 @@
          </property>
         </spacer>
        </item>
-       <item row="9" column="0" colspan="2">
+       <item row="11" column="1">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>ImageLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>ImageLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="2">
         <spacer name="verticalSpacer_7">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -320,64 +253,153 @@
          </property>
         </spacer>
        </item>
-       <item row="10" column="1">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>ImageLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
+       <item row="5" column="1">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>ImageLabel</string>
          </property>
         </widget>
        </item>
-       <item row="12" column="1">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>ImageLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>ImageLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="14" column="1">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>ImageLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="18" column="1">
+       <item row="17" column="1">
         <widget class="QLabel" name="label_10">
          <property name="text">
           <string>ImageLabel</string>
          </property>
         </widget>
        </item>
-       <item row="22" column="1">
-        <widget class="QLabel" name="label_12">
+       <item row="7" column="1">
+        <widget class="QLabel" name="label_5">
          <property name="text">
           <string>ImageLabel</string>
          </property>
         </widget>
        </item>
-       <item row="20" column="1">
+       <item row="13" column="1">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>ImageLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="1">
         <widget class="QLabel" name="label_11">
          <property name="text">
           <string>ImageLabel</string>
          </property>
         </widget>
        </item>
-       <item row="16" column="1">
+       <item row="15" column="1">
         <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>ImageLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item row="21" column="1">
+        <widget class="QLabel" name="label_12">
+         <property name="text">
+          <string>ImageLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QRadioButton" name="radioButton_5000K">
+         <property name="text">
+          <string>5000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="19" column="0">
+        <widget class="QRadioButton" name="radioButton_9000K">
+         <property name="text">
+          <string>9000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QRadioButton" name="radioButton_1000K">
+         <property name="text">
+          <string>1000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="21" column="0">
+        <widget class="QRadioButton" name="radioButton_10000K">
+         <property name="text">
+          <string>10000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="15" column="0">
+        <widget class="QRadioButton" name="radioButton_7000K">
+         <property name="text">
+          <string>7000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QRadioButton" name="radioButton_2000K">
+         <property name="text">
+          <string>2000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="17" column="0">
+        <widget class="QRadioButton" name="radioButton_8000K">
+         <property name="text">
+          <string>8000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <widget class="QRadioButton" name="radioButton_6000K">
+         <property name="text">
+          <string>6000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QRadioButton" name="radioButton_4000K">
+         <property name="text">
+          <string>4000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QRadioButton" name="radioButton_3000K">
+         <property name="text">
+          <string>3000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="10" column="0" colspan="2">
+        <spacer name="verticalSpacer_8">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLabel" name="label_3">
          <property name="text">
           <string>ImageLabel</string>
          </property>
@@ -415,14 +437,14 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="pushButton_Apply">
         <property name="text">
          <string>Apply</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushButton_Cancel">
         <property name="text">
          <string>Cancel</string>
         </property>

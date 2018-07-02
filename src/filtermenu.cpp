@@ -56,6 +56,7 @@
 #include <QScrollArea>
 #include <QVector>
 #include <QPixmap>
+#include <QButtonGroup>
 
 //Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
 //QVector appropriately, sets up the ComboBox(es) and establishes all signals/slots necessary.
@@ -66,13 +67,11 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->setupUi(this);
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
 
-    //fix radio buttons to work in separage group boxes (for asthetics)
-    connect(ui->radioButton_SmoothEnable, SIGNAL(toggled(bool)), this, SLOT(setSharpenUnchecked(bool)));
-    connect(ui->radioButton_SmoothEnable, SIGNAL(toggled(bool)), this, SLOT(setEdgeUnchecked(bool)));
-    connect(ui->radioButton_SharpenEnable, SIGNAL(toggled(bool)), this, SLOT(setEdgeUnchecked(bool)));
-    connect(ui->radioButton_SharpenEnable, SIGNAL(toggled(bool)), this, SLOT(setSmoothUnchecked(bool)));
-    connect(ui->radioButton_EdgeEnable, SIGNAL(toggled(bool)), this, SLOT(setSmoothUnchecked(bool)));
-    connect(ui->radioButton_EdgeEnable, SIGNAL(toggled(bool)), this, SLOT(setSharpenUnchecked(bool)));
+    //fix radio buttons to work in separate group boxes (for asthetics)
+    QButtonGroup *radioGroup = new QButtonGroup(this);
+    radioGroup->addButton(ui->radioButton_SmoothEnable);
+    radioGroup->addButton(ui->radioButton_SharpenEnable);
+    radioGroup->addButton(ui->radioButton_EdgeEnable);
 
     //setup smooth menu options
     ui->comboBox_Smooth->addItem("Average");    //comboBox index 0 (default)
@@ -209,27 +208,6 @@ void FilterMenu::changeSampleImage()
         ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/sharp.png")));
     else if(ui->radioButton_EdgeEnable->isChecked())
         ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/edge.png")));
-}
-
-//Unchecks the smooth radio button if "b" is true
-void FilterMenu::setSmoothUnchecked(bool b)
-{
-    if(b)
-        ui->radioButton_SmoothEnable->setChecked(false);
-}
-
-//Unchecks the sharpen radio button if "b" is true
-void FilterMenu::setSharpenUnchecked(bool b)
-{
-    if(b)
-        ui->radioButton_SharpenEnable->setChecked(false);
-}
-
-//Unchecks the edge radio button if "b" is true
-void FilterMenu::setEdgeUnchecked(bool b)
-{
-    if(b)
-        ui->radioButton_EdgeEnable->setChecked(false);
 }
 
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized

@@ -15,6 +15,10 @@ public:
     explicit TemperatureMenu(QWidget *parent = 0);
     ~TemperatureMenu();
 
+private slots:
+    void moveSliderToButton(bool adjustSlider);
+    void selectRadioButtonFromSlider(int value);
+
 private:
     Ui::TemperatureMenu *ui;
 };
