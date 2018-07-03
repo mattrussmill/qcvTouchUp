@@ -74,12 +74,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(filterMenu, SIGNAL(performImageBlur(QVector<int>)), imageWorker, SLOT(doSmoothFilterComputation(QVector<int>)));
     connect(filterMenu, SIGNAL(performImageSharpen(QVector<int>)), imageWorker, SLOT(doSharpenFilterComputation(QVector<int>)));
     connect(filterMenu, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker, SLOT(doEdgeFilterComputation(QVector<int>)));
-    connect(filterMenu, SIGNAL(performImageNoiseRemove(QVector<int>)), imageWorker, SLOT(doNoiseFilterComputation(QVector<int>)));
-    connect(filterMenu, SIGNAL(performImageReconstruct(QVector<int>)), imageWorker, SLOT(doNoiseFilterComputation(QVector<int>)));
     connect(filterMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
     connect(filterMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 
     //connect necessary worker thread - temperaturemenu / ui slots
+    connect(temperatureMenu, SIGNAL(performImageAdjustments(int)), imageWorker, SLOT(doTemperatureComputation(int)));
+    connect(temperatureMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
+    connect(temperatureMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
 
     //start worker thread event loop
     workerThread.start();

@@ -514,6 +514,10 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     postImageOperationMutex();
 }
 
+/* Performs the Edge Detect operations from the Filter menu in the GUI. Switch statement
+ * selects the type of edge detectopm that will be applied to the image in the master buffer.
+ * The parameterArray passes all the necessary parameters to the worker thread based on
+ * the openCV functions it calls.*/
 void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 {
     if(!preImageOperationMutex()) return;
@@ -550,21 +554,12 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
     postImageOperationMutex();
 }
 
-void ImageWorker::doNoiseFilterComputation(QVector<int> parameter)
+
+/////////////////////////////--- Temperature Menu Computations ---/////////////////////////////
+void ImageWorker::doTemperatureComputation(int parameter)
 {
-    //check to make sure all working arrays are allocated
-    if(!preImageOperationMutex()) return;
-    float h = parameter.at(FilterMenu::KernelWeight) / 10.0;
-    cv::fastNlMeansDenoisingColored(*masterRGBImage, *dstRGBImage, h, h);
 
-    //after computation is complete, push image and histogram to GUI if changes were made
-    postImageOperationMutex();
 }
-
-
-
-
-
 
 
 

@@ -55,6 +55,7 @@
 
 #include <QScrollArea>
 #include <QVector>
+class QButtonGroup;
 
 namespace Ui {
 class FilterMenu;
@@ -110,6 +111,7 @@ private slots:
 private:
     Ui::FilterMenu *ui;
     QVector<int> menuValues;
+    QButtonGroup *buttonGroup;
 };
 
 #endif // FILTERMENU_H

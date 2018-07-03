@@ -235,5 +235,7 @@ void AdjustMenu::setVisible(bool visible)
 {
     if(this->isVisible() && !visible)
         emit cancelAdjustments();
+    else
+        initializeSliders();
     QWidget::setVisible(visible);
 }

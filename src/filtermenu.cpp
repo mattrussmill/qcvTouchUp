@@ -68,10 +68,10 @@ FilterMenu::FilterMenu(QWidget *parent) :
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
 
     //fix radio buttons to work in separate group boxes (for asthetics)
-    QButtonGroup *radioGroup = new QButtonGroup(this);
-    radioGroup->addButton(ui->radioButton_SmoothEnable);
-    radioGroup->addButton(ui->radioButton_SharpenEnable);
-    radioGroup->addButton(ui->radioButton_EdgeEnable);
+    buttonGroup = new QButtonGroup(this);
+    buttonGroup->addButton(ui->radioButton_SmoothEnable);
+    buttonGroup->addButton(ui->radioButton_SharpenEnable);
+    buttonGroup->addButton(ui->radioButton_EdgeEnable);
 
     //setup smooth menu options
     ui->comboBox_Smooth->addItem("Average");    //comboBox index 0 (default)
@@ -121,6 +121,14 @@ FilterMenu::~FilterMenu()
 void FilterMenu::initializeSliders()
 {
     this->blockSignals(true);
+
+    QAbstractButton *checkedButton = buttonGroup->checkedButton();
+    if(checkedButton != nullptr)
+    {
+        buttonGroup->setExclusive(false);
+        checkedButton->setChecked(false);
+        buttonGroup->setExclusive(true);
+    }
 
     ui->horizontalSlider_SmoothWeight->setValue(ui->horizontalSlider_SmoothWeight->minimum());
     ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->minimum());
@@ -215,6 +223,8 @@ void FilterMenu::setVisible(bool visible)
 {
     if(this->isVisible() && !visible)
         emit cancelAdjustments();
+    else
+        initializeSliders();
     QWidget::setVisible(visible);
 }
 

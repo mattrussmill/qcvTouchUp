@@ -1,33 +1,113 @@
+/***********************************************************************
+* FILENAME :    temperaturemenu.cpp
+*
+* LICENSE:
+*       qcvTouchUp provides an image processing toolset for editing
+*       photographs, purposed and packaged for use in a desktop application
+*       user environment. Copyright (C) 2018,  Matthew R. Miller
+*
+*       This program is free software: you can redistribute it and/or modify
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
+*       3-clause BSD License as agreed upon through the use of the Qt toolkit
+*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
+*       of the appropriate license files for qcvTouchup, and its source code,
+*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*
+*       This program is distributed in the hope that it will be useful,
+*       but WITHOUT ANY WARRANTY; without even the implied warranty of
+*       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*       GNU General Public License for more details.
+*
+*       You should have received a copy of the GNU General Public License and
+*       3-clause BSD License along with this program.  If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
+*
+*       If you wish to contact the developer about this project, please do so
+*       through their account at <https://github.com/mattrussmill>
+*
+* DESCRIPTION :
+*       This menu is used for adjusting the perceived temperature of the image's
+*       light source. The menu provides preset options as well as a fine adjustment
+*       slider.
+*
+* NOTES :
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    April 06/27/2018
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           07/02/2018      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
 #include "temperaturemenu.h"
+#include "mousewheeleatereventfilter.h"
 #include "ui_temperaturemenu.h"
 #include <QString>
 #include <QRadioButton>
+#include <QButtonGroup>
 #include <QDebug>
 
+/* Constructor installs the MouseWheelEaterFilter for the slider, groups the buttons together for
+ * to easily search for the selected button, and establishes all signals/slots necessary.*/
 TemperatureMenu::TemperatureMenu(QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::TemperatureMenu)
 {
     ui->setupUi(this);
 
+    MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
+    ui->horizontalSlider_Temperature->installEventFilter(wheelFilter);
+
+    buttonGroup = new QButtonGroup(this);
+    buttonGroup->addButton(ui->radioButton_1000K);
+    buttonGroup->addButton(ui->radioButton_1700K);
+    buttonGroup->addButton(ui->radioButton_1850K);
+    buttonGroup->addButton(ui->radioButton_2400K);
+    buttonGroup->addButton(ui->radioButton_2550K);
+    buttonGroup->addButton(ui->radioButton_2700K);
+    buttonGroup->addButton(ui->radioButton_3200K);
+    buttonGroup->addButton(ui->radioButton_4500K);
+    buttonGroup->addButton(ui->radioButton_5000K);
+    buttonGroup->addButton(ui->radioButton_6500K);
+    buttonGroup->addButton(ui->radioButton_7200K);
+    buttonGroup->addButton(ui->radioButton_10000K);
+
     connect(ui->radioButton_1000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
-    connect(ui->radioButton_2000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
-    connect(ui->radioButton_3000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
-    connect(ui->radioButton_4000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_1700K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_1850K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_2400K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_2550K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_2700K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_3200K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_4500K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
     connect(ui->radioButton_5000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
-    connect(ui->radioButton_6000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
-    connect(ui->radioButton_7000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
-    connect(ui->radioButton_8000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
-    connect(ui->radioButton_9000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_6500K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
+    connect(ui->radioButton_7200K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
     connect(ui->radioButton_10000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
 
-    connect(ui->horizontalSlider_Temperature, SIGNAL(valueChanged(int)), this, SLOT(selectRadioButtonFromSlider(int)));
+    connect(ui->horizontalSlider_Temperature, SIGNAL(sliderReleased()), this, SLOT(deselectRadioButtonFromSlider()));
+    connect(ui->horizontalSlider_Temperature, SIGNAL(valueChanged(int)), this, SIGNAL(performImageAdjustments(int)));
+    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentToImage()));
+    connect(ui->pushButton_Cancel, SIGNAL(released()), this, SLOT(cancelAdjustmentsToImage()));
 
+    initializeMenu();
 }
 
+//autogenerated destructor
 TemperatureMenu::~TemperatureMenu()
 {
     delete ui;
+}
+
+// Function initializes the necessary widget values to their starting values.
+void TemperatureMenu::initializeMenu()
+{
+    blockSignals(true);
+    ui->horizontalSlider_Temperature->setValue(5500);
+    deselectRadioButtonFromSlider();
+    blockSignals(false);
 }
 
 /* If adjustSlider is true (QRadioButton enabled), the function retrieves the sender's name
@@ -39,17 +119,48 @@ void TemperatureMenu::moveSliderToButton(bool adjustSlider)
     if(adjustSlider)
     {
         //retrieve sender name and prune object name to only the number
-        QString senderName(sender()->objectName());
+        QString senderName(qobject_cast<QRadioButton *>(sender())->text());
         senderName.chop(1);
-        senderName.remove(0,12);
-        ui->horizontalSlider_Temperature->setValue(senderName.toInt() / 100);
+        ui->horizontalSlider_Temperature->setValue(senderName.toInt());
     }
-    qDebug() << "Button Moved Slider";
+    qDebug() << "Button Pressed";
 }
 
-
-void TemperatureMenu::selectRadioButtonFromSlider(int value)
+/* Function looks for the QRadioButton in the buttonGroup that is checked. The checked
+ * button in the group is then unchecked by turning group exclusivity on and off. If
+ * no buttons are checked, nothing is done.*/
+void TemperatureMenu::deselectRadioButtonFromSlider()
 {
+    QAbstractButton *checkedButton = buttonGroup->checkedButton();
 
+    if(checkedButton != nullptr)
+    {
+        buttonGroup->setExclusive(false);
+        checkedButton->setChecked(false);
+        buttonGroup->setExclusive(true);
+    }
+}
 
+//Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
+void TemperatureMenu::applyAdjustmentToImage()
+{
+    initializeMenu();
+    emit applyAdjustments();
+}
+
+//Sets sliders to initial positions and signals to the worker to display the starting buffer.
+void TemperatureMenu::cancelAdjustmentsToImage()
+{
+    initializeMenu();
+    emit cancelAdjustments();
+}
+
+//overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
+void TemperatureMenu::setVisible(bool visible)
+{
+    if(this->isVisible() && !visible)
+        emit cancelAdjustments();
+    else
+        initializeMenu();
+    QWidget::setVisible(visible);
 }

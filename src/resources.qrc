@@ -8,5 +8,7 @@
         <file>icons/filterMenu/blur.png</file>
         <file>icons/filterMenu/edge.png</file>
         <file>icons/filterMenu/sharp.png</file>
+        <file>icons/temperatureMenu/cold.png</file>
+        <file>icons/temperatureMenu/warm.png</file>
     </qresource>
 </RCC>
