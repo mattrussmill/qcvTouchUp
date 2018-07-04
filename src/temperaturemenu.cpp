@@ -123,7 +123,6 @@ void TemperatureMenu::moveSliderToButton(bool adjustSlider)
         senderName.chop(1);
         ui->horizontalSlider_Temperature->setValue(senderName.toInt());
     }
-    qDebug() << "Button Pressed";
 }
 
 /* Function looks for the QRadioButton in the buttonGroup that is checked. The checked

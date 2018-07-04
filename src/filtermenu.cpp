@@ -82,6 +82,7 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(collectBlurParameters()));
     connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Smooth, SIGNAL(currentIndexChanged(int)), this, SLOT(collectBlurParameters()));
+    connect(ui->horizontalSlider_SmoothWeight, SIGNAL(sliderPressed()), this, SLOT(radioBlurSilentEnable()));
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
 
     //setup sharpen menu options
@@ -93,6 +94,7 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustSharpenSliderRange(int)));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
+    connect(ui->horizontalSlider_SharpenWeight, SIGNAL(sliderPressed()), this, SLOT(radioSharpenSilentEnable()));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
 
     //setup edge detect menu options
@@ -105,6 +107,7 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustEdgeSliderRange(int)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(collectEdgeDetectParameters()));
+    connect(ui->horizontalSlider_EdgeWeight, SIGNAL(sliderPressed()), this, SLOT(radioEdgeSilentEnable()));
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
     menuValues.resize(2);
@@ -120,7 +123,7 @@ FilterMenu::~FilterMenu()
 // Function initializes the necessary widget values to their starting values.
 void FilterMenu::initializeSliders()
 {
-    this->blockSignals(true);
+    blockSignals(true);
 
     QAbstractButton *checkedButton = buttonGroup->checkedButton();
     if(checkedButton != nullptr)
@@ -134,7 +137,7 @@ void FilterMenu::initializeSliders()
     ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->minimum());
     ui->horizontalSlider_EdgeWeight->setValue(ui->horizontalSlider_EdgeWeight->minimum());
 
-    this->blockSignals(false);
+    blockSignals(false);
 }
 
 //Changes the slider range for the SharpenSlider based on the needs of the filter selected from the combo box.
@@ -226,6 +229,39 @@ void FilterMenu::setVisible(bool visible)
     else
         initializeSliders();
     QWidget::setVisible(visible);
+}
+
+//Enables the Blur QRadioButton without triggering an additional checked signal
+void FilterMenu::radioBlurSilentEnable()
+{
+    if(!ui->radioButton_SmoothEnable->isChecked())
+    {
+        ui->radioButton_SmoothEnable->setChecked(true);
+        collectBlurParameters();
+        changeSampleImage();
+    }
+}
+
+//Enables the Sharpen QRadioButton without triggering an additional checked signal
+void FilterMenu::radioSharpenSilentEnable()
+{
+    if(!ui->radioButton_SharpenEnable->isChecked())
+    {
+        ui->radioButton_SharpenEnable->setChecked(true);
+        collectBlurParameters();
+        changeSampleImage();
+    }
+}
+
+//Enables the Edge QRadioButton without triggering an additional checked signal
+void FilterMenu::radioEdgeSilentEnable()
+{
+    if(!ui->radioButton_EdgeEnable->isChecked())
+    {
+        ui->radioButton_EdgeEnable->setChecked(true);
+        collectBlurParameters();
+        changeSampleImage();
+    }
 }
 
 //Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.

@@ -55,9 +55,8 @@ private:
     std::vector <cv::Mat> splitChannelsTmp;
     cv::Mat *masterRGBImage;
     cv::Mat *srcRGBImage;
-    cv::Mat *srcTmpImage;
+    cv::Mat *tmpImage;
     cv::Mat *dstRGBImage;
-    cv::Mat *dstTmpImage;
     QImage *imageWrapper;
 
 

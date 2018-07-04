@@ -20,9 +20,8 @@ ImageWorker::ImageWorker(QMutex &m)
     mutex = &m;
     masterRGBImage = nullptr;
     srcRGBImage = nullptr;
-    srcTmpImage = nullptr;
+    tmpImage = nullptr;
     dstRGBImage = nullptr;
-    dstTmpImage = nullptr;
     imageWrapper = nullptr;
     splitChannelsTmp.push_back(cv::Mat());
     splitChannelsTmp.push_back(cv::Mat());
@@ -113,9 +112,8 @@ inline void ImageWorker::clearImageBuffers()
 {
     if(masterRGBImage) {delete masterRGBImage; masterRGBImage = nullptr;}
     if(srcRGBImage) {delete srcRGBImage; srcRGBImage = nullptr;}
-    if(srcTmpImage) {delete srcTmpImage; srcTmpImage = nullptr;}
+    if(tmpImage) {delete tmpImage; tmpImage = nullptr;}
     if(dstRGBImage) {delete dstRGBImage; dstRGBImage = nullptr;}
-    if(dstTmpImage) {delete dstTmpImage; dstTmpImage = nullptr;}
     if(imageWrapper) {delete imageWrapper; imageWrapper = nullptr;}
 }
 
@@ -134,11 +132,8 @@ inline void ImageWorker::deriveWorkingBuffersFromMaster()
     else
         *dstRGBImage = masterRGBImage->clone();
 
-    if(!srcTmpImage)
-        srcTmpImage = new cv::Mat(masterRGBImage->rows, masterRGBImage->cols, masterRGBImage->type());
-
-    if(!dstTmpImage)
-        dstTmpImage = new cv::Mat(masterRGBImage->rows, masterRGBImage->cols, masterRGBImage->type());
+    if(!tmpImage)
+        tmpImage = new cv::Mat(masterRGBImage->rows, masterRGBImage->cols, masterRGBImage->type());
 }
 
 // Applies the most recent destination RGB buffer information into the master buffer and src Histogram
@@ -225,8 +220,8 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
             || parameter.at(AdjustMenu::Saturation) != 0.0 || parameter.at(AdjustMenu::Gamma) != 1.0
             || parameter.at(AdjustMenu::Highlight) != 0.0 || parameter.at(AdjustMenu::Shadows) != 0.0)
     {
-        cv::cvtColor(*dstRGBImage, *srcTmpImage, cv::COLOR_RGB2HLS);
-        cv::split(*srcTmpImage, splitChannelsTmp);
+        cv::cvtColor(*dstRGBImage, *tmpImage, cv::COLOR_RGB2HLS);
+        cv::split(*tmpImage, splitChannelsTmp);
 
         /* openCv hue is stored as 360/2 since uchar cannot store above 255 so a LUT is populated
          * from 0 to 180 and phase shifted between -180 and 180 based on slider input. */
@@ -328,8 +323,8 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
             cv::LUT(splitChannelsTmp.at(1), lookUpTable, splitChannelsTmp[1]);
         }
 
-        cv::merge(splitChannelsTmp, *dstTmpImage);
-        cv::cvtColor(*dstTmpImage, *dstRGBImage, cv::COLOR_HLS2RGB);
+        cv::merge(splitChannelsTmp, *tmpImage);
+        cv::cvtColor(*tmpImage, *dstRGBImage, cv::COLOR_HLS2RGB);
     }
 
 
@@ -496,16 +491,16 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     case FilterMenu::FilterLaplacian:
     {
         //blur first to reduce noise
-        cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(3, 3), 0);
-        cv::filter2D(*srcTmpImage, *srcTmpImage, CV_8U,
+        cv::GaussianBlur(*masterRGBImage, *tmpImage, cv::Size(3, 3), 0);
+        cv::filter2D(*tmpImage, *tmpImage, CV_8U,
                      makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight)));
-        cv::addWeighted(*masterRGBImage, .9, *srcTmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth());
+        cv::addWeighted(*masterRGBImage, .9, *tmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth());
         break;
     }
     default: //FilterMenu::FilterUnsharpen
     {
-        cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(ksize, ksize), ksize * 0.25);
-        cv::addWeighted(*masterRGBImage, 1.5, *srcTmpImage, -0.5, 0, *dstRGBImage, masterRGBImage->depth());
+        cv::GaussianBlur(*masterRGBImage, *tmpImage, cv::Size(ksize, ksize), ksize * 0.25);
+        cv::addWeighted(*masterRGBImage, 1.5, *tmpImage, -0.5, 0, *dstRGBImage, masterRGBImage->depth());
         break;
     }
     }
@@ -523,7 +518,7 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
     if(!preImageOperationMutex()) return;
 
     //blur first to reduce noise for high pass filter
-    cv::GaussianBlur(*masterRGBImage, *srcTmpImage, cv::Size(3, 3), 0);
+    cv::GaussianBlur(*masterRGBImage, *tmpImage, cv::Size(3, 3), 0);
 
     switch (parameter.at(FilterMenu::KernelType))
     {
@@ -531,21 +526,21 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
     //these opencv functions can have aperature size of 1/3/5/7
     case FilterMenu::FilterLaplacian:
     {
-        cv::Laplacian(*srcTmpImage, *dstRGBImage, CV_8U, parameter.at(FilterMenu::KernelWeight));
+        cv::Laplacian(*tmpImage, *dstRGBImage, CV_8U, parameter.at(FilterMenu::KernelWeight));
         break;
     }
 
     case FilterMenu::FilterSobel:
     {
-        cv::Sobel(*srcTmpImage, *dstRGBImage, CV_8U, 1, 0, parameter.at(FilterMenu::KernelWeight));
-        cv::Sobel(*srcTmpImage, *srcTmpImage, CV_8U, 0, 1, parameter.at(FilterMenu::KernelWeight));
-        cv::addWeighted(*srcTmpImage, 0.5, *dstRGBImage, 0.5, 0, *dstRGBImage, masterRGBImage->depth());
+        cv::Sobel(*tmpImage, *dstRGBImage, CV_8U, 1, 0, parameter.at(FilterMenu::KernelWeight));
+        cv::Sobel(*tmpImage, *tmpImage, CV_8U, 0, 1, parameter.at(FilterMenu::KernelWeight));
+        cv::addWeighted(*tmpImage, 0.5, *dstRGBImage, 0.5, 0, *dstRGBImage, masterRGBImage->depth());
         break;
     }
 
     default: //FilterMenu::FilterCanny
     {
-        cv::Canny(*srcTmpImage, *dstRGBImage, 80, 200, parameter.at(FilterMenu::KernelWeight));
+        cv::Canny(*tmpImage, *dstRGBImage, 80, 200, parameter.at(FilterMenu::KernelWeight));
         qDebug() << "channels:" << QString::number(dstRGBImage->channels());
         break;
     }
@@ -556,96 +551,64 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
 
 
 /////////////////////////////--- Temperature Menu Computations ---/////////////////////////////
+/* Performs the Light Source Temperature Adjustment operations from the Filter menu in the GUI. Through
+ * the polynomials derived using mycurvefit.com from a light source temperature LUT such that all temperature
+ * are covered between 1000K and 10000K. The RGB scalar values are calculated as a function of temperature (K)
+ * passed to the doTemperatureComputation function. Each channel in the Master Image is multiplied by its scalar
+ * to make the adjustment.*/
 void ImageWorker::doTemperatureComputation(int parameter)
 {
+    if(!preImageOperationMutex()) return;
 
-}
+    float yred, ygreen, yblue;
+    double x = parameter / 100.0;
 
-
-
-
-
-
-
-
-///////////////////////--- OTHER Computations NOT SURE IF KEEPING? ---/////////////////////////
-
-/* This member function is used when a histogram buffer must be directly operated on instead of
- * regenerating the histogram from a source image. Given the source and destination histogram
- * buffers of equal size, this function accepts a sorting function as a parameter which will
- * generate a destination index based on the source index for copying histogram information
- * from a source bucket (number of pixels at the init value) and moving it into a destination bucket
- * (number of pixels at the new value) based on the newIntensityFunction result. Said function should
- * expect pixel values of 0 to 255 (8-bit) color depth. An additional value, if the function
- * requires a value to be passed, is included and must be cast to the appropriate type within
- * newIntensityFunction. The passed function shall output a floating point value as the new bucket
- * index (pixel intensity). This function is used to avoid rewriting iterative code in accessing the
- * histograms.*/
-void ImageWorker::sortHistogramBuckets(float (ImageWorker::*newIntensityFunction)(int, void*), uint **source,
-                                       uint** destination, void* fnPtrParameter, int numberOfChannels)
-{
-    float newIndexF;
-    uint newIndex;
-    if (!destination || numberOfChannels < 1)
-        return;
-
-    HistogramWidget::clear(destination, numberOfChannels);
-    for(int index = 0; index < HISTO_SIZE; index++)
+    //step function for red and green channels
+    if(parameter > 6500)
     {
-        // Tests bound of pixel intensity so it truncates inside the range of the histogram buffer.
-        newIndexF = (this->*newIntensityFunction)(index, fnPtrParameter);
-        if(newIndexF < 0)
-            newIndex = 0;
-        else if(newIndexF > HISTO_SIZE - 1)
-            newIndex = HISTO_SIZE - 1;
-        else
-            newIndex = newIndexF;
-
-        // Adds the contents in the histogram source bucket to the destination bucket based on newIndex
-        for(int c = 0; c < numberOfChannels; c++)
-        {
-            destination[c][newIndex] += source[c][index];
-        }
+        yred = 479.7143 - 4.757143 * x + 0.02 * pow(x, 2);
+        ygreen = 369.3214 - 2.502381 * x + 0.01 * pow(x, 2);
     }
-}
+    else
+    {
+        yred = 255.0;
+        ygreen = -50.34577 + 13.21698 * x - 0.2250017 * pow(x, 2.0) + 0.001430717 * pow(x, 3.0);
+    }
 
-/* Function performs a contrast operation on the RGB image (i' = ai + b where i = image matrix) given an
- * alpha value. The alpha value expected is between 0.1 and 2.4. The function calculates the brightness
- * correction factor (beta) according to the alpha value for an 8-bit / channel image. If the image is >= 1
- * beta = -72.8 * log2(alpha) else beta = 127 * -log2(alpha) / sqrt(1 / alpha). These curves level out as
- * alpha reaches its extremes of 0.1 and 2.4 such that the brightness correction factor increases at a less
- * extreme rate. The function also sorts the histogram to reflect the contrast adjustment and emits the signals
- * to display the buffers on the gui when finished. */
-//void ImageWorker::doContrastComputation(float alpha)
+    //step function for blue channel
+    if(parameter < 1500)
+    {
+        yblue = 0.0;
+    }
+    else if(parameter > 7000)
+    {
+        yblue = 255.0;
+    }
+    else
+    {
+        yblue = 260.1294 - 51.0587 * x + 3.321611 * pow(x, 2.0) - 0.08684615 * pow(x, 3.0)
+                + 0.001048834 * pow(x, 4.0) - 0.000004820513 * pow(x, 5.0);
+    }
 
+    //split each channel and manipulate each channel individually
+    cv::split(*masterRGBImage, splitChannelsTmp);
+    splitChannelsTmp.at(0) *= yred / 255;
+    splitChannelsTmp.at(1) *= ygreen / 255;
+    splitChannelsTmp.at(2) *= yblue / 255;
+    cv::merge(splitChannelsTmp, *dstRGBImage);
 
-/* A sorting function for sortHistogramBuckets. The parameter pixel is the pixel to be sorted.
- * The pointer to alphaBeta is a pointer to an array which lives in the calling function which
- * stores the alpha and beta values for the pixel intensity sorting in 'float alphaBeta[2]'
- * respectively and as cast as such for use.*/
-float ImageWorker::histogramContrastSorter(int pixel, void* alphaBeta)
-{
-        return pixel * (static_cast<float*>(alphaBeta)[0]) + (static_cast<float*>(alphaBeta)[1]);
-}
-
-/* Function performs a brightness operation on the RGB image (i' = i + b where i = image matrix) given an
- * alpha value. The function also sorts the histogram to reflect the brightness adjustment and emits the signals
- * to display the buffers on the gui when finished.*/
-//void ImageWorker::doBrightnessComputation(int beta)
-
-
-/* A sorting function for sortHistogramBuckets. The parameter pixel is the pixel to be sorted.
- * The pointer to beta is a pointer to an integer lives in the calling function and
- * stores the beta value for the pixel intensity sorting and cast appropriately.*/
-float ImageWorker::histogramBrightnessSorter(int pixel, void *beta)
-{
-    return pixel + *static_cast<int*>(beta);
+    //after computation is complete, push image and histogram to GUI if changes were made
+    postImageOperationMutex();
 }
 
 
 
-//explore cv photo lib for other menues later on
-//https://www.learnopencv.com/non-photorealistic-rendering-using-opencv-python-c/
+
+
+
+
+
+
 
 
 

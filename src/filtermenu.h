@@ -103,6 +103,9 @@ private slots:
     void collectSharpenParameters();
     void collectEdgeDetectParameters();
     void changeSampleImage();
+    void radioBlurSilentEnable();
+    void radioSharpenSilentEnable();
+    void radioEdgeSilentEnable();
 
     void on_pushButton_Apply_released();
 
