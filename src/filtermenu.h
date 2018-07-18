@@ -89,12 +89,12 @@ public slots:
     void setVisible(bool visible) override;
 
 signals:
-    performImageBlur(QVector<int>);
-    performImageSharpen(QVector<int>);
-    performImageEdgeDetect(QVector<int>);
-    performImageNoiseRemove(QVector<int>);
-    cancelAdjustments();
-    applyAdjustments();
+    void performImageBlur(QVector<int>);
+    void performImageSharpen(QVector<int>);
+    void performImageEdgeDetect(QVector<int>);
+    void performImageNoiseRemove(QVector<int>);
+    void cancelAdjustments();
+    void applyAdjustments();
 
 private slots:
     void adjustSharpenSliderRange(int value);

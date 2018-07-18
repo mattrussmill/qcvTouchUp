@@ -64,9 +64,9 @@ public slots:
     void setVisible(bool visible) override;
 
 signals:
-    performImageAdjustments(int);
-    cancelAdjustments();
-    applyAdjustments();
+    void performImageAdjustments(int);
+    void cancelAdjustments();
+    void applyAdjustments();
 
 private slots:
     void moveSliderToButton(bool adjustSlider);

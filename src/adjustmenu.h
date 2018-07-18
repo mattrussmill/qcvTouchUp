@@ -85,9 +85,9 @@ public slots:
     void setVisible(bool visible) override;
 
 signals:
-    performImageAdjustments(QVector<float>);
-    cancelAdjustments();
-    applyAdjustments();
+    void performImageAdjustments(QVector<float>);
+    void cancelAdjustments();
+    void applyAdjustments();
 
 
 private:

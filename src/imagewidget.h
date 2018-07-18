@@ -78,13 +78,13 @@ public:
 
 
 signals:
-    imageSet();
-    imageCleared();
-    imageNull();
-    imagePointSelected(QPoint selectedPoint);
-    fillWidgetChanged(bool fillScrollArea);
-    droppedImagePath(QString imagePath);
-    droppedImageError();
+    void imageSet();
+    void imageCleared();
+    void imageNull();
+    void imagePointSelected(QPoint selectedPoint);
+    void fillWidgetChanged(bool fillScrollArea);
+    void droppedImagePath(QString imagePath);
+    void droppedImageError();
 
 public slots:
     void setImage(const QImage *image);

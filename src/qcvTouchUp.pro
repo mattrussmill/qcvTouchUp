@@ -64,41 +64,65 @@ RESOURCES += \
 
 DISTFILES +=
 
-# Do not forget to add bin (dll directory to Path for Windows).
-# The following code links the 3.3.1 OpenCV libraries to qcvTouchUp.
-INCLUDEPATH += $$(OPENCV3_SDK_DIR)/include  #come back later and find out which of these libs are not needed
+#makespec used to help determine qmake configuration for the project
+message($$QMAKESPEC)
 
-# Configured for MinGW 5.3.0 for 32-bit compilation debug
-# and release builds.
-contains(QT_ARCH, i386):{
-    CONFIG(debug, debug|release){
-        LIBS += -L$$(OPENCV3_SDK_DIR)/x86/mingw53/bin \
-            -lopencv_core331d \
-            -lopencv_highgui331d \
-            -lopencv_imgcodecs331d \
-            -lopencv_imgproc331d \
-            -lopencv_photo331d
+#configures the make environment (to be used as a template) for Windows build environment
+win32{
+    message(Windows)
+
+    # The following code links the 3.3.1 OpenCV libraries to qcvTouchUp in windows using
+    # OPENCV3_SDK_DIR as the PATH variable for the opencv build directories.
+    INCLUDEPATH += $$(OPENCV3_SDK_DIR)/include  #come back later and find out which of these libs are not needed
+
+    # Configured for MinGW 5.3.0 for 32-bit compilation debug
+    # and release builds.
+    contains(QT_ARCH, i386):{
+        CONFIG(debug, debug|release){
+            LIBS += -L$$(OPENCV3_SDK_DIR)/x86/mingw53/bin \
+                -lopencv_core331d \
+                -lopencv_highgui331d \
+                -lopencv_imgcodecs331d \
+                -lopencv_imgproc331d \
+                -lopencv_photo331d
+        }
+        CONFIG(release, debug|release){
+            LIBS += -L$$(OPENCV3_SDK_DIR)/x86/mingw53/bin \
+                -lopencv_core331 \
+                -lopencv_highgui331 \
+                -lopencv_imgcodecs331 \
+                -lopencv_imgproc331 \
+                -lopencv_photo331
+        }
     }
-    CONFIG(release, debug|release){
-        LIBS += -L$$(OPENCV3_SDK_DIR)/x86/mingw53/bin \
-            -lopencv_core331 \
-            -lopencv_highgui331 \
-            -lopencv_imgcodecs331 \
-            -lopencv_imgproc331 \
-            -lopencv_photo331
+
+    # Configured for MSVC2017 15.0 for 64-bit compilation release
+    # build. 64-bit debug build is not configured in Qt Creator.
+    contains(QT_ARCH, x86_64):{
+        CONFIG(release, debug|release){
+            LIBS += -L$$(OPENCV3_SDK_DIR)/x86_64/vc15/lib/ \
+                -lopencv_core331 \
+                -lopencv_highgui331 \
+                -lopencv_imgcodecs331 \
+                -lopencv_imgproc331 \
+                -lopencv_photo331
+        } else:message(x86_64 debug NOT configured!)
     }
 }
 
-# Configured for MSVC2017 15.0 for 64-bit compilation release
-# build. 64-bit debug build is not configured in Qt Creator.
-contains(QT_ARCH, x86_64):{
-    CONFIG(release, debug|release){
-        LIBS += -L$$(OPENCV3_SDK_DIR)/x86_64/vc15/lib/ \
-            -lopencv_core331 \
-            -lopencv_highgui331 \
-            -lopencv_imgcodecs331 \
-            -lopencv_imgproc331 \
-            -lopencv_photo331
-    } else:message(x86_64 debug NOT configured!)
+#configures the make environment (to be used as a template) for Windows build environment
+linux-g++ {
+    message(Linux)
+
+    # The following code links the 3.3.1 OpenCV libraries to qcvTouchUp in linux using
+    # the default opencv build directories from the opencv linux install tutorial.
+    INCLUDEPATH += /usr/local/include/opencv
+
+    LIBS += -L/usr/local/lib/ \
+        -lopencv_core \
+        -lopencv_highgui \
+        -lopencv_imgcodecs \
+        -lopencv_imgproc \
+        -lopencv_photo
 }
 
