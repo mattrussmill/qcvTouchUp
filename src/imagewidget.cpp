@@ -76,6 +76,7 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
 
     QPalette pal(QColor(0xa0, 0xa0, 0xa0));
     scrollArea->setPalette(pal);
+    scrollArea->setAlignment(Qt::AlignCenter);
     scrollArea->setWidget(imageLabel);
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
