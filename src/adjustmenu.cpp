@@ -73,7 +73,22 @@ AdjustMenu::AdjustMenu(QWidget *parent) :
     ui->horizontalSlider_Highlight->installEventFilter(wheelFilter);
     ui->horizontalSlider_Shadows->installEventFilter(wheelFilter);
 
-    sliderValues.resize(10);
+    connect(ui->horizontalSlider_Contrast, SIGNAL(valueChanged(int)), this, SLOT(changeContrastValue(int)));
+    connect(ui->horizontalSlider_Brightness, SIGNAL(valueChanged(int)), this, SLOT(changeBrightnessValue(int)));
+    connect(ui->horizontalSlider_Depth, SIGNAL(valueChanged(int)), this, SLOT(changeDepthValue(int)));
+    connect(ui->horizontalSlider_Hue, SIGNAL(valueChanged(int)), this, SLOT(changeHueValue(int)));
+    connect(ui->horizontalSlider_Saturation, SIGNAL(valueChanged(int)), this, SLOT(changeSaturationValue(int)));
+    connect(ui->horizontalSlider_Intensity, SIGNAL(valueChanged(int)), this, SLOT(changeIntensityValue(int)));
+    connect(ui->horizontalSlider_Gamma, SIGNAL(valueChanged(int)), this, SLOT(changeGammaValue(int)));
+    connect(ui->horizontalSlider_Highlight, SIGNAL(valueChanged(int)), this, SLOT(changeHighlightsValue(int)));
+    connect(ui->horizontalSlider_Shadows, SIGNAL(valueChanged(int)), this, SLOT(changeShadowsValue(int)));
+    connect(ui->radioButton_Color, SIGNAL(released()), this, SLOT(changeToColorImage()));
+    connect(ui->radioButton_Grayscale, SIGNAL(released()), this, SLOT(changeToGrayscaleImage()));
+    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentToImage()));
+    connect(ui->pushButton_Cancel, SIGNAL(released()), this, SLOT(cancelAdjustmentsToImage()));
+
+
+    sliderValues_m.resize(10);
     initializeSliders();
 }
 
@@ -108,97 +123,97 @@ void AdjustMenu::initializeSliders()
     this->blockSignals(false);
 
     //Set initial parameter array for sliders
-    sliderValues[Brightness] = 0.0;
-    sliderValues[Contrast] = 1.0;
-    sliderValues[Depth] = 255.0;
-    sliderValues[Hue] = 0.0;
-    sliderValues[Saturation] = 0.0;
-    sliderValues[Intensity] = 0.0;
-    sliderValues[Gamma] = 1.0;
-    sliderValues[Highlight] = 1.0;
-    sliderValues[Shadows] = 1.0;
-    sliderValues[Color] = 1.0;
+    sliderValues_m[Brightness] = 0.0;
+    sliderValues_m[Contrast] = 1.0;
+    sliderValues_m[Depth] = 255.0;
+    sliderValues_m[Hue] = 0.0;
+    sliderValues_m[Saturation] = 0.0;
+    sliderValues_m[Intensity] = 0.0;
+    sliderValues_m[Gamma] = 1.0;
+    sliderValues_m[Highlight] = 1.0;
+    sliderValues_m[Shadows] = 1.0;
+    sliderValues_m[Color] = 1.0;
 }
 
 /* Slot signals contrast worker when triggered. When working with images represented by 8-bits per channel,
  * normalizing the contrast coefficient between 0.1 and 2.4 is preferred. To do so, the slider ranges
  * from 10 to 190 and shifts the decimal to the left before passing the alpha coefficient to the worker. */
-void AdjustMenu::on_horizontalSlider_Contrast_valueChanged(int value)
+void AdjustMenu::changeContrastValue(int value)
 {
     //if > 1, increase range from 1 to 2.4 while keeping 1 the slider center point by using log10
     if(value > 100) value *= log10(value / 10.0);
-    sliderValues[Contrast] = value / 100.0;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Contrast] = value / 100.0;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 /* Slot adjusts brightness slider when triggered for RGB values. It adjusts the sliders
  * between 127 and -127. Once the slider values are adjusted and the appropriate value stored in the sliderValues
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
-void AdjustMenu::on_horizontalSlider_Brightness_valueChanged(int value)
+void AdjustMenu::changeBrightnessValue(int value)
 {
-    sliderValues[Brightness] = value;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Brightness] = value;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 /* Slot adjusts the number of intensity values per channel allotted in the image. The value is adjusted on
  * an exponential curve to favor values, and have higher resolution, as the number of allotted intensity values
  * approaches 1 for the image. To the user, change is less noticeable the closer it is to 255.*/
-void AdjustMenu::on_horizontalSlider_Depth_valueChanged(int value)
+void AdjustMenu::changeDepthValue(int value)
 {
-    sliderValues[Depth] = pow(value, value / 255.0); // difference more noticeable to the eye closer to 1
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Depth] = pow(value, value / 255.0); // difference more noticeable to the eye closer to 1
+    emit performImageAdjustments(sliderValues_m);
 }
 
 /* Slot adjusts hue slider when triggered for HLS values. It shifts the hue value from the sliders
  * by 180 to -180 degrees. Once the slider values are adjusted and the appropriate value stored in the sliderValues
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
-void AdjustMenu::on_horizontalSlider_Hue_valueChanged(int value)
+void AdjustMenu::changeHueValue(int value)
 {
-    sliderValues[Hue] = value;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Hue] = value;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 /* Slot adjusts saturation slider when triggered for HLS values. It adjusts the sliders
  * between 127 and -127. Once the slider values are adjusted and the appropriate value stored in the sliderValues
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
-void AdjustMenu::on_horizontalSlider_Saturation_valueChanged(int value)
+void AdjustMenu::changeSaturationValue(int value)
 {
-    sliderValues[Saturation] = value;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Saturation] = value;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 /* Slot adjusts intensity (or lightness) slider when triggered for HLS values. It adjusts the sliders
  * between 127 and -127. Once the slider values are adjusted and the appropriate value stored in the sliderValues
  * parameter array, the signal is emitted to the image worker to perform the adjustments on the image. */
-void AdjustMenu::on_horizontalSlider_Intensity_valueChanged(int value)
+void AdjustMenu::changeIntensityValue(int value)
 {
-    sliderValues[Intensity] = value;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Intensity] = value;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 //Sets sliders to initial positions and signals to the worker to display the starting buffer.
-void AdjustMenu::on_pushButton_Cancel_released()
+void AdjustMenu::cancelAdjustmentsToImage()
 {
     initializeSliders();
     emit cancelAdjustments();
 }
 
 //Sets radio button to generate a color image
-void AdjustMenu::on_radioButton_Color_released()
+void AdjustMenu::changeToColorImage()
 {
-    sliderValues[Color] = 1.0;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Color] = 1.0;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 //Sets radio button to generate a grayscale image
-void AdjustMenu::on_radioButton_Grayscale_released()
+void AdjustMenu::changeToGrayscaleImage()
 {
-    sliderValues[Color] = -1.0;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Color] = -1.0;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 //Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
-void AdjustMenu::on_pushButton_Apply_released()
+void AdjustMenu::applyAdjustmentToImage()
 {
     initializeSliders();
     emit applyAdjustments();
@@ -207,27 +222,27 @@ void AdjustMenu::on_pushButton_Apply_released()
 /* Slot adjusts gamma over the whole range of intensities in the image. It adjusts the sliders between -100 and 100.
  * When the slider value is below zero it sets the gamma correction between 1 and approx 0.3. When the value is above
  * zero, it sets the gamma correction between 1 and 3.*/
-void AdjustMenu::on_horizontalSlider_Gamma_valueChanged(int value)
+void AdjustMenu::changeGammaValue(int value)
 {
     if (value < 0)
-        sliderValues[Gamma] = (value / 150.0) + 1;
+        sliderValues_m[Gamma] = (value / 150.0) + 1;
     else
-        sliderValues[Gamma] = (value / 50.0) + 1;
-    emit performImageAdjustments(sliderValues);
+        sliderValues_m[Gamma] = (value / 50.0) + 1;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 /* Slot shifts the gamma adjustment plot vertically between 80 and -80 for values affected between 149 and 255*/
-void AdjustMenu::on_horizontalSlider_Highlight_valueChanged(int value)
+void AdjustMenu::changeHighlightsValue(int value)
 {
-    sliderValues[Highlight] = value; //should use highlight method with equations provided
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Highlight] = value; //should use highlight method with equations provided
+    emit performImageAdjustments(sliderValues_m);
 }
 
 /* Slot shifts the gamma adjustment plot vertically between 80 and -80 for values affected between 0 and 106*/
-void AdjustMenu::on_horizontalSlider_Shadows_valueChanged(int value)
+void AdjustMenu::changeShadowsValue(int value)
 {
-    sliderValues[Shadows] = value;
-    emit performImageAdjustments(sliderValues);
+    sliderValues_m[Shadows] = value;
+    emit performImageAdjustments(sliderValues_m);
 }
 
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized

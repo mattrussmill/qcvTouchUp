@@ -106,15 +106,13 @@ private slots:
     void radioBlurSilentEnable();
     void radioSharpenSilentEnable();
     void radioEdgeSilentEnable();
-
-    void on_pushButton_Apply_released();
-
-    void on_pushButton_Cancel_released();
+    void applyAdjustmentToImage();
+    void cancelAdjustmentsToImage();
 
 private:
     Ui::FilterMenu *ui;
-    QVector<int> menuValues;
-    QButtonGroup *buttonGroup;
+    QVector<int> menuValues_m;
+    QButtonGroup *buttonGroup_m;
 };
 
 #endif // FILTERMENU_H

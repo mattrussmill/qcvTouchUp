@@ -52,20 +52,20 @@ private:
     void postImageOperationMutex();
 
     //working image buffers (if heap allocated - for sharing between threads)
-    std::vector <cv::Mat> splitChannelsTmp;
-    cv::Mat *masterRGBImage;
-    cv::Mat *srcRGBImage;
-    cv::Mat *tmpImage;
-    cv::Mat *dstRGBImage;
-    QImage *imageWrapper;
+    std::vector <cv::Mat> splitChannelsTmp_m;
+    cv::Mat *masterRGBImage_m;
+    cv::Mat *srcRGBImage_m;
+    cv::Mat *tmpImage_m;
+    cv::Mat *dstRGBImage_m;
+    QImage *imageWrapper_m;
 
 
     //working RGB histogram plots
-    uint **srcRGBHisto;
-    uint **dstRGBHisto; //use openCV to calc histo?
+    uint **srcRGBHisto_m;
+    uint **dstRGBHisto_m; //use openCV to calc histo?
 
     //mutex for threadsafe operations
-    QMutex *mutex;
+    QMutex *mutex_m;
 };
 
 #endif // IMAGEWORKER_H

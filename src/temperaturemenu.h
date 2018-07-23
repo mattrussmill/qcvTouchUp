@@ -71,12 +71,12 @@ signals:
 private slots:
     void moveSliderToButton(bool adjustSlider);
     void deselectRadioButtonFromSlider();
-    void applyAdjustmentToImage();
+    void applyAdjustmentsToImage();
     void cancelAdjustmentsToImage();
 
 private:
     Ui::TemperatureMenu *ui;
-    QButtonGroup *buttonGroup;
+    QButtonGroup *buttonGroup_m;
 };
 
 #endif // TEMPERATUREMENU_H

@@ -60,19 +60,19 @@ TemperatureMenu::TemperatureMenu(QWidget *parent) :
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
     ui->horizontalSlider_Temperature->installEventFilter(wheelFilter);
 
-    buttonGroup = new QButtonGroup(this);
-    buttonGroup->addButton(ui->radioButton_1000K);
-    buttonGroup->addButton(ui->radioButton_1700K);
-    buttonGroup->addButton(ui->radioButton_1850K);
-    buttonGroup->addButton(ui->radioButton_2400K);
-    buttonGroup->addButton(ui->radioButton_2550K);
-    buttonGroup->addButton(ui->radioButton_2700K);
-    buttonGroup->addButton(ui->radioButton_3200K);
-    buttonGroup->addButton(ui->radioButton_4500K);
-    buttonGroup->addButton(ui->radioButton_5000K);
-    buttonGroup->addButton(ui->radioButton_6500K);
-    buttonGroup->addButton(ui->radioButton_7200K);
-    buttonGroup->addButton(ui->radioButton_10000K);
+    buttonGroup_m = new QButtonGroup(this);
+    buttonGroup_m->addButton(ui->radioButton_1000K);
+    buttonGroup_m->addButton(ui->radioButton_1700K);
+    buttonGroup_m->addButton(ui->radioButton_1850K);
+    buttonGroup_m->addButton(ui->radioButton_2400K);
+    buttonGroup_m->addButton(ui->radioButton_2550K);
+    buttonGroup_m->addButton(ui->radioButton_2700K);
+    buttonGroup_m->addButton(ui->radioButton_3200K);
+    buttonGroup_m->addButton(ui->radioButton_4500K);
+    buttonGroup_m->addButton(ui->radioButton_5000K);
+    buttonGroup_m->addButton(ui->radioButton_6500K);
+    buttonGroup_m->addButton(ui->radioButton_7200K);
+    buttonGroup_m->addButton(ui->radioButton_10000K);
 
     connect(ui->radioButton_1000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
     connect(ui->radioButton_1700K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
@@ -89,7 +89,7 @@ TemperatureMenu::TemperatureMenu(QWidget *parent) :
 
     connect(ui->horizontalSlider_Temperature, SIGNAL(sliderReleased()), this, SLOT(deselectRadioButtonFromSlider()));
     connect(ui->horizontalSlider_Temperature, SIGNAL(valueChanged(int)), this, SIGNAL(performImageAdjustments(int)));
-    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentToImage()));
+    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentsToImage()));
     connect(ui->pushButton_Cancel, SIGNAL(released()), this, SLOT(cancelAdjustmentsToImage()));
 
     initializeMenu();
@@ -125,23 +125,23 @@ void TemperatureMenu::moveSliderToButton(bool adjustSlider)
     }
 }
 
-/* Function looks for the QRadioButton in the buttonGroup that is checked. The checked
+/* Function looks for the QRadioButton in the buttonGroup_m that is checked. The checked
  * button in the group is then unchecked by turning group exclusivity on and off. If
  * no buttons are checked, nothing is done.*/
 void TemperatureMenu::deselectRadioButtonFromSlider()
 {
-    QAbstractButton *checkedButton = buttonGroup->checkedButton();
+    QAbstractButton *checkedButton = buttonGroup_m->checkedButton();
 
     if(checkedButton != nullptr)
     {
-        buttonGroup->setExclusive(false);
+        buttonGroup_m->setExclusive(false);
         checkedButton->setChecked(false);
-        buttonGroup->setExclusive(true);
+        buttonGroup_m->setExclusive(true);
     }
 }
 
 //Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
-void TemperatureMenu::applyAdjustmentToImage()
+void TemperatureMenu::applyAdjustmentsToImage()
 {
     initializeMenu();
     emit applyAdjustments();

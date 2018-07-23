@@ -25,6 +25,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    QMutex mutex;
 
 private slots:
     void loadSubMenu(int menuIndex);
@@ -34,19 +35,16 @@ private slots:
     void updateHistogram();
     void openImage();
     void openImage(QString imagePath);
-
-    //Generated from QDesigner
-    void on_actionHistogram_triggered();
+    void loadHistogramTool();
 
 private:
     void clearImageBuffers();
     Ui::MainWindow *ui;
-    QDir userImagePath;
-    QMutex mutex;
-    ImageWorker *imageWorker;
-    AdjustMenu *adjustMenu;
-    FilterMenu *filterMenu;
-    TemperatureMenu *temperatureMenu;
+    QDir userImagePath_m;
+    ImageWorker *imageWorker_m;
+    AdjustMenu *adjustMenu_m;
+    FilterMenu *filterMenu_m;
+    TemperatureMenu *temperatureMenu_m;
 
 };
 

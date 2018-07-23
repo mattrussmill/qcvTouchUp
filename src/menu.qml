@@ -51,18 +51,14 @@
 
 import QtQuick 2.6
 import QtQuick.Layouts 1.1
+import QtGraphicalEffects 1.0
 
+/* rootMenu fetches the default window color from quickmenubackend.cpp which was added as
+   its rootContext in mainwindow.cpp - this is how it blends into the window background.*/
 Item {
     id: rootMenu
     anchors.fill: parent
     property color backgroundColor: backend.backgroundColor
-
-    /* rootBackground fetches the default window color from quickmenubackend.cpp which was added as
-       its rootContext in mainwindow.cpp - this is how it blends into the window background.*/
-//    Rectangle {
-//        id: rootBackground
-//        color: "transparent" // backend.backgroundColor
-//        anchors.fill: parent
 
         //contains the main menu buttons and graphics - lays them out horizontally from left to right
         RowLayout {
@@ -76,27 +72,43 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
-                cacheBuffer: rootButton.width * 3
-                spacing: 9
+                //cacheBuffer: rootButton.width * 3 //this doesnt make sense anymore
+                spacing: 20
                 model: items
                 orientation: ListView.Horizontal
+
                 delegate: Item {
                     id: rootButton
-                    width: (rootButton.height - 20) * 2
+                    width: itemText.width
                     height: parent.height
 
+                    /* Rectangle is used to correct fade overlay slipping behind rootButton Item during QQuickView resize
+                      and also contains properties for child object animations*/
                     Rectangle {
                         id: button
                         anchors.centerIn: parent
-                        width: button.height * 1.75
-                        height: rootButton.height - 20
-                        border.width: 1
-                        border.color: "#501873"
-                        radius: 2
-
-                        //Ties the Text color to a Rectangle property so it can be accessed by the MouseArea state machine
+                        color: "transparent" //backgroundColor
+                        width: rootButton.width
+                        height: rootButton.height - (rootButton.height * 0.3) //room to expand on button transition
                         property color textColor
-                        Text { id: itemText; color: button.textColor; text: menuname; anchors.centerIn: parent }
+                        property color glowColor
+
+                        RadialGradient {
+                            id: textGlow
+                            anchors.fill: parent
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: button.glowColor}
+                                GradientStop { position: 0.5; color: "transparent" }
+                            }
+                        }
+
+                        Text {
+                            id: itemText
+                            color: button.textColor
+                            text: menuname
+                            font.pointSize: 16
+                            anchors.centerIn: parent
+                        }
 
                         //The graphical buttons handle mouse interactions as a state machine in the MouseArea.
                         states: [
@@ -104,42 +116,37 @@ Item {
                                 name: "Hovering"
                                 PropertyChanges {
                                     target: button
-                                    color: "#c7eb5e"
-                                    //textColor: "black"
-                                    scale: 1.5
+                                    glowColor: "#c7eb5e"
+                                    scale: 1.3
                                 }
                             },
                             State {
                                 name: "Pressed"
                                 PropertyChanges{
                                     target: button
-                                    color: "#c7eb5e"
-                                    //textColor: "black"
-                                    scale: 1.3
+                                    glowColor: "#c7eb5e"
+                                    scale: 1.1
                                 }
                             },
                             State {
                                 name: "Default"
                                 PropertyChanges {
                                     target: button
-                                    color: backgroundColor
-                                    //textColor: backend.backgroundColor
+                                    glowColor: backgroundColor
                                     scale: 1
-
                                 }
                             }
-
                         ]
 
                         //Transitions are used to define the animations between state transitions
                         transitions: [
                             Transition {
                                 from: "Default"; to: "Hovering"
-                                ColorAnimation { duration: 200 }
+                                ColorAnimation { duration: 120 }
                             },
                             Transition {
                                 from: "*"; to: "Pressed"
-                                ColorAnimation { duration: 50 }
+                                ColorAnimation { duration: 60 }
                             }
                         ]
 
@@ -167,8 +174,8 @@ Item {
                 /* Centers the list by setting the boundary area (spacing width x2) for the highlighted item
                    to the center of the view (as listMenu fills its parent), and setting the initial index to
                    the center of the items list in listMenu.*/
-                preferredHighlightBegin: (width / 2) - (listMenu.spacing)
-                preferredHighlightEnd: (width / 2) + (listMenu.spacing)
+                preferredHighlightBegin: (width / 2) - (listMenu.spacing) //ADJUST THESE AND TURN OFF IF ALL FIT ON SCREEN!
+                preferredHighlightEnd: (width / 2) + (listMenu.spacing)   //DO THE SAME WITH TRANSPARENT EDGES?
                 highlightRangeMode: ListView.StrictlyEnforceRange
                 Component.onCompleted: currentIndex = count / 2
 
@@ -209,8 +216,6 @@ Item {
             }
         } //menuOverlay
 
-    //} //rootBackground
-
     /*The items ListModel contains the menu name and menuid. When a button is clicked in the graphical
       menu, its corresponding menuid is sent as a signal to the quickmenubackend.cpp container that
       instantiated toolmenu.qml in mainwindow.cpp. A menuid represents a corresponding wiget in the
@@ -249,9 +254,6 @@ Item {
             menuname: "Select" //selective color -> like slice but dynamicly add menu items to add more colors with range
             menuid: 6
         }
-
-//        {FAIL, LEVELS, FILTER, TRANSFORM, HISTOGRAM,
-//                           PRESET, SELECTIVECOLOR, DISTORT, AUTOADJUST}
 
     } //ListModel
 } //rootMenu

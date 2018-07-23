@@ -17,29 +17,29 @@
 
 ImageWorker::ImageWorker(QMutex &m)
 {
-    mutex = &m;
-    masterRGBImage = nullptr;
-    srcRGBImage = nullptr;
-    tmpImage = nullptr;
-    dstRGBImage = nullptr;
-    imageWrapper = nullptr;
-    splitChannelsTmp.push_back(cv::Mat());
-    splitChannelsTmp.push_back(cv::Mat());
-    splitChannelsTmp.push_back(cv::Mat());
+    mutex_m = &m;
+    masterRGBImage_m = nullptr;
+    srcRGBImage_m = nullptr;
+    tmpImage_m = nullptr;
+    dstRGBImage_m = nullptr;
+    imageWrapper_m = nullptr;
+    splitChannelsTmp_m.push_back(cv::Mat());
+    splitChannelsTmp_m.push_back(cv::Mat());
+    splitChannelsTmp_m.push_back(cv::Mat());
 }
 
 // Deletes the dynamically allocated data before object is destroyed
 ImageWorker::~ImageWorker()
 {
     doClearImageBuffer();
-    dstRGBHisto = nullptr; //managed externally
-    if(srcRGBHisto)
+    dstRGBHisto_m = nullptr; //managed externally
+    if(srcRGBHisto_m)
     {
-        delete srcRGBHisto[HistogramWidget::Blue];
-        delete srcRGBHisto[HistogramWidget::Green];
-        delete srcRGBHisto[HistogramWidget::Red];
-        delete srcRGBHisto;
-        srcRGBHisto = nullptr;
+        delete srcRGBHisto_m[HistogramWidget::Blue];
+        delete srcRGBHisto_m[HistogramWidget::Green];
+        delete srcRGBHisto_m[HistogramWidget::Red];
+        delete srcRGBHisto_m;
+        srcRGBHisto_m = nullptr;
     }
 }
 
@@ -48,21 +48,21 @@ ImageWorker::~ImageWorker()
 // Opens an Image from a file path. Images always stored in 24-bit BGR format when loading.
 void ImageWorker::doOpenImage(const QString imagePath)
 {
-    mutex->lock();
+    mutex_m->lock();
     emit updateStatus("Opening...");
     clearImageBuffers();
 
     //attempt to open file from path, if empty emit signal with null image and stop work
-    masterRGBImage = new cv::Mat(cv::imread(imagePath.toStdString(), cv::IMREAD_COLOR));
+    masterRGBImage_m = new cv::Mat(cv::imread(imagePath.toStdString(), cv::IMREAD_COLOR));
 
-    if(masterRGBImage->empty())
+    if(masterRGBImage_m->empty())
     {
-        if(masterRGBImage)
+        if(masterRGBImage_m)
         {
-            delete masterRGBImage;
-            masterRGBImage = nullptr;
+            delete masterRGBImage_m;
+            masterRGBImage_m = nullptr;
         }
-        mutex->unlock();
+        mutex_m->unlock();
         emit updateStatus("");
         //if fails, returns a nullptr to the main thread and stops
         emit resultImageSet(nullptr);
@@ -70,27 +70,27 @@ void ImageWorker::doOpenImage(const QString imagePath)
     }
 
     //convert image to RGB Color space
-    cv::cvtColor(*masterRGBImage, *masterRGBImage, cv::COLOR_BGR2RGB);
-    imageWrapper = new QImage(qcv::cvMatToQImage(*masterRGBImage));
+    cv::cvtColor(*masterRGBImage_m, *masterRGBImage_m, cv::COLOR_BGR2RGB);
+    imageWrapper_m = new QImage(qcv::cvMatToQImage(*masterRGBImage_m));
     deriveWorkingBuffersFromMaster();
 
     //generate the histogram to be displayed in the GUI
-    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);   
+    HistogramWidget::generateHistogram(*imageWrapper_m, dstRGBHisto_m);
 
     //finish initializing the buffers used by ImageWorker for use after an image is loaded asdf adsf asdf and send signal to display image while working
-    HistogramWidget::copy(const_cast<const uint**>(dstRGBHisto), srcRGBHisto); //necessary? Src Histo first then copy to dest - avoid race condition - same in adjust menu
+    HistogramWidget::copy(const_cast<const uint**>(dstRGBHisto_m), srcRGBHisto_m); //necessary? Src Histo first then copy to dest - avoid race condition - same in adjust menu
     updateStatus("");
-    mutex->unlock();
-    emit resultImageSet(imageWrapper);
+    mutex_m->unlock();
+    emit resultImageSet(imageWrapper_m);
     emit resultHistoUpdate();
 }
 
 //Public, mutexed method used to signal a manual buffer clear
 void ImageWorker::doClearImageBuffer()
 {
-    mutex->lock();
+    mutex_m->lock();
     clearImageBuffers();
-    mutex->unlock();
+    mutex_m->unlock();
 }
 
 /* This slot should only be called once, during initialization after the worker thread event loop has
@@ -99,63 +99,63 @@ void ImageWorker::doClearImageBuffer()
  * source histogram to be used during image manipulations.*/
 void ImageWorker::doSetHistogramDstAddress(uint **histo)
 {
-    dstRGBHisto = histo;
-    srcRGBHisto = new uint *[3];
-    srcRGBHisto[HistogramWidget::Red] = new uint[HISTO_SIZE];
-    srcRGBHisto[HistogramWidget::Green] = new uint[HISTO_SIZE];
-    srcRGBHisto[HistogramWidget::Blue] = new uint[HISTO_SIZE];
+    dstRGBHisto_m = histo;
+    srcRGBHisto_m = new uint *[3];
+    srcRGBHisto_m[HistogramWidget::Red] = new uint[HISTO_SIZE];
+    srcRGBHisto_m[HistogramWidget::Green] = new uint[HISTO_SIZE];
+    srcRGBHisto_m[HistogramWidget::Blue] = new uint[HISTO_SIZE];
 
 }
 
 // Function checks if the working image buffers are allocated. If so, they are deallocated
 inline void ImageWorker::clearImageBuffers()
 {
-    if(masterRGBImage) {delete masterRGBImage; masterRGBImage = nullptr;}
-    if(srcRGBImage) {delete srcRGBImage; srcRGBImage = nullptr;}
-    if(tmpImage) {delete tmpImage; tmpImage = nullptr;}
-    if(dstRGBImage) {delete dstRGBImage; dstRGBImage = nullptr;}
-    if(imageWrapper) {delete imageWrapper; imageWrapper = nullptr;}
+    if(masterRGBImage_m) {delete masterRGBImage_m; masterRGBImage_m = nullptr;}
+    if(srcRGBImage_m) {delete srcRGBImage_m; srcRGBImage_m = nullptr;}
+    if(tmpImage_m) {delete tmpImage_m; tmpImage_m = nullptr;}
+    if(dstRGBImage_m) {delete dstRGBImage_m; dstRGBImage_m = nullptr;}
+    if(imageWrapper_m) {delete imageWrapper_m; imageWrapper_m = nullptr;}
 }
 
 // Creates or resets all buffers to match the master buffer.
 inline void ImageWorker::deriveWorkingBuffersFromMaster()
 {
-    if(!masterRGBImage || masterRGBImage->empty()) {qWarning("no master buffer allocated"); return;}
+    if(!masterRGBImage_m || masterRGBImage_m->empty()) {qWarning("no master buffer allocated"); return;}
 
-    if(!srcRGBImage)
-        srcRGBImage = new cv::Mat(masterRGBImage->clone());
+    if(!srcRGBImage_m)
+        srcRGBImage_m = new cv::Mat(masterRGBImage_m->clone());
     else
-        *srcRGBImage = masterRGBImage->clone();
+        *srcRGBImage_m = masterRGBImage_m->clone();
 
-    if(!dstRGBImage)
-        dstRGBImage = new cv::Mat(masterRGBImage->clone());
+    if(!dstRGBImage_m)
+        dstRGBImage_m = new cv::Mat(masterRGBImage_m->clone());
     else
-        *dstRGBImage = masterRGBImage->clone();
+        *dstRGBImage_m = masterRGBImage_m->clone();
 
-    if(!tmpImage)
-        tmpImage = new cv::Mat(masterRGBImage->rows, masterRGBImage->cols, masterRGBImage->type());
+    if(!tmpImage_m)
+        tmpImage_m = new cv::Mat(masterRGBImage_m->rows, masterRGBImage_m->cols, masterRGBImage_m->type());
 }
 
 // Applies the most recent destination RGB buffer information into the master buffer and src Histogram
 void ImageWorker::doCopyRGBBufferToMasterBuffer()
 {
-    if(!masterRGBImage || !dstRGBImage) return;
-    mutex->lock();
-    *masterRGBImage = dstRGBImage->clone();
-    HistogramWidget::copy(const_cast<const uint**>(dstRGBHisto), srcRGBHisto);
-    mutex->unlock();
+    if(!masterRGBImage_m || !dstRGBImage_m) return;
+    mutex_m->lock();
+    *masterRGBImage_m = dstRGBImage_m->clone();
+    HistogramWidget::copy(const_cast<const uint**>(dstRGBHisto_m), srcRGBHisto_m);
+    mutex_m->unlock();
 }
 
 // Reverts the image and histogram back to the most previously un-applied form (the master image
 // and source histogram) and displays them.
 void ImageWorker::doDisplayMasterBuffer()
 {
-    if(!masterRGBImage || !dstRGBImage) return;
-    mutex->lock();
-    *imageWrapper = qcv::cvMatToQImage(*masterRGBImage);
-    HistogramWidget::copy(const_cast<const uint**>(srcRGBHisto), dstRGBHisto);
-    mutex->unlock();
-    emit resultImageUpdate(imageWrapper);
+    if(!masterRGBImage_m || !dstRGBImage_m) return;
+    mutex_m->lock();
+    *imageWrapper_m = qcv::cvMatToQImage(*masterRGBImage_m);
+    HistogramWidget::copy(const_cast<const uint**>(srcRGBHisto_m), dstRGBHisto_m);
+    mutex_m->unlock();
+    emit resultImageUpdate(imageWrapper_m);
     emit resultHistoUpdate();
 }
 
@@ -165,10 +165,10 @@ void ImageWorker::doDisplayMasterBuffer()
  * allocation did not yet occur.*/
 bool ImageWorker::preImageOperationMutex()
 {
-    if(dstRGBImage == nullptr || masterRGBImage == nullptr)
+    if(dstRGBImage_m == nullptr || masterRGBImage_m == nullptr)
         return false;
 
-    mutex->lock();
+    mutex_m->lock();
     emit updateStatus("Applying changes...");
     return true;
 }
@@ -178,11 +178,11 @@ bool ImageWorker::preImageOperationMutex()
  * unlock mutex and push both buffers to GUI to display changes.*/
 void ImageWorker::postImageOperationMutex()
 {
-    *imageWrapper = qcv::cvMatToQImage(*dstRGBImage);
-    HistogramWidget::generateHistogram(*imageWrapper, dstRGBHisto);
+    *imageWrapper_m = qcv::cvMatToQImage(*dstRGBImage_m);
+    HistogramWidget::generateHistogram(*imageWrapper_m, dstRGBHisto_m);
     emit updateStatus("");
-    mutex->unlock();
-    emit resultImageUpdate(imageWrapper);
+    mutex_m->unlock();
+    emit resultImageUpdate(imageWrapper_m);
     emit resultHistoUpdate();
 }
 
@@ -199,7 +199,7 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
     if(!preImageOperationMutex()) return;
 
     //clone necessary because internal checks will prevent GUI image from cycling.
-    *dstRGBImage = masterRGBImage->clone();
+    *dstRGBImage_m = masterRGBImage_m->clone();
 
     //--adjust the number of colors available of not at initial value of 255
     if(parameter.at(AdjustMenu::Depth) < 255)
@@ -211,7 +211,7 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
             lookUpTable.data[i] = round(round(i * scaleFactor) / scaleFactor);
 
         //replace pixel intensities based on their LUT value
-        cv::LUT(*dstRGBImage, lookUpTable, *dstRGBImage);
+        cv::LUT(*dstRGBImage_m, lookUpTable, *dstRGBImage_m);
     }
 
 
@@ -220,8 +220,8 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
             || parameter.at(AdjustMenu::Saturation) != 0.0 || parameter.at(AdjustMenu::Gamma) != 1.0
             || parameter.at(AdjustMenu::Highlight) != 0.0 || parameter.at(AdjustMenu::Shadows) != 0.0)
     {
-        cv::cvtColor(*dstRGBImage, *tmpImage, cv::COLOR_RGB2HLS);
-        cv::split(*tmpImage, splitChannelsTmp);
+        cv::cvtColor(*dstRGBImage_m, *tmpImage_m, cv::COLOR_RGB2HLS);
+        cv::split(*tmpImage_m, splitChannelsTmp_m);
 
         /* openCv hue is stored as 360/2 since uchar cannot store above 255 so a LUT is populated
          * from 0 to 180 and phase shifted between -180 and 180 based on slider input. */
@@ -239,16 +239,16 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
                     hueShifted -=180;
                 lookUpTable.data[i] = hueShifted;
             }
-            cv::LUT(splitChannelsTmp.at(0), lookUpTable, splitChannelsTmp[0]);
+            cv::LUT(splitChannelsTmp_m.at(0), lookUpTable, splitChannelsTmp_m[0]);
         }
 
         //adjust the intensity
         if(parameter.at(AdjustMenu::Intensity) != 0)
-            splitChannelsTmp.at(1).convertTo(splitChannelsTmp[1], -1, 1.0, parameter.at(AdjustMenu::Intensity));
+            splitChannelsTmp_m.at(1).convertTo(splitChannelsTmp_m[1], -1, 1.0, parameter.at(AdjustMenu::Intensity));
 
         //adjust the saturation
         if(parameter.at(AdjustMenu::Saturation) != 0)
-            splitChannelsTmp.at(2).convertTo(splitChannelsTmp[2], -1, 1.0, parameter.at(AdjustMenu::Saturation));
+            splitChannelsTmp_m.at(2).convertTo(splitChannelsTmp_m[2], -1, 1.0, parameter.at(AdjustMenu::Saturation));
 
         //adjust gamma by 255(i/255)^(1/gamma) where gamma 0.5 to 3.0
         if(parameter.at(AdjustMenu::Gamma) != 1.0 || parameter.at(AdjustMenu::Highlight) != 0.0
@@ -320,21 +320,21 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
             }
 
             //replace pixel values based on their LUT value
-            cv::LUT(splitChannelsTmp.at(1), lookUpTable, splitChannelsTmp[1]);
+            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable, splitChannelsTmp_m[1]);
         }
 
-        cv::merge(splitChannelsTmp, *tmpImage);
-        cv::cvtColor(*tmpImage, *dstRGBImage, cv::COLOR_HLS2RGB);
+        cv::merge(splitChannelsTmp_m, *tmpImage_m);
+        cv::cvtColor(*tmpImage_m, *dstRGBImage_m, cv::COLOR_HLS2RGB);
     }
 
 
     //--convert from color to grayscale if != 1.0
     if(parameter.at(AdjustMenu::Color) != 1.0)
     {
-        cv::cvtColor(*dstRGBImage, splitChannelsTmp[0], cv::COLOR_RGB2GRAY);
-        splitChannelsTmp.at(0).copyTo(splitChannelsTmp.at(1));
-        splitChannelsTmp.at(0).copyTo(splitChannelsTmp.at(2));
-        cv::merge(splitChannelsTmp, *dstRGBImage);
+        cv::cvtColor(*dstRGBImage_m, splitChannelsTmp_m[0], cv::COLOR_RGB2GRAY);
+        splitChannelsTmp_m.at(0).copyTo(splitChannelsTmp_m.at(1));
+        splitChannelsTmp_m.at(0).copyTo(splitChannelsTmp_m.at(2));
+        cv::merge(splitChannelsTmp_m, *dstRGBImage_m);
     }
 
 
@@ -351,7 +351,7 @@ void ImageWorker::doAdjustmentsComputation(QVector<float> parameter)
             beta += 127 * -log2(alpha) / sqrt(1 / alpha);
 
         //perform contrast computation and prime source buffer
-        dstRGBImage->convertTo(*dstRGBImage, -1, alpha, beta);
+        dstRGBImage_m->convertTo(*dstRGBImage_m, -1, alpha, beta);
     }
 
 
@@ -444,7 +444,7 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
     //check to make sure all working arrays are allocated
     if(!preImageOperationMutex()) return;
 
-    int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
+    int ksize = kernelSize(QSize(masterRGBImage_m->cols, masterRGBImage_m->rows),
                           parameter.at(FilterMenu::KernelWeight));
 
     switch (parameter.at(FilterMenu::KernelType))
@@ -453,17 +453,17 @@ void ImageWorker::doSmoothFilterComputation(QVector<int> parameter)
     case FilterMenu::FilterGaussian:
     {
         //For Gaussian, sigma should be 1/4 size of kernel.
-        cv::GaussianBlur(*masterRGBImage, *dstRGBImage, cv::Size(ksize, ksize), ksize * 0.25);
+        cv::GaussianBlur(*masterRGBImage_m, *dstRGBImage_m, cv::Size(ksize, ksize), ksize * 0.25);
         break;
     }
     case FilterMenu::FilterMedian:
     {
-        cv::medianBlur(*masterRGBImage, *dstRGBImage, ksize);
+        cv::medianBlur(*masterRGBImage_m, *dstRGBImage_m, ksize);
         break;
     }
     default: //FilterMenu::FilterAverage
     {
-        cv::blur(*masterRGBImage, *dstRGBImage, cv::Size(ksize, ksize));
+        cv::blur(*masterRGBImage_m, *dstRGBImage_m, cv::Size(ksize, ksize));
         break;
     }
     }
@@ -482,7 +482,7 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     //check to make sure all working arrays are allocated
     if(!preImageOperationMutex()) return;
 
-    int ksize = kernelSize(QSize(masterRGBImage->cols, masterRGBImage->rows),
+    int ksize = kernelSize(QSize(masterRGBImage_m->cols, masterRGBImage_m->rows),
                           parameter.at(FilterMenu::KernelWeight));
 
     switch (parameter.at(FilterMenu::KernelType))
@@ -491,16 +491,16 @@ void ImageWorker::doSharpenFilterComputation(QVector<int> parameter)
     case FilterMenu::FilterLaplacian:
     {
         //blur first to reduce noise
-        cv::GaussianBlur(*masterRGBImage, *tmpImage, cv::Size(3, 3), 0);
-        cv::filter2D(*tmpImage, *tmpImage, CV_8U,
+        cv::GaussianBlur(*masterRGBImage_m, *tmpImage_m, cv::Size(3, 3), 0);
+        cv::filter2D(*tmpImage_m, *tmpImage_m, CV_8U,
                      makeLaplacianKernel(parameter.at(FilterMenu::KernelWeight)));
-        cv::addWeighted(*masterRGBImage, .9, *tmpImage, .1, 255 * 0.1, *dstRGBImage, masterRGBImage->depth());
+        cv::addWeighted(*masterRGBImage_m, .9, *tmpImage_m, .1, 255 * 0.1, *dstRGBImage_m, masterRGBImage_m->depth());
         break;
     }
     default: //FilterMenu::FilterUnsharpen
     {
-        cv::GaussianBlur(*masterRGBImage, *tmpImage, cv::Size(ksize, ksize), ksize * 0.25);
-        cv::addWeighted(*masterRGBImage, 1.5, *tmpImage, -0.5, 0, *dstRGBImage, masterRGBImage->depth());
+        cv::GaussianBlur(*masterRGBImage_m, *tmpImage_m, cv::Size(ksize, ksize), ksize * 0.25);
+        cv::addWeighted(*masterRGBImage_m, 1.5, *tmpImage_m, -0.5, 0, *dstRGBImage_m, masterRGBImage_m->depth());
         break;
     }
     }
@@ -518,7 +518,7 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
     if(!preImageOperationMutex()) return;
 
     //blur first to reduce noise for high pass filter
-    cv::GaussianBlur(*masterRGBImage, *tmpImage, cv::Size(3, 3), 0);
+    cv::GaussianBlur(*masterRGBImage_m, *tmpImage_m, cv::Size(3, 3), 0);
 
     switch (parameter.at(FilterMenu::KernelType))
     {
@@ -526,22 +526,22 @@ void ImageWorker::doEdgeFilterComputation(QVector<int> parameter)
     //these opencv functions can have aperature size of 1/3/5/7
     case FilterMenu::FilterLaplacian:
     {
-        cv::Laplacian(*tmpImage, *dstRGBImage, CV_8U, parameter.at(FilterMenu::KernelWeight));
+        cv::Laplacian(*tmpImage_m, *dstRGBImage_m, CV_8U, parameter.at(FilterMenu::KernelWeight));
         break;
     }
 
     case FilterMenu::FilterSobel:
     {
-        cv::Sobel(*tmpImage, *dstRGBImage, CV_8U, 1, 0, parameter.at(FilterMenu::KernelWeight));
-        cv::Sobel(*tmpImage, *tmpImage, CV_8U, 0, 1, parameter.at(FilterMenu::KernelWeight));
-        cv::addWeighted(*tmpImage, 0.5, *dstRGBImage, 0.5, 0, *dstRGBImage, masterRGBImage->depth());
+        cv::Sobel(*tmpImage_m, *dstRGBImage_m, CV_8U, 1, 0, parameter.at(FilterMenu::KernelWeight));
+        cv::Sobel(*tmpImage_m, *tmpImage_m, CV_8U, 0, 1, parameter.at(FilterMenu::KernelWeight));
+        cv::addWeighted(*tmpImage_m, 0.5, *dstRGBImage_m, 0.5, 0, *dstRGBImage_m, masterRGBImage_m->depth());
         break;
     }
 
     default: //FilterMenu::FilterCanny
     {
-        cv::Canny(*tmpImage, *dstRGBImage, 80, 200, parameter.at(FilterMenu::KernelWeight));
-        qDebug() << "channels:" << QString::number(dstRGBImage->channels());
+        cv::Canny(*tmpImage_m, *dstRGBImage_m, 80, 200, parameter.at(FilterMenu::KernelWeight));
+        qDebug() << "channels:" << QString::number(dstRGBImage_m->channels());
         break;
     }
     }
@@ -591,11 +591,11 @@ void ImageWorker::doTemperatureComputation(int parameter)
     }
 
     //split each channel and manipulate each channel individually
-    cv::split(*masterRGBImage, splitChannelsTmp);
-    splitChannelsTmp.at(0) *= yred / 255;
-    splitChannelsTmp.at(1) *= ygreen / 255;
-    splitChannelsTmp.at(2) *= yblue / 255;
-    cv::merge(splitChannelsTmp, *dstRGBImage);
+    cv::split(*masterRGBImage_m, splitChannelsTmp_m);
+    splitChannelsTmp_m.at(0) *= yred / 255;
+    splitChannelsTmp_m.at(1) *= ygreen / 255;
+    splitChannelsTmp_m.at(2) *= yblue / 255;
+    cv::merge(splitChannelsTmp_m, *dstRGBImage_m);
 
     //after computation is complete, push image and histogram to GUI if changes were made
     postImageOperationMutex();

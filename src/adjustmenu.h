@@ -93,23 +93,23 @@ signals:
 private:
 
     Ui::AdjustMenu *ui;
-    QVector<float> sliderValues;
+    QVector<float> sliderValues_m;
 
 
 private slots:
-    void on_horizontalSlider_Contrast_valueChanged(int value);
-    void on_horizontalSlider_Brightness_valueChanged(int value);
-    void on_horizontalSlider_Depth_valueChanged(int value);
-    void on_horizontalSlider_Hue_valueChanged(int value);
-    void on_horizontalSlider_Saturation_valueChanged(int value);
-    void on_horizontalSlider_Intensity_valueChanged(int value);
-    void on_pushButton_Cancel_released();
-    void on_radioButton_Color_released();
-    void on_radioButton_Grayscale_released();
-    void on_pushButton_Apply_released();
-    void on_horizontalSlider_Gamma_valueChanged(int value);
-    void on_horizontalSlider_Highlight_valueChanged(int value);
-    void on_horizontalSlider_Shadows_valueChanged(int value);
+    void changeContrastValue(int value);
+    void changeBrightnessValue(int value);
+    void changeDepthValue(int value);
+    void changeHueValue(int value);
+    void changeSaturationValue(int value);
+    void changeIntensityValue(int value);
+    void cancelAdjustmentsToImage();
+    void changeToColorImage();
+    void changeToGrayscaleImage();
+    void applyAdjustmentToImage();
+    void changeGammaValue(int value);
+    void changeHighlightsValue(int value);
+    void changeShadowsValue(int value);
 };
 
 #endif // ADJUSTMENU_H

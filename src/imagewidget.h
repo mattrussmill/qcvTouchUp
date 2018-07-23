@@ -106,18 +106,17 @@ protected:
     virtual void dropEvent(QDropEvent *event) override;
 
 private:
-    QPoint selectedPoint;
-    QAction *zoomInAction;
-    QAction *zoomOutAction;
-    QAction *zoomFitAction;
-    QAction *zoomActualAction;
-    QLabel *imageLabel;
-    QScrollArea *scrollArea;
-    QMutex *mutex;
-    const QImage *attachedImage = nullptr;
-    float scalar;
-    bool fillScrollArea = true;
-    bool retrieveColor = false;
+    QPoint selectedPoint_m;
+    QAction *zoomInAction_m;
+    QAction *zoomOutAction_m;
+    QAction *zoomFitAction_m;
+    QAction *zoomActualAction_m;
+    QLabel *imageLabel_m;
+    QScrollArea *scrollArea_m;
+    QMutex *mutex_m;
+    const QImage *attachedImage_m = nullptr;
+    float scalar_m;
+    bool fillScrollArea_m = true;
 };
 
 #endif // IMAGEWIDGET_H

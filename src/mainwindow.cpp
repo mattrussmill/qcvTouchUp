@@ -27,24 +27,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     //main operation setup, members, and mutex
     ui->setupUi(this);
     setWindowTitle("qcvTouchUp");
-    userImagePath = QDir::homePath();
+    userImagePath_m = QDir::homePath();
     ui->iw->setMutex(mutex);
 
     //setup worker thread event loop for ImageWorker
-    imageWorker = new ImageWorker(mutex);
-    imageWorker->moveToThread(&workerThread);
-    connect(&workerThread, SIGNAL(finished), imageWorker, SLOT(deleteLater()));
+    imageWorker_m = new ImageWorker(mutex);
+    imageWorker_m->moveToThread(&workerThread);
+    connect(&workerThread, SIGNAL(finished), imageWorker_m, SLOT(deleteLater()));
 
     //image menus initializations - signals are connected after to not be emitted during initialization
-    adjustMenu = new AdjustMenu(this);
-    adjustMenu->setVisible(false);
-    ui->horizontalLayoutImageTools->addWidget(adjustMenu);
-    filterMenu = new FilterMenu(this);
-    filterMenu->setVisible(false);
-    ui->horizontalLayoutImageTools->addWidget(filterMenu);
-    temperatureMenu = new TemperatureMenu(this);
-    temperatureMenu->setVisible(false);
-    ui->horizontalLayoutImageTools->addWidget(temperatureMenu);
+    adjustMenu_m = new AdjustMenu(this);
+    adjustMenu_m->setVisible(false);
+    ui->horizontalLayoutImageTools->addWidget(adjustMenu_m);
+    filterMenu_m = new FilterMenu(this);
+    filterMenu_m->setVisible(false);
+    ui->horizontalLayoutImageTools->addWidget(filterMenu_m);
+    temperatureMenu_m = new TemperatureMenu(this);
+    temperatureMenu_m->setVisible(false);
+    ui->horizontalLayoutImageTools->addWidget(temperatureMenu_m);
 
     //connect necessary internal mainwindow/ui slots
     connect(ui->actionZoom_In, SIGNAL(triggered()), ui->iw, SLOT(zoomIn()));
@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->actionZoom_Fit, SIGNAL(triggered()), ui->iw, SLOT(zoomFit()));
     connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->iw, SLOT(zoomActual()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
+    connect(ui->actionHistogram, SIGNAL(triggered()), this, SLOT(loadHistogramTool()));
     connect(ui->quickMenu, SIGNAL(menuItemClicked(int)), this, SLOT(loadSubMenu(int)));
     connect(ui->iw, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
     connect(ui->iw, SIGNAL(droppedImagePath(QString)), this, SLOT(openImage(QString)));
@@ -59,28 +60,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     //connect necessary worker thread - mainwindow/ui slots
     connect(&workerThread, SIGNAL(started()), this, SLOT(initializeWorkerThreadData()));
-    connect(imageWorker, SIGNAL(resultImageSet(const QImage*)), this, SLOT(updateImageInformation(const QImage*)));
-    connect(imageWorker, SIGNAL(resultImageSet(const QImage*)), ui->iw, SLOT(setImage(const QImage*)));
-    connect(imageWorker, SIGNAL(resultImageUpdate(const QImage*)), ui->iw, SLOT(updateDisplayedImage(const QImage*)));
-    connect(imageWorker, SIGNAL(resultHistoUpdate()), this, SLOT(updateHistogram()));
-    connect(imageWorker, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
+    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), this, SLOT(updateImageInformation(const QImage*)));
+    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), ui->iw, SLOT(setImage(const QImage*)));
+    connect(imageWorker_m, SIGNAL(resultImageUpdate(const QImage*)), ui->iw, SLOT(updateDisplayedImage(const QImage*)));
+    connect(imageWorker_m, SIGNAL(resultHistoUpdate()), this, SLOT(updateHistogram()));
+    connect(imageWorker_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
     //connect necessary worker thread - adjustmenu / ui slots
-    connect(adjustMenu, SIGNAL(performImageAdjustments(QVector<float>)), imageWorker, SLOT(doAdjustmentsComputation(QVector<float>)));
-    connect(adjustMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
-    connect(adjustMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
+    connect(adjustMenu_m, SIGNAL(performImageAdjustments(QVector<float>)), imageWorker_m, SLOT(doAdjustmentsComputation(QVector<float>)));
+    connect(adjustMenu_m, SIGNAL(cancelAdjustments()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+    connect(adjustMenu_m, SIGNAL(applyAdjustments()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
 
     //connect necessary worker thread - filtermenu / ui slots
-    connect(filterMenu, SIGNAL(performImageBlur(QVector<int>)), imageWorker, SLOT(doSmoothFilterComputation(QVector<int>)));
-    connect(filterMenu, SIGNAL(performImageSharpen(QVector<int>)), imageWorker, SLOT(doSharpenFilterComputation(QVector<int>)));
-    connect(filterMenu, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker, SLOT(doEdgeFilterComputation(QVector<int>)));
-    connect(filterMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
-    connect(filterMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
+    connect(filterMenu_m, SIGNAL(performImageBlur(QVector<int>)), imageWorker_m, SLOT(doSmoothFilterComputation(QVector<int>)));
+    connect(filterMenu_m, SIGNAL(performImageSharpen(QVector<int>)), imageWorker_m, SLOT(doSharpenFilterComputation(QVector<int>)));
+    connect(filterMenu_m, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker_m, SLOT(doEdgeFilterComputation(QVector<int>)));
+    connect(filterMenu_m, SIGNAL(cancelAdjustments()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+    connect(filterMenu_m, SIGNAL(applyAdjustments()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
 
     //connect necessary worker thread - temperaturemenu / ui slots
-    connect(temperatureMenu, SIGNAL(performImageAdjustments(int)), imageWorker, SLOT(doTemperatureComputation(int)));
-    connect(temperatureMenu, SIGNAL(cancelAdjustments()), imageWorker, SLOT(doDisplayMasterBuffer()));
-    connect(temperatureMenu, SIGNAL(applyAdjustments()), imageWorker, SLOT(doCopyRGBBufferToMasterBuffer()));
+    connect(temperatureMenu_m, SIGNAL(performImageAdjustments(int)), imageWorker_m, SLOT(doTemperatureComputation(int)));
+    connect(temperatureMenu_m, SIGNAL(cancelAdjustments()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+    connect(temperatureMenu_m, SIGNAL(applyAdjustments()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
 
     //start worker thread event loop
     workerThread.start();
@@ -93,7 +94,7 @@ MainWindow::~MainWindow()
     workerThread.wait();
 
     //delete heap data not a child of mainwindow
-    delete imageWorker;
+    delete imageWorker_m;
     delete ui;
 }
 
@@ -107,25 +108,25 @@ void MainWindow::loadSubMenu(int menuIndex)
         else
             ui->histo->setMinimumWidth(150);
 
-        adjustMenu->setVisible(false);
-        filterMenu->setVisible(false);
-        temperatureMenu->setVisible(false);
+        adjustMenu_m->setVisible(false);
+        filterMenu_m->setVisible(false);
+        temperatureMenu_m->setVisible(false);
 
         switch(menuIndex)
         {
         case 1:
         {
-            adjustMenu->setVisible(true);
+            adjustMenu_m->setVisible(true);
             break;
         }
         case 2:
         {
-            filterMenu->setVisible(true);
+            filterMenu_m->setVisible(true);
             break;
         }
         case 3:
         {
-            temperatureMenu->setVisible(true);
+            temperatureMenu_m->setVisible(true);
         }
         default:
         {
@@ -155,7 +156,7 @@ void MainWindow::updateImageInformation(const QImage *image)
     }
     else
     {
-        setWindowTitle("qcvTouchUp - " + QFileInfo(userImagePath.absolutePath()).fileName());
+        setWindowTitle("qcvTouchUp - " + QFileInfo(userImagePath_m.absolutePath()).fileName());
         ui->labelSize->setText("Size: " + QString::number(image->width())+"x"+QString::number(image->height()));
         ui->labelType->setText("Type: " + qcv::getMatType(qcv::qImageToCvMat(*image)));
     }
@@ -166,7 +167,7 @@ void MainWindow::updateImageInformation(const QImage *image)
 void MainWindow::initializeWorkerThreadData()
 {
     //signals the worker to set its histogram dst data for the displayed image to the buffer managed by the ui.
-    imageWorker->doSetHistogramDstAddress(const_cast<uint**>(ui->histo->data()));
+    imageWorker_m->doSetHistogramDstAddress(const_cast<uint**>(ui->histo->data()));
 }
 
 /* Allows the worker thread to override the initialized value of the mainwindow histogram widget and update
@@ -183,19 +184,19 @@ void MainWindow::updateHistogram()
 void MainWindow::openImage()
 {
     statusBar()->showMessage("Opening...");
-    userImagePath.setPath(QFileDialog::getOpenFileName(this, "Select an Image", userImagePath.absolutePath(),
+    userImagePath_m.setPath(QFileDialog::getOpenFileName(this, "Select an Image", userImagePath_m.absolutePath(),
                           "All Files (*);;Bitmap (*.bmp *.dib);;JPEG(*.jpeg *.jpg *.jpe);;"
                           "JPEG 2000 (*.jp2);;OpenEXR (*.exr);;PIF (*.pbm *.pgm *.pnm *.ppm *.pxm);;"
                           "PNG (*.png);;Radiance HDR (*.hdr *.pic);;Sun Raster (*.sr *.ras);;"
                           "TIFF (*.tiff *.tif);;WebP (*.webp)"));
-    if(userImagePath.absolutePath().isNull())
+    if(userImagePath_m.absolutePath().isNull())
     {
         return;
         statusBar()->showMessage("");
     }
     ui->iw->clearImage();
     ui->histo->clear();
-    imageWorker->doOpenImage(userImagePath.absolutePath());
+    imageWorker_m->doOpenImage(userImagePath_m.absolutePath());
 }
 
 /* An overload of openImage without the use of a dialog box. Takes the image path directly as a parameter
@@ -211,11 +212,12 @@ void MainWindow::openImage(QString imagePath)
     }
     ui->iw->clearImage();
     ui->histo->clear();
-    imageWorker->doOpenImage(imagePath);
+    userImagePath_m.setPath(imagePath);
+    imageWorker_m->doOpenImage(imagePath);
 }
 
 // Displays a histogram window with x and y axis plot when triggered.
-void MainWindow::on_actionHistogram_triggered()
+void MainWindow::loadHistogramTool()
 {
     statusBar()->showMessage("Histogram...");
     mutex.lock();

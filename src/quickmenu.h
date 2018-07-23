@@ -78,7 +78,7 @@ public slots:
 
 private:
     const QString backgroundColor();
-    int m_menuItem = 0;
+    int menuItem_m = 0;
 };
 
 #endif // QUICKMENU_H

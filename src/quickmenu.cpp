@@ -98,23 +98,23 @@ QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent)
  * This variable is initialized to zero */
 int QuickMenu::menuItem()
 {
-    return m_menuItem;
+    return menuItem_m;
 }
 
-/* This method sets the m_menuItem member passed (clicked on) from the QML main menu
+/* This method sets the menuItem_m member passed (clicked on) from the QML main menu
  * through the Qt object properties. If the menu item is selected (clicked) twice,
  * the associated menu id number is reset to zero. */
 void QuickMenu::setMenuItem(int m)
 {
-    if(m == m_menuItem)
-        m_menuItem = 0;
+    if(m == menuItem_m)
+        menuItem_m = 0;
     else
-        m_menuItem = m;
+        menuItem_m = m;
 
-    emit menuItemClicked(m_menuItem);
+    emit menuItemClicked(menuItem_m);
 }
 
-// Resets the m_menuItem member to its initial state of zero.
+// Resets the menuItem_m member to its initial state of zero.
 void QuickMenu::resetMenuIndex()
 {
     setMenuItem(0);

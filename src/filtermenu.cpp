@@ -68,10 +68,10 @@ FilterMenu::FilterMenu(QWidget *parent) :
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
 
     //fix radio buttons to work in separate group boxes (for asthetics)
-    buttonGroup = new QButtonGroup(this);
-    buttonGroup->addButton(ui->radioButton_SmoothEnable);
-    buttonGroup->addButton(ui->radioButton_SharpenEnable);
-    buttonGroup->addButton(ui->radioButton_EdgeEnable);
+    buttonGroup_m = new QButtonGroup(this);
+    buttonGroup_m->addButton(ui->radioButton_SmoothEnable);
+    buttonGroup_m->addButton(ui->radioButton_SharpenEnable);
+    buttonGroup_m->addButton(ui->radioButton_EdgeEnable);
 
     //setup smooth menu options
     ui->comboBox_Smooth->addItem("Average");    //comboBox index 0 (default)
@@ -110,7 +110,10 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(sliderPressed()), this, SLOT(radioEdgeSilentEnable()));
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
-    menuValues.resize(2);
+    //other initializations
+    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentToImage()));
+    connect(ui->pushButton_Cancel, SIGNAL(released()), this, SLOT(cancelAdjustmentsToImage()));
+    menuValues_m.resize(2);
     initializeSliders();
 }
 
@@ -125,12 +128,12 @@ void FilterMenu::initializeSliders()
 {
     blockSignals(true);
 
-    QAbstractButton *checkedButton = buttonGroup->checkedButton();
+    QAbstractButton *checkedButton = buttonGroup_m->checkedButton();
     if(checkedButton != nullptr)
     {
-        buttonGroup->setExclusive(false);
+        buttonGroup_m->setExclusive(false);
         checkedButton->setChecked(false);
-        buttonGroup->setExclusive(true);
+        buttonGroup_m->setExclusive(true);
     }
 
     ui->horizontalSlider_SmoothWeight->setValue(ui->horizontalSlider_SmoothWeight->minimum());
@@ -173,41 +176,41 @@ void FilterMenu::adjustEdgeSliderRange(int value)
     }
 }
 
-//Populates the menuValues parameter and passes it to a worker slot for the Smooth operation.
+//Populates the menuValues_m parameter and passes it to a worker slot for the Smooth operation.
 void FilterMenu::collectBlurParameters()
 {
     //if filter not enabled, do nothing
     if(!ui->radioButton_SmoothEnable->isChecked()) return;
 
-    menuValues[KernelType] = ui->comboBox_Smooth->currentIndex();
-    menuValues[KernelWeight] = ui->horizontalSlider_SmoothWeight->value();
+    menuValues_m[KernelType] = ui->comboBox_Smooth->currentIndex();
+    menuValues_m[KernelWeight] = ui->horizontalSlider_SmoothWeight->value();
 
-    emit performImageBlur(menuValues);
+    emit performImageBlur(menuValues_m);
 }
 
-//Populates the menuValues parameter and passes it to a worker slot for the Sharpen operation.
+//Populates the menuValues_m parameter and passes it to a worker slot for the Sharpen operation.
 void FilterMenu::collectSharpenParameters()
 {
     //if filter not enabled, do nothing
     if(!ui->radioButton_SharpenEnable->isChecked()) return;
 
-    menuValues[KernelType] = ui->comboBox_Sharpen->currentIndex();
-    menuValues[KernelWeight] = ui->horizontalSlider_SharpenWeight->value();
+    menuValues_m[KernelType] = ui->comboBox_Sharpen->currentIndex();
+    menuValues_m[KernelWeight] = ui->horizontalSlider_SharpenWeight->value();
 
-    emit performImageSharpen(menuValues);
+    emit performImageSharpen(menuValues_m);
 }
 
-//Populates the menuValues parameter and passes it to a worker slot for the Edge Detect operation.
+//Populates the menuValues_m parameter and passes it to a worker slot for the Edge Detect operation.
 void FilterMenu::collectEdgeDetectParameters()
 {
     //if filter not enabled, do nothing
     if(!ui->radioButton_EdgeEnable->isChecked()) return;
 
     //sends values of 1/3/5/7 for opencv functions. Slider ranges from 0 to 3
-    menuValues[KernelType] = ui->comboBox_Edge->currentIndex();
-    menuValues[KernelWeight] = ui->horizontalSlider_EdgeWeight->value() * 2 + 1;
+    menuValues_m[KernelType] = ui->comboBox_Edge->currentIndex();
+    menuValues_m[KernelWeight] = ui->horizontalSlider_EdgeWeight->value() * 2 + 1;
 
-    emit performImageEdgeDetect(menuValues);
+    emit performImageEdgeDetect(menuValues_m);
 }
 
 //Sets the sample image based on the menu item selected.
@@ -265,14 +268,14 @@ void FilterMenu::radioEdgeSilentEnable()
 }
 
 //Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
-void FilterMenu::on_pushButton_Apply_released()
+void FilterMenu::applyAdjustmentToImage()
 {
     initializeSliders();
     emit applyAdjustments();
 }
 
 //Sets sliders to initial positions and signals to the worker to display the starting buffer.
-void FilterMenu::on_pushButton_Cancel_released()
+void FilterMenu::cancelAdjustmentsToImage()
 {
     initializeSliders();
     emit cancelAdjustments();
