@@ -72,8 +72,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
-                //cacheBuffer: rootButton.width * 3 //this doesnt make sense anymore
-                spacing: 20
+                spacing: rootMenu.height / 3
                 model: items
                 orientation: ListView.Horizontal
 
@@ -106,7 +105,7 @@ Item {
                             id: itemText
                             color: button.textColor
                             text: menuname
-                            font.pointSize: 16
+                            font.pixelSize: rootMenu.height / 3
                             anchors.centerIn: parent
                         }
 
@@ -117,7 +116,7 @@ Item {
                                 PropertyChanges {
                                     target: button
                                     glowColor: "#c7eb5e"
-                                    scale: 1.3
+                                    scale: 1.25
                                 }
                             },
                             State {
@@ -142,7 +141,7 @@ Item {
                         transitions: [
                             Transition {
                                 from: "Default"; to: "Hovering"
-                                ColorAnimation { duration: 120 }
+                                ColorAnimation { duration: 110 }
                             },
                             Transition {
                                 from: "*"; to: "Pressed"
@@ -217,41 +216,42 @@ Item {
         } //menuOverlay
 
     /*The items ListModel contains the menu name and menuid. When a button is clicked in the graphical
-      menu, its corresponding menuid is sent as a signal to the quickmenubackend.cpp container that
+      menu, its corresponding menuid int is sent as a signal to the quickmenubackend.cpp container that
       instantiated toolmenu.qml in mainwindow.cpp. A menuid represents a corresponding wiget in the
       mainwindow application. When no subwidget menus are opened from this ListModel, the container's
       menuid will be set to zero. All menuids in this list shall have a unique number, the same as its
-      associated wiget, larger than zero. The titles should also match the window titles in those wigets.*/
+      associated wiget, larger than zero. The titles should also match the window titles in those wigets.
+      Enumerations were not used as they would need to be maintained between C++ and QML anyway*/
     ListModel { //* = start with
         id: items
 
         ListElement {
-            menuname: "Adjust" //*
+            menuname: "Adjust"
             menuid: 1
         }
 
         ListElement {
-            menuname: "Filter" //*
+            menuname: "Filter"
             menuid: 2
         }
 
         ListElement {
-            menuname: "Temperature" //*
+            menuname: "Temperature"
             menuid: 3
         }
 
         ListElement {
-            menuname: "Transform" //*
+            menuname: "Transform"
             menuid: 4
         }
 
         ListElement {
-            menuname: "Slice" //color slice (pick color and range and if attached region or not)
+            menuname: "Slice"
             menuid: 5
         }
 
         ListElement {
-            menuname: "Select" //selective color -> like slice but dynamicly add menu items to add more colors with range
+            menuname: "Select"
             menuid: 6
         }
 
