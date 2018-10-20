@@ -60,6 +60,9 @@
 #include <QMutex>
 #include <QUrl>
 #include <QMimeData>
+#include <QScrollBar>
+
+#include <QDebug>
 
 /* The ImageWidget constructor takes in one argument which is the parent QWidget
  * to handle desctuction at termination, else is set to nullptr by default. The
@@ -338,7 +341,7 @@ void ImageWidget::updateDisplayedImage()
     if(mutex_m) mutex_m->unlock();
 }
 
-/*Overload of updateDisplayedImage. Attaches a new image buffer without resizing. Because
+/* Overload of updateDisplayedImage. Attaches a new image buffer without resizing. Because
  * of the possibility this function will operate on an image outside of the class, a mutex
  * locks the operation if it is available*/
 void ImageWidget::updateDisplayedImage(const QImage *image)
@@ -370,27 +373,15 @@ void ImageWidget::resizeEvent(QResizeEvent *event)
 
 /* An override of mouseReleaseEvent. If an image is attached and the left button is released
  * overtop of the imageLabel_m (bounds checked), the coordinates are recorded of the pixel under
- * the cursor when the button is released. That pixel coordinate is then scaled to map to the
- * attached QImage's actual pixel coordinates.If the scaled pixel is out of bounds, it is
- * adjusted to fit within the QImage coordinates. Function is virtural so that it may be
- * overridden if ImageWidget is expanded upon in another object.*/
+ * the cursor when the button is released. If the image is not under the cursor at the time of
+ * release, the nearest pixel in the image is recorded*/
 void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    int x1, y1, x2, y2;
-    QPoint mousePosition;
     if(imageAttached())
     {
         if(event->button() == Qt::LeftButton)
         {
-            imageLabel_m->rect().getCoords(&x1, &y1, &x2, &y2);
-            mousePosition = mapFromGlobal(QCursor::pos());
-            if(mousePosition.x() > x2 || mousePosition.y() > y2) return;
-            mousePosition *= 1/scalar_m;
-            if(mousePosition.x() > attachedImage_m->width() - 1)
-                mousePosition.setX(attachedImage_m->width() - 1);
-            if(mousePosition.y() > attachedImage_m->height() - 1)
-                mousePosition.setY(attachedImage_m->height() - 1);
-            selectedPoint_m = mousePosition;
+            selectedPoint_m = getPointInImage();
             emit imagePointSelected(selectedPoint_m);
         }
     }
@@ -461,6 +452,53 @@ void ImageWidget::dropEvent(QDropEvent *event)
         qDebug() << "Too many files dragged onto ImageWidget";
         emit droppedImageError();
     }
+}
+
+/* If imageLabel is the same size or smaller, shift the origin of the ImageWidget to the origin of the
+ * imageLabel. Else shift the origin based on the scrollBar positions using the image scrollArea as
+ * the ROI window. Adjusts for scrollBar space as well.*/
+QPoint ImageWidget::getPointInImage()
+{
+    if(imageAttached())
+    {
+        QPoint mousePosition = mapFromGlobal(QCursor::pos());
+
+        //x coordinate adjustment
+        float scalar =  attachedImage_m->width() / static_cast<float>(imageLabel_m->width());
+        if(imageLabel_m->width() <= this->width())
+        {
+            mousePosition += QPoint((imageLabel_m->width() - scrollArea_m->width()) / 2, 0);
+        }
+        else
+        {
+            float scrollBarPosition = scrollArea_m->horizontalScrollBar()->value()
+                    / static_cast<float>(scrollArea_m->horizontalScrollBar()->maximum());
+
+            mousePosition += QPoint(scrollBarPosition * (imageLabel_m->width() - scrollArea_m->width()
+                                                         + scrollArea_m->verticalScrollBar()->width() + 1), 0);
+        }
+        mousePosition.setX(mousePosition.x() * scalar);
+
+        //y coordinate adjustment
+        scalar =  attachedImage_m->height() / static_cast<float>(imageLabel_m->height());
+        if(imageLabel_m->height() <= this->height())
+        {
+            mousePosition += QPoint(0, (imageLabel_m->height() - scrollArea_m->height()) / 2);
+        }
+        else
+        {
+            float scrollBarPosition = scrollArea_m->verticalScrollBar()->value()
+                    / static_cast<float>(scrollArea_m->verticalScrollBar()->maximum());
+
+            mousePosition += QPoint(0, scrollBarPosition * (imageLabel_m->height() - scrollArea_m->height()
+                                                            + scrollArea_m->horizontalScrollBar()->height() + 1));
+        }
+        mousePosition.setY(mousePosition.y() * scalar);
+
+        qDebug() << mousePosition;
+        return mousePosition;
+    }
+    return QPoint();
 }
 
 

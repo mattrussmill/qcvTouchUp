@@ -63,6 +63,7 @@ class ImageWidget : public QWidget
 
 public:
     ImageWidget(QWidget *parent = nullptr);
+    enum GrabRegionState {ReturnPoint, ReturnRegion, ReturnNone}; //return 1 point, click/drag return click & release point
     QPoint lastPointSelected() const;
     Qt::ScrollBarPolicy verticalScrollBarPolicy() const;
     Qt::ScrollBarPolicy horizontalScrollBarPolicy() const;
@@ -75,6 +76,7 @@ public:
     bool fillWidgetStatus() const;
     const QImage* displayedImage();
     void setMutex(QMutex &m);
+
 
 
 signals:
@@ -106,6 +108,7 @@ protected:
     virtual void dropEvent(QDropEvent *event) override;
 
 private:
+    QPoint getPointInImage();
     QPoint selectedPoint_m;
     QAction *zoomInAction_m;
     QAction *zoomOutAction_m;
