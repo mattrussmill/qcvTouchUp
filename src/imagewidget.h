@@ -44,6 +44,7 @@
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           01/22/2018      Matthew R. Miller       Initial Rev
 * 0.2           06/23/2018      Matthew R. Miller       Drag and Drop Open
+* 0.3           10/26/2018      Matthew R. Miller       Pixel Selection Added
 ************************************************************************/
 
 #ifndef IMAGEWIDGET_H
@@ -62,20 +63,22 @@ class ImageWidget : public QWidget
     Q_OBJECT
 
 public:
+    enum GetCoordinateMode {NoClick, SingleClick, SingleUnclick, ClickUnclick, ClickDrag};
     ImageWidget(QWidget *parent = nullptr);
-    enum GrabRegionState {ReturnPoint, ReturnRegion, ReturnNone}; //return 1 point, click/drag return click & release point
-    QPoint lastPointSelected() const;
     Qt::ScrollBarPolicy verticalScrollBarPolicy() const;
     Qt::ScrollBarPolicy horizontalScrollBarPolicy() const;
     void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setImage(const QImage &image);
     void setFillWidget(bool fill = true);
+    void setSelectPixelsMode(GetCoordinateMode mode);
+    uint getSelectPixelsMode() const;
     double currentScale() const;
     bool imageAttached() const;
     bool fillWidgetStatus() const;
     const QImage* displayedImage();
     void setMutex(QMutex &m);
+
 
 
 
@@ -102,6 +105,8 @@ public slots:
 protected:
     virtual void resizeEvent(QResizeEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
+    virtual void mousePressEvent(QMouseEvent *event) override;
+    virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void contextMenuEvent(QContextMenuEvent *event) override;
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dragLeaveEvent(QDragLeaveEvent *event) override;
@@ -109,7 +114,6 @@ protected:
 
 private:
     QPoint getPointInImage();
-    QPoint selectedPoint_m;
     QAction *zoomInAction_m;
     QAction *zoomOutAction_m;
     QAction *zoomFitAction_m;
@@ -118,6 +122,7 @@ private:
     QScrollArea *scrollArea_m;
     QMutex *mutex_m;
     const QImage *attachedImage_m = nullptr;
+    uint selectPixelsMode_m = NoClick;
     float scalar_m;
     bool fillScrollArea_m = true;
 };

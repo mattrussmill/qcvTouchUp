@@ -110,12 +110,6 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     mutex_m = nullptr;
 }
 
-//Member function which returns the last selected point of a loaded image
-QPoint ImageWidget::lastPointSelected() const
-{
-    return selectedPoint_m;
-}
-
 //Member function which returns the current vertical scroll bar policy setting
 Qt::ScrollBarPolicy ImageWidget::verticalScrollBarPolicy() const
 {
@@ -175,6 +169,20 @@ void ImageWidget::setFillWidget(bool fill)
 {
     if(fill) zoomFit();
     fillScrollArea_m = fill;
+}
+
+/* Member function setSelectPixelMode allows an external object to set the selectPixelMode_m member
+ * variable which dictates how pixel locations are returned based on mouse action over an image.
+ * The GetCoordinateMode enum represents the available modes and executed in the mouseEvent. */
+void ImageWidget::setSelectPixelsMode(GetCoordinateMode mode)
+{
+    selectPixelsMode_m = mode;
+}
+
+//Returns the current pixel selection status for cursor / displayed image interaction
+uint ImageWidget::getSelectPixelsMode() const
+{
+    return selectPixelsMode_m;
 }
 
 //Returns the current scale ratio between the displayed and attached image
@@ -372,17 +380,50 @@ void ImageWidget::resizeEvent(QResizeEvent *event)
 }
 
 /* An override of mouseReleaseEvent. If an image is attached and the left button is released
- * overtop of the imageLabel_m (bounds checked), the coordinates are recorded of the pixel under
- * the cursor when the button is released. If the image is not under the cursor at the time of
- * release, the nearest pixel in the image is recorded*/
+ * overtop of the ImageWidget while an image is present and the appropriate selectPixelMode_m
+ * selected, the coordinates under the mouse are emitted as a QPoint relative to the
+ * attachedImage_m's origin.*/
 void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        if(event->button() == Qt::LeftButton)
+        if(event->button() == Qt::LeftButton && (selectPixelsMode_m == SingleUnclick
+                                                 || selectPixelsMode_m == ClickUnclick
+                                                 || selectPixelsMode_m == ClickDrag))
         {
-            selectedPoint_m = getPointInImage();
-            emit imagePointSelected(selectedPoint_m);
+            emit imagePointSelected(getPointInImage());
+        }
+    }
+}
+
+/* An override of mousePressEvent. If an image is attached and the left button is pressed
+ * overtop of the ImageWidget while an image is present and the appropriate selectPixelMode_m
+ * selected, the coordinates under the mouse are emitted as a QPoint relative to the
+ * attachedImage_m's origin.*/
+void ImageWidget::mousePressEvent(QMouseEvent *event)
+{
+    if(imageAttached())
+    {
+        if(event->button() == Qt::LeftButton && (selectPixelsMode_m == SingleClick
+                                                 ||selectPixelsMode_m == ClickUnclick
+                                                 || selectPixelsMode_m == ClickDrag))
+        {
+            emit imagePointSelected(getPointInImage());
+        }
+    }
+}
+
+/* An override of mouseMoveEvent. If an image is attached and the mouse moves while the left
+ * button is pressed overtop of the ImageWidget while an image present and the appropriate
+ * selectPixelMode_m selected, the coordinates under the mouse are emitted as a QPoint relative
+ * to the attachedImage_m's origin.*/
+void ImageWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if(imageAttached())
+    {
+        if(!event->pos().isNull() == Qt::LeftButton && selectPixelsMode_m == ClickDrag)
+        {
+            emit imagePointSelected(getPointInImage());
         }
     }
 }
