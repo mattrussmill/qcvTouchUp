@@ -86,9 +86,6 @@ public slots:
 
 signals:
     void performImageAdjustments(QVector<float>);
-    void cancelAdjustments();
-    void applyAdjustments();
-
 
 private:
 
@@ -103,10 +100,8 @@ private slots:
     void changeHueValue(int value);
     void changeSaturationValue(int value);
     void changeIntensityValue(int value);
-    void cancelAdjustmentsToImage();
     void changeToColorImage();
     void changeToGrayscaleImage();
-    void applyAdjustmentToImage();
     void changeGammaValue(int value);
     void changeHighlightsValue(int value);
     void changeShadowsValue(int value);

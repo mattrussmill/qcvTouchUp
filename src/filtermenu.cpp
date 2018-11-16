@@ -111,8 +111,6 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
     //other initializations
-    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentToImage()));
-    connect(ui->pushButton_Cancel, SIGNAL(released()), this, SLOT(cancelAdjustmentsToImage()));
     menuValues_m.resize(2);
     initializeSliders();
 }
@@ -227,9 +225,7 @@ void FilterMenu::changeSampleImage()
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
 void FilterMenu::setVisible(bool visible)
 {
-    if(this->isVisible() && !visible)
-        emit cancelAdjustments();
-    else
+    if(!visible)
         initializeSliders();
     QWidget::setVisible(visible);
 }
@@ -265,18 +261,4 @@ void FilterMenu::radioEdgeSilentEnable()
         collectBlurParameters();
         changeSampleImage();
     }
-}
-
-//Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
-void FilterMenu::applyAdjustmentToImage()
-{
-    initializeSliders();
-    emit applyAdjustments();
-}
-
-//Sets sliders to initial positions and signals to the worker to display the starting buffer.
-void FilterMenu::cancelAdjustmentsToImage()
-{
-    initializeSliders();
-    emit cancelAdjustments();
 }

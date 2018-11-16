@@ -227,32 +227,32 @@ Item {
 
         ListElement {
             menuname: "Adjust"
-            menuid: 1
+            menuid: 0
         }
 
         ListElement {
             menuname: "Filter"
-            menuid: 2
+            menuid: 1
         }
 
         ListElement {
             menuname: "Temperature"
-            menuid: 3
+            menuid: 2
         }
 
         ListElement {
             menuname: "Transform"
-            menuid: 4
+            menuid: 3
         }
 
         ListElement {
             menuname: "Slice"
-            menuid: 5
+            menuid: 4
         }
 
         ListElement {
             menuname: "Select"
-            menuid: 6
+            menuid: 5
         }
 
     } //ListModel

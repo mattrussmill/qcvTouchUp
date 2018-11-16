@@ -49,6 +49,12 @@
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QGroupBox" name="groupBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string>Channel</string>
       </property>
@@ -124,19 +130,6 @@
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer_ScaleColor_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>30</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
      <widget class="QGroupBox" name="groupBox_Scale">
       <property name="title">
        <string>Scale</string>
@@ -151,7 +144,7 @@
        <property name="verticalSpacing">
         <number>8</number>
        </property>
-       <item row="5" column="0">
+       <item row="4" column="0">
         <widget class="QLabel" name="label_Contrast">
          <property name="text">
           <string>Contrast</string>
@@ -171,7 +164,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="4" column="1">
         <widget class="QSlider" name="horizontalSlider_Contrast">
          <property name="maximumSize">
           <size>
@@ -202,7 +195,42 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="1">
+       <item row="0" column="1">
+        <widget class="QSlider" name="horizontalSlider_Brightness">
+         <property name="maximumSize">
+          <size>
+           <width>179</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="minimum">
+          <number>-127</number>
+         </property>
+         <property name="maximum">
+          <number>127</number>
+         </property>
+         <property name="pageStep">
+          <number>7</number>
+         </property>
+         <property name="tracking">
+          <bool>false</bool>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_Depth">
+         <property name="text">
+          <string>Depth</string>
+         </property>
+         <property name="buddy">
+          <cstring>horizontalSlider_Depth</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
         <widget class="QSlider" name="horizontalSlider_Depth">
          <property name="maximumSize">
           <size>
@@ -230,82 +258,8 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QSlider" name="horizontalSlider_Brightness">
-         <property name="maximumSize">
-          <size>
-           <width>179</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>-127</number>
-         </property>
-         <property name="maximum">
-          <number>127</number>
-         </property>
-         <property name="pageStep">
-          <number>7</number>
-         </property>
-         <property name="tracking">
-          <bool>false</bool>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <spacer name="verticalSpacer_BrightnessContrast">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="6" column="1">
-        <spacer name="verticalSpacer_ContrastDepth">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="label_Depth">
-         <property name="text">
-          <string>Depth</string>
-         </property>
-         <property name="buddy">
-          <cstring>horizontalSlider_Depth</cstring>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_ScaleColor">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>30</height>
-       </size>
-      </property>
-     </spacer>
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_Color">
@@ -316,6 +270,16 @@
        <property name="verticalSpacing">
         <number>8</number>
        </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_Hue">
+         <property name="text">
+          <string>Hue</string>
+         </property>
+         <property name="buddy">
+          <cstring>horizontalSlider_Hue</cstring>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="1">
         <widget class="QSlider" name="horizontalSlider_Hue">
          <property name="maximumSize">
@@ -341,20 +305,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="1">
-        <spacer name="verticalSpacer_SaturationIntensity">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="8" column="0">
+       <item row="7" column="0">
         <widget class="QLabel" name="label_Saturation">
          <property name="text">
           <string>Saturation</string>
@@ -364,17 +315,7 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_Hue">
-         <property name="text">
-          <string>Hue</string>
-         </property>
-         <property name="buddy">
-          <cstring>horizontalSlider_Hue</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1">
+       <item row="7" column="1">
         <widget class="QSlider" name="horizontalSlider_Saturation">
          <property name="maximumSize">
           <size>
@@ -399,7 +340,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="0">
+       <item row="8" column="0">
         <widget class="QLabel" name="label_Intensity">
          <property name="text">
           <string>Intensity</string>
@@ -409,7 +350,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="1">
+       <item row="8" column="1">
         <widget class="QSlider" name="horizontalSlider_Intensity">
          <property name="maximumSize">
           <size>
@@ -434,34 +375,8 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <spacer name="verticalSpacer_HueSaturation">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
       </layout>
      </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_ColorLight">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>30</height>
-       </size>
-      </property>
-     </spacer>
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_Light">
@@ -469,26 +384,13 @@
        <string>Light</string>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="1">
-        <spacer name="verticalSpacer_GammaHighlight">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_Highlight">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_Shadow">
          <property name="text">
-          <string>Highlight</string>
+          <string>Shadows</string>
          </property>
          <property name="buddy">
-          <cstring>horizontalSlider_Highlight</cstring>
+          <cstring>horizontalSlider_Shadows</cstring>
          </property>
         </widget>
        </item>
@@ -523,7 +425,7 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="1" column="1">
         <widget class="QSlider" name="horizontalSlider_Highlight">
          <property name="maximumSize">
           <size>
@@ -551,17 +453,27 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_Shadow">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_Highlight">
          <property name="text">
-          <string>Shadows</string>
+          <string>Highlight</string>
          </property>
          <property name="buddy">
-          <cstring>horizontalSlider_Shadows</cstring>
+          <cstring>horizontalSlider_Highlight</cstring>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_Gamma">
+         <property name="text">
+          <string>Gamma</string>
+         </property>
+         <property name="buddy">
+          <cstring>horizontalSlider_Gamma</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
         <widget class="QSlider" name="horizontalSlider_Shadows">
          <property name="maximumSize">
           <size>
@@ -586,88 +498,8 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_Gamma">
-         <property name="text">
-          <string>Gamma</string>
-         </property>
-         <property name="buddy">
-          <cstring>horizontalSlider_Gamma</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <spacer name="verticalSpacer_HighlightShadow">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
       </layout>
      </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_SlidersButtons">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>30</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_Buttons">
-      <item>
-       <spacer name="horizontalSpacer_Apply">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_Apply">
-        <property name="text">
-         <string>Apply</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_Cancel">
-        <property name="text">
-         <string>Cancel</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_Cancel">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
     </item>
    </layout>
   </widget>

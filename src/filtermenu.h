@@ -93,8 +93,6 @@ signals:
     void performImageSharpen(QVector<int>);
     void performImageEdgeDetect(QVector<int>);
     void performImageNoiseRemove(QVector<int>);
-    void cancelAdjustments();
-    void applyAdjustments();
 
 private slots:
     void adjustSharpenSliderRange(int value);
@@ -106,8 +104,6 @@ private slots:
     void radioBlurSilentEnable();
     void radioSharpenSilentEnable();
     void radioEdgeSilentEnable();
-    void applyAdjustmentToImage();
-    void cancelAdjustmentsToImage();
 
 private:
     Ui::FilterMenu *ui;

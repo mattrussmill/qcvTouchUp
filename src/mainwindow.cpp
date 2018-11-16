@@ -19,6 +19,7 @@
 #include <QString>
 #include <QImage>
 #include <QMutex>
+#include <QStackedWidget>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -37,14 +38,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     //image menus initializations - signals are connected after to not be emitted during initialization
     adjustMenu_m = new AdjustMenu(this);
-    adjustMenu_m->setVisible(false);
-    ui->horizontalLayoutImageTools->addWidget(adjustMenu_m);
+    ui->toolMenu->addWidget(adjustMenu_m);
     filterMenu_m = new FilterMenu(this);
-    filterMenu_m->setVisible(false);
-    ui->horizontalLayoutImageTools->addWidget(filterMenu_m);
+    ui->toolMenu->addWidget(filterMenu_m);
     temperatureMenu_m = new TemperatureMenu(this);
-    temperatureMenu_m->setVisible(false);
-    ui->horizontalLayoutImageTools->addWidget(temperatureMenu_m);
+    ui->toolMenu->addWidget(temperatureMenu_m);
 
     //connect necessary internal mainwindow/ui slots
     connect(ui->actionZoom_In, SIGNAL(triggered()), ui->iw, SLOT(zoomIn()));
@@ -53,7 +51,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->iw, SLOT(zoomActual()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
     connect(ui->actionHistogram, SIGNAL(triggered()), this, SLOT(loadHistogramTool()));
-    connect(ui->quickMenu, SIGNAL(menuItemClicked(int)), this, SLOT(loadSubMenu(int)));
+
+    //right side tool menu - mainwindow/ui slots
+    connect(ui->quickMenu, SIGNAL(menuItemClicked(int)), ui->toolMenu, SLOT(setCurrentIndex(int)));
+    connect(ui->toolMenu, SIGNAL(currentChanged(int)), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+    connect(ui->pushButtonApply, SIGNAL(released()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
+
+    //image widget / area - mainwindow/ui slots
     connect(ui->iw, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
     connect(ui->iw, SIGNAL(droppedImagePath(QString)), this, SLOT(openImage(QString)));
     connect(ui->iw, SIGNAL(droppedImageError()), this, SLOT(imageOpenOperationFailed()));
@@ -68,20 +73,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     //connect necessary worker thread - adjustmenu / ui slots
     connect(adjustMenu_m, SIGNAL(performImageAdjustments(QVector<float>)), imageWorker_m, SLOT(doAdjustmentsComputation(QVector<float>)));
-    connect(adjustMenu_m, SIGNAL(cancelAdjustments()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-    connect(adjustMenu_m, SIGNAL(applyAdjustments()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
+    connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
 
     //connect necessary worker thread - filtermenu / ui slots
     connect(filterMenu_m, SIGNAL(performImageBlur(QVector<int>)), imageWorker_m, SLOT(doSmoothFilterComputation(QVector<int>)));
     connect(filterMenu_m, SIGNAL(performImageSharpen(QVector<int>)), imageWorker_m, SLOT(doSharpenFilterComputation(QVector<int>)));
     connect(filterMenu_m, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker_m, SLOT(doEdgeFilterComputation(QVector<int>)));
-    connect(filterMenu_m, SIGNAL(cancelAdjustments()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-    connect(filterMenu_m, SIGNAL(applyAdjustments()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
+    connect(ui->pushButtonApply, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
 
     //connect necessary worker thread - temperaturemenu / ui slots
     connect(temperatureMenu_m, SIGNAL(performImageAdjustments(int)), imageWorker_m, SLOT(doTemperatureComputation(int)));
-    connect(temperatureMenu_m, SIGNAL(cancelAdjustments()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-    connect(temperatureMenu_m, SIGNAL(applyAdjustments()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
+    connect(ui->pushButtonApply, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
 
     //start worker thread event loop
     workerThread.start();
@@ -96,44 +101,6 @@ MainWindow::~MainWindow()
     //delete heap data not a child of mainwindow
     delete imageWorker_m;
     delete ui;
-}
-
-void MainWindow::loadSubMenu(int menuIndex)
-{
-        //switch statement for loading menus
-        qDebug() << "Menu Number:" << QString::number(menuIndex);
-
-        if(menuIndex)
-            ui->histo->setMinimumWidth(275);
-        else
-            ui->histo->setMinimumWidth(150);
-
-        adjustMenu_m->setVisible(false);
-        filterMenu_m->setVisible(false);
-        temperatureMenu_m->setVisible(false);
-
-        switch(menuIndex)
-        {
-        case 1:
-        {
-            adjustMenu_m->setVisible(true);
-            break;
-        }
-        case 2:
-        {
-            filterMenu_m->setVisible(true);
-            break;
-        }
-        case 3:
-        {
-            temperatureMenu_m->setVisible(true);
-        }
-        default:
-        {
-            //nothing else to do
-            break;
-        }
-        }
 }
 
 // When an image fails at being opened, clears the image and generates a warning message box.

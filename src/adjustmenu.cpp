@@ -84,8 +84,6 @@ AdjustMenu::AdjustMenu(QWidget *parent) :
     connect(ui->horizontalSlider_Shadows, SIGNAL(valueChanged(int)), this, SLOT(changeShadowsValue(int)));
     connect(ui->radioButton_Color, SIGNAL(released()), this, SLOT(changeToColorImage()));
     connect(ui->radioButton_Grayscale, SIGNAL(released()), this, SLOT(changeToGrayscaleImage()));
-    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentToImage()));
-    connect(ui->pushButton_Cancel, SIGNAL(released()), this, SLOT(cancelAdjustmentsToImage()));
 
 
     sliderValues_m.resize(10);
@@ -191,13 +189,6 @@ void AdjustMenu::changeIntensityValue(int value)
     emit performImageAdjustments(sliderValues_m);
 }
 
-//Sets sliders to initial positions and signals to the worker to display the starting buffer.
-void AdjustMenu::cancelAdjustmentsToImage()
-{
-    initializeSliders();
-    emit cancelAdjustments();
-}
-
 //Sets radio button to generate a color image
 void AdjustMenu::changeToColorImage()
 {
@@ -210,13 +201,6 @@ void AdjustMenu::changeToGrayscaleImage()
 {
     sliderValues_m[Color] = -1.0;
     emit performImageAdjustments(sliderValues_m);
-}
-
-//Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
-void AdjustMenu::applyAdjustmentToImage()
-{
-    initializeSliders();
-    emit applyAdjustments();
 }
 
 /* Slot adjusts gamma over the whole range of intensities in the image. It adjusts the sliders between -100 and 100.
@@ -248,9 +232,7 @@ void AdjustMenu::changeShadowsValue(int value)
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
 void AdjustMenu::setVisible(bool visible)
 {
-    if(this->isVisible() && !visible)
-        emit cancelAdjustments();
-    else
+    if(!visible)
         initializeSliders();
     QWidget::setVisible(visible);
 }

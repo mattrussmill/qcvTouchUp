@@ -102,22 +102,19 @@ int QuickMenu::menuItem()
 }
 
 /* This method sets the menuItem_m member passed (clicked on) from the QML main menu
- * through the Qt object properties. If the menu item is selected (clicked) twice,
- * the associated menu id number is reset to zero. */
+ * through the Qt object properties to the index of the specific menu selected. Then
+ * emits the index through the menuItemClicked signal*/
 void QuickMenu::setMenuItem(int m)
 {
-    if(m == menuItem_m)
-        menuItem_m = 0;
-    else
-        menuItem_m = m;
-
+    menuItem_m = m;
     emit menuItemClicked(menuItem_m);
 }
 
-// Resets the menuItem_m member to its initial state of zero.
+// Resets the menuItem_m member to its initial state of zero and emits the new index.
 void QuickMenu::resetMenuIndex()
 {
     setMenuItem(0);
+    emit menuItemClicked(menuItem_m);
 }
 
 /* This method returns the background color of the QuickMenu class. It is available

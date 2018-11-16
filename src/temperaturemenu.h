@@ -65,14 +65,10 @@ public slots:
 
 signals:
     void performImageAdjustments(int);
-    void cancelAdjustments();
-    void applyAdjustments();
 
 private slots:
     void moveSliderToButton(bool adjustSlider);
     void deselectRadioButtonFromSlider();
-    void applyAdjustmentsToImage();
-    void cancelAdjustmentsToImage();
 
 private:
     Ui::TemperatureMenu *ui;

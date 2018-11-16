@@ -28,7 +28,6 @@ public:
     QMutex mutex;
 
 private slots:
-    void loadSubMenu(int menuIndex);
     void imageOpenOperationFailed();
     void updateImageInformation(const QImage *image);
     void initializeWorkerThreadData();

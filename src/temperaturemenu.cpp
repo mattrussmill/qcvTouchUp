@@ -89,8 +89,6 @@ TemperatureMenu::TemperatureMenu(QWidget *parent) :
 
     connect(ui->horizontalSlider_Temperature, SIGNAL(sliderReleased()), this, SLOT(deselectRadioButtonFromSlider()));
     connect(ui->horizontalSlider_Temperature, SIGNAL(valueChanged(int)), this, SIGNAL(performImageAdjustments(int)));
-    connect(ui->pushButton_Apply, SIGNAL(released()), this, SLOT(applyAdjustmentsToImage()));
-    connect(ui->pushButton_Cancel, SIGNAL(released()), this, SLOT(cancelAdjustmentsToImage()));
 
     initializeMenu();
 }
@@ -140,26 +138,10 @@ void TemperatureMenu::deselectRadioButtonFromSlider()
     }
 }
 
-//Sets sliders to initial positions and signals the worker to apply the changes to the master buffer.
-void TemperatureMenu::applyAdjustmentsToImage()
-{
-    initializeMenu();
-    emit applyAdjustments();
-}
-
-//Sets sliders to initial positions and signals to the worker to display the starting buffer.
-void TemperatureMenu::cancelAdjustmentsToImage()
-{
-    initializeMenu();
-    emit cancelAdjustments();
-}
-
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
 void TemperatureMenu::setVisible(bool visible)
 {
-    if(this->isVisible() && !visible)
-        emit cancelAdjustments();
-    else
+    if(!visible)
         initializeMenu();
     QWidget::setVisible(visible);
 }
