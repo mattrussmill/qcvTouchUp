@@ -2,7 +2,7 @@
 Image Editor (work in progress)
 
   ABOUT:
-      place holder, talk about the menus in summary (see wiki for more details)
+      place holder, talk about how to set up the project (see wiki for more details and use info)
       
   CONTRIBUTIONS:
       place holder about who participated, versions, reasons for development
