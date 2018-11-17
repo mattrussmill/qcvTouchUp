@@ -38,7 +38,8 @@ SOURCES += \
     bufferwrappersqcv.cpp \
     filtermenu.cpp \
     temperaturemenu.cpp \
-    transformmenu.cpp
+    transformmenu.cpp \
+    signalsuppressor.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -52,7 +53,8 @@ HEADERS += \
     bufferwrappersqcv.h \
     filtermenu.h \
     temperaturemenu.h \
-    transformmenu.h
+    transformmenu.h \
+    signalsuppressor.h
 
 FORMS += \
         mainwindow.ui \
