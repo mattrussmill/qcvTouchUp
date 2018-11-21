@@ -1,65 +1,59 @@
 /* Used for passing qt signals between threads if the worker cannot keep up with
  * requests. It may drop data and only send the most updated data to the worker (reword this)
  *
+ * //fast thread -> slow thread communication (stack type operation while throwing out the rest)
  *
  * IN PROGRESS
  */
 
 #include "signalsuppressor.h"
-#include <QPoint>
-#include <QMutex>
+#include <QDebug>
 
 SignalSuppressor::SignalSuppressor(QObject *parent) : QObject(parent)
 {
 
 }
 
-//deletes the dynamically allocated data before object is destroyed
-SignalSuppressor::~SignalSuppressor()
-{
-    data_m.clear();
-}
-
-/* receiveNewData takes new data from a signal and places it on the internal
- * data structure to the object. If the buffer exceeds a particular size, the
- * buffer is cleared to keep growth from becoming unmanageable.*/
+/* receiveNewData takes new data from a signal (signaling thread / fast thread) and places it in the internal
+ * container of the object while protecting it from a race condition via a mutex. The old data is overwritten
+ * every time a new signal is sent. If init, or the data has been retrieved, data_m should be reset to !Valid
+ * so that a signal is only emitted (to the receiving thread / slow thread) only when new data is ready and only
+ * one event is queued.*/
 void SignalSuppressor::receiveNewData(QVariant newData)
 {
-    if(data_m.size() > maxBuffer_m)
-        deleteOldData();
-    data_m.push(newData);
-}
+    if(!data_m.isValid())
+    {
+        emit suppressedSignal(this);
+        qDebug() << "suppressed signal activated";
+    }
+    mutex.lock();
+    data_m = newData;
+    mutex.unlock();
+} //disconnecting signal / slot not an option as last value may be dropped during processing
 
-/* retrieveNewData takes a parameter of the last data used by the calling object
- * and compares it to the most recent item inserted into the buffer. If it is not
- * a match, the most recent addition to the buffer is returned and the buffer is
- * cleared. If the data is the same or the buffer is empty, a null QVariant is
- * returned*/
-QVariant SignalSuppressor::retrieveNewData(QVariant oldData)
+
+
+/* retrieveNewData takes a parameter of the last data used by the calling object in the recieving thread
+ * (this method should ONLY be called and run in the receiving / slow thread) and compares it to the most
+ * recent item inserted into this object.
+ *
+ * If the old and new data does not match the new data is sent,
+ * else an invalid QVarient is sent in its place. When called the data member is reinitialized to !Valid*/
+QVariant SignalSuppressor::retrieveNewData(QVariant oldData) //fn ptr should go here and run according to notes
 {
-    deleteOldData();
-    if(oldData == data_m.top() || data_m.isEmpty())
-        return QVariant();
-    return data_m.top();
+    mutex.lock();
+    QVariant tmp = data_m;
+    data_m = QVariant();
+    mutex.unlock();
 
-}
+    if(tmp != oldData)
+        return tmp;
+    return QVariant();
 
-//returns the buffersize of the signal suppressor
-uint16_t SignalSuppressor::getBufferSize()
-{
-    return maxBuffer_m;
-}
-
-//sets the buffer size for the suppression buffer
-void SignalSuppressor::setBufferSize(uint16_t size)
-{
-    maxBuffer_m = size;
-}
-
-void SignalSuppressor::deleteOldData()
-{
-
-}
+} /*template <class T, int N>
+void mysequence<T,N>::setmember (int x, T value) {
+  memblock[x]=value;
+}*/
 
 
 
