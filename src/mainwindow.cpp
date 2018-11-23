@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     //setup worker thread event loop for ImageWorker
     imageWorker_m = new ImageWorker(mutex);
     imageWorker_m->moveToThread(&workerThread);
-    connect(&workerThread, SIGNAL(finished), imageWorker_m, SLOT(deleteLater()));
+    connect(&workerThread, SIGNAL(finished()), imageWorker_m, SLOT(deleteLater()));
 
     //image menus initializations - signals are connected after to not be emitted during initialization
     adjustMenu_m = new AdjustMenu(this);
@@ -99,7 +99,6 @@ MainWindow::~MainWindow()
     workerThread.wait();
 
     //delete heap data not a child of mainwindow
-    delete imageWorker_m;
     delete ui;
 }
 

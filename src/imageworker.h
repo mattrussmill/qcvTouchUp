@@ -7,6 +7,7 @@ class QString;
 class QDir;
 class QSize;
 class QMutex;
+class SignalSuppressor;
 
 
 class ImageWorker : public QObject
@@ -28,7 +29,6 @@ public slots:
     void doSharpenFilterComputation(QVector<int> parameter);
     void doEdgeFilterComputation(QVector<int> parameter);
     void doTemperatureComputation(int parameter);
-
 
 signals:
     void resultImageSet(const QImage*);

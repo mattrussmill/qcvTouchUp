@@ -122,7 +122,7 @@ private:
     QScrollArea *scrollArea_m;
     QMutex *mutex_m;
     const QImage *attachedImage_m = nullptr;
-    uint selectPixelsMode_m = NoClick;
+    uint selectPixelsMode_m = ClickDrag;
     float scalar_m;
     bool fillScrollArea_m = true;
 };

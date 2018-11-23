@@ -43,6 +43,7 @@
 ************************************************************************/
 
 #include "mainwindow.h"
+#include "signalsuppressor.h"
 #include <QApplication>
 #include <QMetaType>
 
@@ -53,6 +54,7 @@ int main(int argc, char *argv[])
     //types registered for queued signal/slot connections
     qRegisterMetaType<QVector<float>>("QVector<float>");
     qRegisterMetaType<QVector<int>>("QVector<int>");
+    qRegisterMetaType<SignalSuppressor*>("SignalSuppressor*");
 
     MainWindow w;
     w.show();

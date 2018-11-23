@@ -621,6 +621,3 @@ void ImageWorker::doTemperatureComputation(int parameter)
 
 
 
-
-
-
