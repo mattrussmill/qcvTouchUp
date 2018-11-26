@@ -12,6 +12,7 @@ class ImageWorker;
 class AdjustMenu;
 class FilterMenu;
 class TemperatureMenu;
+class TransformMenu;
 
 namespace Ui {
 class MainWindow;
@@ -44,6 +45,7 @@ private:
     AdjustMenu *adjustMenu_m;
     FilterMenu *filterMenu_m;
     TemperatureMenu *temperatureMenu_m;
+    TransformMenu *transformMenu_m;
 
 };
 
