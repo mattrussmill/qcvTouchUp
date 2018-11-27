@@ -57,15 +57,15 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QGroupBox" name="groupBox_3">
+     <widget class="QGroupBox" name="groupBox_Crop">
       <property name="title">
        <string>Crop</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayout_CropEnable">
          <item>
-          <widget class="QRadioButton" name="radioButton">
+          <widget class="QRadioButton" name="radioButton_CropEnable">
            <property name="text">
             <string>Enable</string>
            </property>
@@ -79,7 +79,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_5">
+          <widget class="QLabel" name="label_CropInstruction">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -96,94 +96,48 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
-          <widget class="QSpinBox" name="spinBox_4">
-           <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>19999</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_6">
+          <widget class="QLineEdit" name="lineEdit_CropRoiStart">
            <property name="text">
-            <string>x1 pt</string>
+            <string>(x1, y1)</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="spinBox_5">
-           <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
+          <spacer name="horizontalSpacer_CropRoiStart">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
-           <property name="minimum">
-            <number>1</number>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
            </property>
-           <property name="maximum">
-            <number>19999</number>
-           </property>
-           <property name="value">
-            <number>1</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_7">
-           <property name="text">
-            <string>y1 pt</string>
-           </property>
-          </widget>
+          </spacer>
          </item>
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <layout class="QHBoxLayout" name="horizontalLayout_CropRoiEnd">
          <item>
-          <widget class="QSpinBox" name="spinBox_6">
-           <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
-           </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>19999</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_8">
+          <widget class="QLineEdit" name="lineEdit_CropRoiEnd">
            <property name="text">
-            <string>x2 pt</string>
+            <string>(x2, y2)</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QSpinBox" name="spinBox_7">
-           <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
+          <spacer name="horizontalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
-           <property name="minimum">
-            <number>1</number>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
            </property>
-           <property name="maximum">
-            <number>19999</number>
-           </property>
-           <property name="value">
-            <number>1</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_9">
-           <property name="text">
-            <string>y2 pt</string>
-           </property>
-          </widget>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -198,15 +152,15 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_2">
+     <widget class="QGroupBox" name="groupBox_Rotate">
       <property name="title">
        <string>Rotate</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <layout class="QHBoxLayout" name="horizontalLayout_CropEnable_2">
          <item>
-          <widget class="QRadioButton" name="radioButton_2">
+          <widget class="QRadioButton" name="radioButton_RotateEnable">
            <property name="text">
             <string>Enable</string>
            </property>
@@ -226,7 +180,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QSpinBox" name="spinBox">
+          <widget class="QSpinBox" name="spinBox_RotateDegrees">
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
            </property>
@@ -241,9 +195,9 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <layout class="QVBoxLayout" name="verticalLayout_rotateSlider">
          <item>
-          <widget class="QSlider" name="horizontalSlider">
+          <widget class="QSlider" name="horizontalSlider_Rotate">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -270,7 +224,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="label_DegreesLow">
              <property name="text">
               <string>-180º</string>
              </property>
@@ -293,7 +247,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="label_DegreesHigh">
              <property name="text">
               <string>180º</string>
              </property>
@@ -320,22 +274,22 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QGroupBox" name="groupBox_Scale">
       <property name="title">
        <string>Scale</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_9">
+        <layout class="QHBoxLayout" name="horizontalLayout_ScaleEnable">
          <item>
-          <widget class="QRadioButton" name="radioButton_3">
+          <widget class="QRadioButton" name="radioButton_ScaleEnable">
            <property name="text">
             <string>Enable</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="checkBox">
+          <widget class="QCheckBox" name="checkBox_ScaleLinked">
            <property name="text">
             <string>Linked</string>
            </property>
@@ -347,9 +301,9 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <layout class="QHBoxLayout" name="horizontalLayout_ScaleWidth">
          <item>
-          <widget class="QSpinBox" name="spinBox_2">
+          <widget class="QSpinBox" name="spinBox_ScaleWidth">
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
            </property>
@@ -362,14 +316,18 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="label_ScaleWidth">
            <property name="text">
             <string>W px</string>
            </property>
           </widget>
          </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_ScaleHeight">
          <item>
-          <widget class="QSpinBox" name="spinBox_3">
+          <widget class="QSpinBox" name="spinBox_ScaleHeight">
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
            </property>
@@ -385,7 +343,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="label_ScaleHeight">
            <property name="text">
             <string>H px</string>
            </property>
@@ -404,15 +362,15 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox_4">
+     <widget class="QGroupBox" name="groupBox_Warp">
       <property name="title">
        <string>Warp</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <layout class="QHBoxLayout" name="horizontalLayout_WarpEnable">
          <item>
-          <widget class="QRadioButton" name="radioButton_4">
+          <widget class="QRadioButton" name="radioButton_WarpEnable">
            <property name="text">
             <string>Enable</string>
            </property>
@@ -433,7 +391,7 @@
        <item>
         <widget class="QLabel" name="label_11">
          <property name="text">
-          <string>MENU BASED ON AFFINE OR PERSPECTIVE</string>
+          <string>MENU ON AFFINE OR PERSPECTIVE</string>
          </property>
         </widget>
        </item>
@@ -461,7 +419,7 @@
      </spacer>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_7">
+     <layout class="QHBoxLayout" name="horizontalLayout_Image">
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
@@ -476,7 +434,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QLabel" name="label_10">
+       <widget class="QLabel" name="label_SampleImage">
         <property name="text">
          <string>GRAPHIC?</string>
         </property>
