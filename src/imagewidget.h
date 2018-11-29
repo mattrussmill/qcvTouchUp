@@ -57,13 +57,14 @@ class QImage;
 class QMenu;
 class QPoint;
 class QMutex;
+class QRect;
 
 class ImageWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    enum GetCoordinateMode {NoClick, SingleClick, SingleUnclick, ClickUnclick, ClickDrag};
+    enum CoordinateMode {NoClick, SingleClick, SingleUnclick, ClickUnclick, ClickDrag, RectROI};
     ImageWidget(QWidget *parent = nullptr);
     Qt::ScrollBarPolicy verticalScrollBarPolicy() const;
     Qt::ScrollBarPolicy horizontalScrollBarPolicy() const;
@@ -71,8 +72,8 @@ public:
     void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setImage(const QImage &image);
     void setFillWidget(bool fill = true);
-    void setSelectPixelsMode(GetCoordinateMode mode);
-    uint getSelectPixelsMode() const;
+    void setRetrieveCoordinateMode(CoordinateMode mode);
+    uint getRetrieveCoordinateMode() const; //change to RetrieveCoordinateMode
     double currentScale() const;
     bool imageAttached() const;
     bool fillWidgetStatus() const;
@@ -87,6 +88,7 @@ signals:
     void imageCleared();
     void imageNull();
     void imagePointSelected(QPoint selectedPoint);
+    void imageRectRegionSelected(QRect roi);
     void fillWidgetChanged(bool fillScrollArea);
     void droppedImagePath(QString imagePath);
     void droppedImageError();
@@ -121,8 +123,9 @@ private:
     QLabel *imageLabel_m;
     QScrollArea *scrollArea_m;
     QMutex *mutex_m;
+    QRect region_m;
     const QImage *attachedImage_m = nullptr;
-    uint selectPixelsMode_m = ClickDrag;
+    uint retrieveCoordinateMode_m = ClickDrag;
     float scalar_m;
     bool fillScrollArea_m = true;
 };

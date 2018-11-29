@@ -61,6 +61,7 @@
 #include <QUrl>
 #include <QMimeData>
 #include <QScrollBar>
+#include <QRect>
 
 #include <QDebug>
 
@@ -134,13 +135,13 @@ void ImageWidget::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp)
     scrollArea_m->setHorizontalScrollBarPolicy(sbp);
 }
 
-/* Member function setImage attaches a QImage to be displayed through ImageWidget by pointing to
+/* Slot overload of setImage attaches a QImage to be displayed through ImageWidget by pointing to
  * the memory location of the QImage. ImageWidget does not manage the attached QImage object.
  * Then setImage sets the image size to fill the ImageWidget container without distortion and
  * emits a signal to notify an image has been set. */
-void ImageWidget::setImage(const QImage &image)
+void ImageWidget::setImage(const QImage *image)
 {
-    if(image.isNull())
+    if(image == nullptr)
     {
         emit imageNull();
         return;
@@ -153,8 +154,8 @@ void ImageWidget::setImage(const QImage &image)
             QApplication::processEvents(QEventLoop::AllEvents, 100);
     }
 
-    attachedImage_m = &image;
-    imageLabel_m->setPixmap(QPixmap::fromImage(image));
+    attachedImage_m = image;
+    imageLabel_m->setPixmap(QPixmap::fromImage(*image));
     zoomFit();
     imageLabel_m->setVisible(true);
     if(mutex_m) mutex_m->unlock();
@@ -173,16 +174,16 @@ void ImageWidget::setFillWidget(bool fill)
 
 /* Member function setSelectPixelMode allows an external object to set the selectPixelMode_m member
  * variable which dictates how pixel locations are returned based on mouse action over an image.
- * The GetCoordinateMode enum represents the available modes and executed in the mouseEvent. */
-void ImageWidget::setSelectPixelsMode(GetCoordinateMode mode)
+ * The CoordinateMode enum represents the available modes and executed in the mouseEvent. */
+void ImageWidget::setRetrieveCoordinateMode(CoordinateMode mode)
 {
-    selectPixelsMode_m = mode;
+    retrieveCoordinateMode_m = mode;
 }
 
 //Returns the current pixel selection status for cursor / displayed image interaction
-uint ImageWidget::getSelectPixelsMode() const
+uint ImageWidget::getRetrieveCoordinateMode() const
 {
-    return selectPixelsMode_m;
+    return retrieveCoordinateMode_m;
 }
 
 //Returns the current scale ratio between the displayed and attached image
@@ -219,34 +220,6 @@ const QImage *ImageWidget::displayedImage()
 void ImageWidget::setMutex(QMutex &m)
 {
     mutex_m = &m;
-}
-
-/* Slot overload of setImage attaches a QImage to be displayed through ImageWidget by pointing to
- * the memory location of the QImage. ImageWidget does not manage the attached QImage object.
- * Then setImage sets the image size to fill the ImageWidget container without distortion and
- * emits a signal to notify an image has been set. */
-void ImageWidget::setImage(const QImage *image)
-{
-    if(image == nullptr)
-    {
-        emit imageNull();
-        return;
-    }
-
-    //while waiting for mutex, process main event loop to keep gui responsive
-    if(mutex_m)
-    {
-        while(!mutex_m->tryLock())
-            QApplication::processEvents(QEventLoop::AllEvents, 100);
-    }
-
-    attachedImage_m = image;
-    imageLabel_m->setPixmap(QPixmap::fromImage(*image));
-    zoomFit();
-    imageLabel_m->setVisible(true);
-    if(mutex_m) mutex_m->unlock();
-    emit imageSet();
-
 }
 
 /* Member function clearImage clears the attached image pointer and hides the imageLabel_m containing
@@ -387,11 +360,22 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        if(event->button() == Qt::LeftButton && (selectPixelsMode_m == SingleUnclick
-                                                 || selectPixelsMode_m == ClickUnclick
-                                                 || selectPixelsMode_m == ClickDrag))
+        if(event->button() == Qt::LeftButton && (retrieveCoordinateMode_m == SingleUnclick
+                                                 || retrieveCoordinateMode_m == ClickUnclick
+                                                 || retrieveCoordinateMode_m == ClickDrag
+                                                 || retrieveCoordinateMode_m == RectROI))
         {
-            emit imagePointSelected(getPointInImage());
+            if(retrieveCoordinateMode_m == RectROI)
+            {
+                region_m.setBottomRight(getPointInImage());
+                //paint event
+                emit imageRectRegionSelected(region_m);
+                qDebug() << region_m;
+            }
+            else
+            {
+                emit imagePointSelected(getPointInImage());
+            }
         }
     }
 }
@@ -404,11 +388,15 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        if(event->button() == Qt::LeftButton && (selectPixelsMode_m == SingleClick
-                                                 ||selectPixelsMode_m == ClickUnclick
-                                                 || selectPixelsMode_m == ClickDrag))
+        if(event->button() == Qt::LeftButton && (retrieveCoordinateMode_m == SingleClick
+                                                 ||retrieveCoordinateMode_m == ClickUnclick
+                                                 || retrieveCoordinateMode_m == ClickDrag
+                                                 || retrieveCoordinateMode_m == RectROI))
         {
-            emit imagePointSelected(getPointInImage());
+            if(retrieveCoordinateMode_m == RectROI)
+                region_m.setTopLeft(getPointInImage());
+            else
+                emit imagePointSelected(getPointInImage());
         }
     }
 }
@@ -421,9 +409,16 @@ void ImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        if(!event->pos().isNull() == Qt::LeftButton && selectPixelsMode_m == ClickDrag)
+        if(!event->pos().isNull() == Qt::LeftButton && (retrieveCoordinateMode_m == ClickDrag
+                                                        || retrieveCoordinateMode_m == RectROI))
         {
-            emit imagePointSelected(getPointInImage());
+            if(retrieveCoordinateMode_m == RectROI)
+            {
+                region_m.setBottomRight(getPointInImage());
+                //paint event
+            }
+            else
+                emit imagePointSelected(getPointInImage());
         }
     }
 }
@@ -497,7 +492,8 @@ void ImageWidget::dropEvent(QDropEvent *event)
 
 /* If imageLabel is the same size or smaller, shift the origin of the ImageWidget to the origin of the
  * imageLabel. Else shift the origin based on the scrollBar positions using the image scrollArea as
- * the ROI window. Adjusts for scrollBar space as well.*/
+ * the ROI window. Adjusts for scrollBar space as well. QLabel could have been overloaded to avoid this
+ * hell of compensating for image position within the scroll area.*/
 QPoint ImageWidget::getPointInImage()
 {
     if(imageAttached())
