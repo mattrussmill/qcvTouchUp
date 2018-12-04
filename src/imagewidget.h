@@ -58,6 +58,8 @@ class QMenu;
 class QPoint;
 class QMutex;
 class QRect;
+class QPaintEvent;
+class QPixmap;
 
 class ImageWidget : public QWidget
 {
@@ -70,7 +72,7 @@ public:
     Qt::ScrollBarPolicy horizontalScrollBarPolicy() const;
     void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
-    void setImage(const QImage &image);
+    //void setImage(const QImage &image); //if standalone implement -> put this back in
     void setFillWidget(bool fill = true);
     void setRetrieveCoordinateMode(CoordinateMode mode);
     uint getRetrieveCoordinateMode() const; //change to RetrieveCoordinateMode
@@ -79,9 +81,6 @@ public:
     bool fillWidgetStatus() const;
     const QImage* displayedImage();
     void setMutex(QMutex &m);
-
-
-
 
 signals:
     void imageSet();
@@ -103,7 +102,6 @@ public slots:
     void updateDisplayedImage();
     void updateDisplayedImage(const QImage *image);
 
-
 protected:
     virtual void resizeEvent(QResizeEvent *event) override;
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
@@ -115,17 +113,19 @@ protected:
     virtual void dropEvent(QDropEvent *event) override;
 
 private:
+    void selectRegionOnPixmap();
     QPoint getPointInImage();
     QAction *zoomInAction_m;
     QAction *zoomOutAction_m;
     QAction *zoomFitAction_m;
     QAction *zoomActualAction_m;
     QLabel *imageLabel_m;
+    QPixmap painterBuffer_m;
     QScrollArea *scrollArea_m;
-    QMutex *mutex_m;
+    QMutex *mutex_m = nullptr;
     QRect region_m;
     const QImage *attachedImage_m = nullptr;
-    uint retrieveCoordinateMode_m = ClickDrag;
+    uint retrieveCoordinateMode_m = RectROI;
     float scalar_m;
     bool fillScrollArea_m = true;
 };

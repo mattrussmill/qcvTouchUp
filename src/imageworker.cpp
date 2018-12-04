@@ -141,9 +141,11 @@ void ImageWorker::doCopyRGBBufferToMasterBuffer()
 {
     if(!masterRGBImage_m || !dstRGBImage_m) return;
     mutex_m->lock();
-    *masterRGBImage_m = dstRGBImage_m->clone();
+    *masterRGBImage_m = dstRGBImage_m->clone(); //are these addresses all staying the same or is there a MEMORY LEAK!? CHECK THIS
+    *imageWrapper_m = qcv::cvMatToQImage(*masterRGBImage_m);
     HistogramWidget::copy(const_cast<const uint**>(dstRGBHisto_m), srcRGBHisto_m);
     mutex_m->unlock();
+    emit resultImageUpdate(imageWrapper_m);
 }
 
 // Reverts the image and histogram back to the most previously un-applied form (the master image

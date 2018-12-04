@@ -62,6 +62,9 @@
 #include <QMimeData>
 #include <QScrollBar>
 #include <QRect>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QPixmap>
 
 #include <QDebug>
 
@@ -108,7 +111,6 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     connect(zoomActualAction_m, SIGNAL(triggered()), this, SLOT(zoomActual()));
 
     setAcceptDrops(true);
-    mutex_m = nullptr;
 }
 
 //Member function which returns the current vertical scroll bar policy setting
@@ -156,6 +158,7 @@ void ImageWidget::setImage(const QImage *image)
 
     attachedImage_m = image;
     imageLabel_m->setPixmap(QPixmap::fromImage(*image));
+    qDebug() << *imageLabel_m->pixmap();
     zoomFit();
     imageLabel_m->setVisible(true);
     if(mutex_m) mutex_m->unlock();
@@ -277,10 +280,12 @@ void ImageWidget::zoomFit()
     if(!imageAttached()) return;
     float widthRatio = scrollArea_m->width() / static_cast<float>(attachedImage_m->width());
     float heightRatio = scrollArea_m->height() / static_cast<float>(attachedImage_m->height());
+
     if(widthRatio > heightRatio)
         scalar_m = heightRatio;
     else
         scalar_m = widthRatio;
+
     imageLabel_m->resize(scalar_m * attachedImage_m->size() - QSize(2, 2));
     if (fillScrollArea_m == false)
     {
@@ -317,8 +322,8 @@ void ImageWidget::updateDisplayedImage()
         while(!mutex_m->tryLock())
             QApplication::processEvents(QEventLoop::AllEvents, 100);
     }
-
     imageLabel_m->setPixmap(QPixmap::fromImage(*attachedImage_m));
+    qDebug() << *imageLabel_m->pixmap();
     if(mutex_m) mutex_m->unlock();
 }
 
@@ -336,9 +341,10 @@ void ImageWidget::updateDisplayedImage(const QImage *image)
             QApplication::processEvents(QEventLoop::AllEvents, 100);
     }
 
-    imageLabel_m->setPixmap(QPixmap::fromImage(*image));
+    imageLabel_m->setPixmap(QPixmap::fromImage(*attachedImage_m));
+    qDebug() << *imageLabel_m->pixmap();
     attachedImage_m = image;
-    if(mutex_m) mutex_m->unlock();
+    if(mutex_m) mutex_m->unlock(); //move mutex up
 }
 
 /* An override of resizeEvent. When ImageWidget is resized if 'fillScrollArea' property is true
@@ -368,9 +374,9 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
             if(retrieveCoordinateMode_m == RectROI)
             {
                 region_m.setBottomRight(getPointInImage());
-                //paint event
                 emit imageRectRegionSelected(region_m);
                 qDebug() << region_m;
+                selectRegionOnPixmap();
             }
             else
             {
@@ -415,7 +421,7 @@ void ImageWidget::mouseMoveEvent(QMouseEvent *event)
             if(retrieveCoordinateMode_m == RectROI)
             {
                 region_m.setBottomRight(getPointInImage());
-                //paint event
+                selectRegionOnPixmap();
             }
             else
                 emit imagePointSelected(getPointInImage());
@@ -536,6 +542,64 @@ QPoint ImageWidget::getPointInImage()
         return mousePosition;
     }
     return QPoint();
+}
+
+/* selectRegionOnPixmap fills a painterBuffer (Pixmap) and paints 4 trapazoids around a ROI (region_m)
+ * selected by the user through mouse events. The drawing is handled here in a buffering object so that
+ * the images themselves are not disturbed. Trapazoids are painted to darken the regions outside of the
+ * selection as using QRegion would require listing an additional license if distrobuting on a linux machine.
+ * ImageLabel_m is signaled to redraw after every paint occurs. */
+void ImageWidget::selectRegionOnPixmap()
+{
+    //while waiting for mutex, process main event loop to keep gui responsive
+    if(mutex_m)
+    {
+        while(!mutex_m->tryLock())
+            QApplication::processEvents(QEventLoop::AllEvents, 100);
+    }
+    painterBuffer_m = QPixmap::fromImage(*attachedImage_m); //try to make a copy of the QImage? also try swap data? But do this on loads now.
+    if(mutex_m) mutex_m->unlock();
+
+    QPainter painter(&painterBuffer_m); //could be preset and exist already
+    painter.setBrush(QColor(50, 50, 50)); //make outline for brush light
+    painter.setPen(QColor(50, 50, 50));
+    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+
+    //draw region - 4 trapazoids - avoid additionan licence using QRegions
+    QPoint top[4] = {
+        painterBuffer_m.rect().topLeft(),
+        region_m.topLeft(),
+        region_m.topRight(),
+        painterBuffer_m.rect().topRight()
+    };
+    painter.drawPolygon(top, 4);
+
+    QPoint bottom[4] = {
+        painterBuffer_m.rect().bottomLeft(),
+        region_m.bottomLeft(),
+        region_m.bottomRight(),
+        painterBuffer_m.rect().bottomRight()
+    };
+    painter.drawPolygon(bottom, 4);
+
+    QPoint left[4] = {
+        painterBuffer_m.rect().topLeft(),
+        region_m.topLeft(),
+        region_m.bottomLeft(),
+        painterBuffer_m.rect().bottomLeft()
+    };
+    painter.drawPolygon(left, 4);
+
+    QPoint right[4] = {
+        painterBuffer_m.rect().topRight(),
+        region_m.topRight(),
+        region_m.bottomRight(),
+        painterBuffer_m.rect().bottomRight()
+    };
+    painter.drawPolygon(right, 4);
+
+    imageLabel_m->setPixmap(painterBuffer_m);
+    imageLabel_m->update();
 }
 
 

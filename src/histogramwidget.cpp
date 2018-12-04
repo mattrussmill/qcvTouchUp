@@ -335,7 +335,7 @@ void HistogramWidget::setHistogramData(const QImage &image)
  * the channels will rotate which histogram plot is displayed on top.*/
 void HistogramWidget::paintEvent(QPaintEvent *event)
 {
-    QPainter painter(this);
+    QPainter painter(this); //shouldn't recreate this every paint event?
     painter.fillRect(this->rect(), backgroundColor_m);
     if(initialized_m)
     {
