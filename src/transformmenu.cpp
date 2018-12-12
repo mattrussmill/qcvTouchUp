@@ -1,6 +1,7 @@
 #include "mousewheeleatereventfilter.h"
 #include "transformmenu.h"
 #include "ui_transformmenu.h"
+#include <QButtonGroup>
 
 TransformMenu::TransformMenu(QWidget *parent) :
     QScrollArea(parent),

@@ -66,13 +66,21 @@ class ImageWidget : public QWidget
     Q_OBJECT
 
 public:
-    enum CoordinateMode {NoClick, SingleClick, SingleUnclick, ClickUnclick, ClickDrag, RectROI};
     ImageWidget(QWidget *parent = nullptr);
+    enum CoordinateMode
+    {
+        NoClick        = 0x0,
+        SingleClick    = 0x1,
+        SingleUnclick  = 0x2,
+        ClickUnclick   = 0x4,
+        ClickDrag      = 0x8,
+        RectROI        = 0x10,
+        DragROI        = 0x20
+    };
     Qt::ScrollBarPolicy verticalScrollBarPolicy() const;
     Qt::ScrollBarPolicy horizontalScrollBarPolicy() const;
     void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
-    //void setImage(const QImage &image); //if standalone implement -> put this back in
     void setFillWidget(bool fill = true);
     void setRetrieveCoordinateMode(CoordinateMode mode);
     uint getRetrieveCoordinateMode() const; //change to RetrieveCoordinateMode
@@ -114,7 +122,9 @@ protected:
 
 private:
     void selectRegionOnPixmap();
+    void initializePaintMembers();
     QPoint getPointInImage();
+    QRect getAdjustedRegion();
     QAction *zoomInAction_m;
     QAction *zoomOutAction_m;
     QAction *zoomFitAction_m;
@@ -124,6 +134,7 @@ private:
     QScrollArea *scrollArea_m;
     QMutex *mutex_m = nullptr;
     QRect region_m;
+    QPoint dragStart_m;
     const QImage *attachedImage_m = nullptr;
     uint retrieveCoordinateMode_m = RectROI;
     float scalar_m;

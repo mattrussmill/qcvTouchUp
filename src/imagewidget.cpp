@@ -65,6 +65,7 @@
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPixmap>
+#include <algorithm>
 
 #include <QDebug>
 
@@ -110,6 +111,7 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     connect(zoomFitAction_m, SIGNAL(triggered()), this, SLOT(zoomFit()));
     connect(zoomActualAction_m, SIGNAL(triggered()), this, SLOT(zoomActual()));
 
+    initializePaintMembers();
     setAcceptDrops(true);
 }
 
@@ -139,8 +141,9 @@ void ImageWidget::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp)
 
 /* Slot overload of setImage attaches a QImage to be displayed through ImageWidget by pointing to
  * the memory location of the QImage. ImageWidget does not manage the attached QImage object.
- * Then setImage sets the image size to fill the ImageWidget container without distortion and
- * emits a signal to notify an image has been set. */
+ * Then setImage sets the image size to fill the ImageWidget container without distortion,
+ * initializes the painting member variables (only for cropping at this point), and emits a
+ * signal to notify an image has been set. */
 void ImageWidget::setImage(const QImage *image)
 {
     if(image == nullptr)
@@ -162,6 +165,7 @@ void ImageWidget::setImage(const QImage *image)
     zoomFit();
     imageLabel_m->setVisible(true);
     if(mutex_m) mutex_m->unlock();
+    initializePaintMembers();
     emit imageSet();
 }
 
@@ -311,7 +315,7 @@ void ImageWidget::zoomActual()
 
 /*When called, the Pixmap is refreshed (reloaded) with the attached QImage but not resized.
  * Because of the possibility this function will operate on an image outside of the class,
- * a mutex locks the operation if it is available*/
+ * a mutex locks the operation if it is available and reinitializes the paint member variables*/
 void ImageWidget::updateDisplayedImage()
 {
     if(!imageAttached()) return;
@@ -325,6 +329,7 @@ void ImageWidget::updateDisplayedImage()
     imageLabel_m->setPixmap(QPixmap::fromImage(*attachedImage_m));
     qDebug() << *imageLabel_m->pixmap();
     if(mutex_m) mutex_m->unlock();
+    initializePaintMembers();
 }
 
 /* Overload of updateDisplayedImage. Attaches a new image buffer without resizing. Because
@@ -345,6 +350,7 @@ void ImageWidget::updateDisplayedImage(const QImage *image)
     qDebug() << *imageLabel_m->pixmap();
     attachedImage_m = image;
     if(mutex_m) mutex_m->unlock(); //move mutex up
+    initializePaintMembers();
 }
 
 /* An override of resizeEvent. When ImageWidget is resized if 'fillScrollArea' property is true
@@ -361,22 +367,27 @@ void ImageWidget::resizeEvent(QResizeEvent *event)
 /* An override of mouseReleaseEvent. If an image is attached and the left button is released
  * overtop of the ImageWidget while an image is present and the appropriate selectPixelMode_m
  * selected, the coordinates under the mouse are emitted as a QPoint relative to the
- * attachedImage_m's origin.*/
-void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
+ * attachedImage_m's origin. If RectROI is selected, the region is finished being set, cropped
+ * and drawn before being emitted, else if DragROI the region is only cropped to fit and emitted. */
+void ImageWidget::mouseReleaseEvent(QMouseEvent *event) //UPDATE THIS COMMENT
 {
     if(imageAttached())
     {
-        if(event->button() == Qt::LeftButton && (retrieveCoordinateMode_m == SingleUnclick
-                                                 || retrieveCoordinateMode_m == ClickUnclick
-                                                 || retrieveCoordinateMode_m == ClickDrag
-                                                 || retrieveCoordinateMode_m == RectROI))
+        if(event->button() == Qt::LeftButton && retrieveCoordinateMode_m & 0x3E)
         {
             if(retrieveCoordinateMode_m == RectROI)
             {
                 region_m.setBottomRight(getPointInImage());
+                region_m = getAdjustedRegion();
+                selectRegionOnPixmap(); //do I need to draw again here? Check mouse movement in debug or can I just emit adjusted
                 emit imageRectRegionSelected(region_m);
-                qDebug() << region_m;
-                selectRegionOnPixmap();
+                retrieveCoordinateMode_m = DragROI;
+                //qDebug() << region_m;
+            }
+            else if(retrieveCoordinateMode_m == DragROI)
+            {
+                emit imageRectRegionSelected(getAdjustedRegion());
+                //qDebug() << getAdjustedRegion();
             }
             else
             {
@@ -389,20 +400,39 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
 /* An override of mousePressEvent. If an image is attached and the left button is pressed
  * overtop of the ImageWidget while an image is present and the appropriate selectPixelMode_m
  * selected, the coordinates under the mouse are emitted as a QPoint relative to the
- * attachedImage_m's origin.*/
+ * attachedImage_m's origin. If RectROI or DragROI is selected as the retrieveCoordinateMode_m
+ * the bounds are checked of the ROI selected. If the mouseclick is outside of thouse bounds
+ * a region will be drawn and enter RectROI with the starting ROI coordinates, else enter DragROI*/
 void ImageWidget::mousePressEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        if(event->button() == Qt::LeftButton && (retrieveCoordinateMode_m == SingleClick
-                                                 ||retrieveCoordinateMode_m == ClickUnclick
-                                                 || retrieveCoordinateMode_m == ClickDrag
-                                                 || retrieveCoordinateMode_m == RectROI))
+        if(event->button() == Qt::LeftButton && retrieveCoordinateMode_m & 0x3D)
         {
-            if(retrieveCoordinateMode_m == RectROI)
-                region_m.setTopLeft(getPointInImage());
+            if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
+            {
+                dragStart_m = getPointInImage();
+
+                //if point not within region_m, select and draw the ROI in RectROI mode.
+                //else keep the starting point and move to DragROI mode shifting region_m
+                if(dragStart_m.x() < region_m.topLeft().x()
+                        || dragStart_m.y() < region_m.y()
+                        || dragStart_m.x() > region_m.bottomRight().x()
+                        || dragStart_m.y() > region_m.bottomRight().y())
+                {
+                    region_m.setTopLeft(dragStart_m);
+                    region_m.setBottomRight(dragStart_m);
+                    retrieveCoordinateMode_m = RectROI;
+                }
+                else
+                {
+                    retrieveCoordinateMode_m = DragROI;
+                }
+            }
             else
+            {
                 emit imagePointSelected(getPointInImage());
+            }
         }
     }
 }
@@ -410,21 +440,34 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
 /* An override of mouseMoveEvent. If an image is attached and the mouse moves while the left
  * button is pressed overtop of the ImageWidget while an image present and the appropriate
  * selectPixelMode_m selected, the coordinates under the mouse are emitted as a QPoint relative
- * to the attachedImage_m's origin.*/
+ * to the attachedImage_m's origin. If RectROI is the current coordinate mode, the bottom right
+ * of the ROI is reassigned and the region drawn on the Pixmap. If DragROI, the region is shifted
+ * by the drag distance and then redrawn on the pixmap*/
 void ImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        if(!event->pos().isNull() == Qt::LeftButton && (retrieveCoordinateMode_m == ClickDrag
-                                                        || retrieveCoordinateMode_m == RectROI))
+        if(!event->pos().isNull() == Qt::LeftButton && retrieveCoordinateMode_m & 0x38)
         {
             if(retrieveCoordinateMode_m == RectROI)
             {
                 region_m.setBottomRight(getPointInImage());
                 selectRegionOnPixmap();
             }
+            //this state's boundaries are checked in mouse press event, cant enter directly
+            else if(retrieveCoordinateMode_m == DragROI)
+            {
+                QPoint endPoint = getPointInImage();
+                QPoint dragDistance = dragStart_m - endPoint;
+                dragStart_m = endPoint;
+                region_m.setTopLeft(region_m.topLeft() - dragDistance);
+                region_m.setBottomRight(region_m.bottomRight() - dragDistance);
+                selectRegionOnPixmap();
+            }
             else
+            {
                 emit imagePointSelected(getPointInImage());
+            }
         }
     }
 }
@@ -538,7 +581,7 @@ QPoint ImageWidget::getPointInImage()
         }
         mousePosition.setY(mousePosition.y() * scalar);
 
-        qDebug() << mousePosition;
+        //qDebug() << mousePosition;
         return mousePosition;
     }
     return QPoint();
@@ -560,46 +603,71 @@ void ImageWidget::selectRegionOnPixmap()
     painterBuffer_m = QPixmap::fromImage(*attachedImage_m); //try to make a copy of the QImage? also try swap data? But do this on loads now.
     if(mutex_m) mutex_m->unlock();
 
-    QPainter painter(&painterBuffer_m); //could be preset and exist already
-    painter.setBrush(QColor(50, 50, 50)); //make outline for brush light
+    QRect region = getAdjustedRegion();
+    QPainter painter(&painterBuffer_m);
+    painter.setBrush(QColor(50, 50, 50));
     painter.setPen(QColor(50, 50, 50));
     painter.setCompositionMode(QPainter::CompositionMode_Darken);
 
     //draw region - 4 trapazoids - avoid additionan licence using QRegions
-    QPoint top[4] = {
+    //top
+    QPoint polygon[4] = {
         painterBuffer_m.rect().topLeft(),
-        region_m.topLeft(),
-        region_m.topRight(),
+        region.topLeft(),
+        region.topRight(),
         painterBuffer_m.rect().topRight()
     };
-    painter.drawPolygon(top, 4);
+    painter.drawPolygon(polygon, 4);
 
-    QPoint bottom[4] = {
-        painterBuffer_m.rect().bottomLeft(),
-        region_m.bottomLeft(),
-        region_m.bottomRight(),
-        painterBuffer_m.rect().bottomRight()
-    };
-    painter.drawPolygon(bottom, 4);
+    //bottom
+    polygon[0] = painterBuffer_m.rect().bottomLeft();
+    polygon[1] = region.bottomLeft();
+    polygon[2] = region.bottomRight();
+    polygon[3] = painterBuffer_m.rect().bottomRight();
+    painter.drawPolygon(polygon, 4);
 
-    QPoint left[4] = {
-        painterBuffer_m.rect().topLeft(),
-        region_m.topLeft(),
-        region_m.bottomLeft(),
-        painterBuffer_m.rect().bottomLeft()
-    };
-    painter.drawPolygon(left, 4);
+    //left
+    polygon[0] = painterBuffer_m.rect().topLeft();
+    polygon[1] = region.topLeft();
+    polygon[2] = region.bottomLeft();
+    polygon[3] = painterBuffer_m.rect().bottomLeft();
+    painter.drawPolygon(polygon, 4);
 
-    QPoint right[4] = {
-        painterBuffer_m.rect().topRight(),
-        region_m.topRight(),
-        region_m.bottomRight(),
-        painterBuffer_m.rect().bottomRight()
-    };
-    painter.drawPolygon(right, 4);
+    //right
+    polygon[0] = painterBuffer_m.rect().topRight();
+    polygon[1] = region.topRight();
+    polygon[2] = region.bottomRight();
+    polygon[3] = painterBuffer_m.rect().bottomRight();
+    painter.drawPolygon(polygon, 4);
 
     imageLabel_m->setPixmap(painterBuffer_m);
     imageLabel_m->update();
 }
 
+//initializes the member variables used for painting on the pixmap
+void ImageWidget::initializePaintMembers()
+{
+    dragStart_m = QPoint(-1, -1);
+    region_m = QRect(dragStart_m, dragStart_m);
+}
+
+/* getAdjustedRegion uses the selected region_m member variable and cleans it up so that <-- DOES NOT DO THIS
+ * it fits within the attachedImage_m's dimensions. It also reverts the region_m's top left
+ * and bottom right corners if they become inverted due to mouse location during selection
+ * so that the QPainter can draw the ROI if the ROI is selected from top left to bottom right
+ * or vice versa.*/
+QRect ImageWidget::getAdjustedRegion() //THIS NEEDS FIXED!!!!!!! EMITTED RECT IS NOT THIS... maybe it doesnt? See above comments in Release
+{ //also when hit cancel and grab the same ROI it reappears -> another bug
+    int topLeftX, topLeftY, bottomRightX, bottomRightY;
+    region_m.getCoords(&topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
+
+    if(topLeftX > bottomRightX) std::swap(topLeftX, bottomRightX);
+    if(topLeftY > bottomRightY) std::swap(topLeftY, bottomRightY);
+    if(topLeftX < 0) topLeftX = 0;
+    if(topLeftY < 0) topLeftY = 0;
+    if(bottomRightX > attachedImage_m->width() - 1) bottomRightX = attachedImage_m->width() - 1;
+    if(bottomRightY > attachedImage_m->height() - 1) bottomRightY = attachedImage_m->height() - 1;
+
+    return QRect(QPoint(topLeftX, topLeftY), QPoint(bottomRightX, bottomRightY));
+}
 
