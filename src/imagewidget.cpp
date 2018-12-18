@@ -43,6 +43,8 @@
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           01/22/2018      Matthew R. Miller       Initial Rev
 * 0.2           06/23/2018      Matthew R. Miller       Drag and Drop Open
+* 0.3           10/26/2018      Matthew R. Miller       Pixel Selection Added
+* 0.4           12/17/2018      Matthew R. Miller       ROI Selection Added
 ************************************************************************/
 
 #include "imagewidget.h"
@@ -182,9 +184,22 @@ void ImageWidget::setFillWidget(bool fill)
 /* Member function setSelectPixelMode allows an external object to set the selectPixelMode_m member
  * variable which dictates how pixel locations are returned based on mouse action over an image.
  * The CoordinateMode enum represents the available modes and executed in the mouseEvent. */
-void ImageWidget::setRetrieveCoordinateMode(CoordinateMode mode)
+void ImageWidget::setRetrieveCoordinateMode(uint mode)
 {
     retrieveCoordinateMode_m = mode;
+    if(mode == RectROI)
+        initializePaintMembers();
+}
+
+/* A slot that when called, if region of interest mode is enabled, will pre-set the region in the image
+ * and draw it on the Pixmap. Else it does nothing.*/
+void ImageWidget::setRectRegionSelected(QRect roi)
+{
+    if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
+    {
+        region_m = roi;
+        selectRegionOnPixmap();
+    }
 }
 
 //Returns the current pixel selection status for cursor / displayed image interaction
@@ -656,8 +671,8 @@ void ImageWidget::initializePaintMembers()
  * and bottom right corners if they become inverted due to mouse location during selection
  * so that the QPainter can draw the ROI if the ROI is selected from top left to bottom right
  * or vice versa.*/
-QRect ImageWidget::getAdjustedRegion() //THIS NEEDS FIXED!!!!!!! EMITTED RECT IS NOT THIS... maybe it doesnt? See above comments in Release
-{ //also when hit cancel and grab the same ROI it reappears -> another bug
+QRect ImageWidget::getAdjustedRegion()
+{
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     region_m.getCoords(&topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
 
@@ -665,8 +680,8 @@ QRect ImageWidget::getAdjustedRegion() //THIS NEEDS FIXED!!!!!!! EMITTED RECT IS
     if(topLeftY > bottomRightY) std::swap(topLeftY, bottomRightY);
     if(topLeftX < 0) topLeftX = 0;
     if(topLeftY < 0) topLeftY = 0;
-    if(bottomRightX > attachedImage_m->width() - 1) bottomRightX = attachedImage_m->width() - 1;
-    if(bottomRightY > attachedImage_m->height() - 1) bottomRightY = attachedImage_m->height() - 1;
+    if(bottomRightX >= attachedImage_m->width()) bottomRightX = attachedImage_m->width();
+    if(bottomRightY >= attachedImage_m->height()) bottomRightY = attachedImage_m->height();
 
     return QRect(QPoint(topLeftX, topLeftY), QPoint(bottomRightX, bottomRightY));
 }

@@ -20,6 +20,7 @@
 #include <QString>
 #include <QImage>
 #include <QMutex>
+#include <QRect>
 #include <QStackedWidget>
 
 
@@ -91,6 +92,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->pushButtonCancel, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
     connect(ui->pushButtonApply, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
 
+    //connect necessary worker thread - transformmenu / ui slots
+    connect(ui->iw, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
+    connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->iw, SLOT(setRectRegionSelected(QRect)));
+    connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->iw, SLOT(setRetrieveCoordinateMode(uint)));
+    connect(transformMenu_m, SIGNAL(cancelRoiSelection()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));
+
     //start worker thread event loop
     workerThread.start();
 }
@@ -114,7 +122,7 @@ void MainWindow::imageOpenOperationFailed()
 }
 
 /* When an image address is passed to this slot, the information on the main window is updated according to that image.
- * this is called when an image is SET from the worker thread.*/
+ * this is called when an image is SET from the worker thread. TransformMenu is also updated.*/
 void MainWindow::updateImageInformation(const QImage *image)
 {
     if(image == nullptr)
@@ -122,12 +130,14 @@ void MainWindow::updateImageInformation(const QImage *image)
         setWindowTitle("qcvTouchUp");
         ui->labelSize->setText("Size:");
         ui->labelType->setText("Type:");
+        transformMenu_m->setImageResolution(QRect(-1 , -1, -1, -1));
     }
     else
     {
         setWindowTitle("qcvTouchUp - " + QFileInfo(userImagePath_m.absolutePath()).fileName());
         ui->labelSize->setText("Size: " + QString::number(image->width())+"x"+QString::number(image->height()));
         ui->labelType->setText("Type: " + qcv::getMatType(qcv::qImageToCvMat(*image)));
+        transformMenu_m->setImageResolution(image->rect());
     }
 }
 

@@ -2,7 +2,9 @@
 #define TRANSFORMMENU_H
 
 #include <QScrollArea>
+#include <QVector>
 class QButtonGroup;
+class QRect;
 
 namespace Ui {
 class TransformMenu;
@@ -23,11 +25,28 @@ public:
 
 public slots:
     void initializeMenu();
+    void setImageResolution(QRect imageSize);
+    void setImageROI(QRect ROI);
     void setVisible(bool visible) override;
 
+signals:
+    void enableCropImage(bool); //mainwindow sends ROI to here, when performImageCrop is emitted, then sends the ROI value to worker when apply is selected.
+    void performImageCrop(QRect ROI); //if same size as image nothing happens. -> after apply is hit this is released
+    void giveImageROI(QRect ROI);
+    void setGetCoordinateMode(uint);
+    void cancelRoiSelection();
+
 private:
+    bool boundCheck(const QRect &ROI);
     Ui::TransformMenu *ui;
     QButtonGroup *buttonGroup_m;
+    QRect imageSize_m;
+    QRect croppedROI_m;
+    QVector<int> menuValues_m;
+
+private slots:
+    void setSelectInImage(bool checked);
+    void setImageInternalROI();
 };
 
 #endif // TRANSFORMMENU_H

@@ -250,10 +250,5 @@ Item {
             menuid: 4
         }
 
-        ListElement {
-            menuname: "Select"
-            menuid: 5
-        }
-
     } //ListModel
 } //rootMenu

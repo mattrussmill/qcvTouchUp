@@ -45,6 +45,7 @@
 * 0.1           01/22/2018      Matthew R. Miller       Initial Rev
 * 0.2           06/23/2018      Matthew R. Miller       Drag and Drop Open
 * 0.3           10/26/2018      Matthew R. Miller       Pixel Selection Added
+* 0.4           12/17/2018      Matthew R. Miller       ROI Selection Added
 ************************************************************************/
 
 #ifndef IMAGEWIDGET_H
@@ -82,7 +83,6 @@ public:
     void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setFillWidget(bool fill = true);
-    void setRetrieveCoordinateMode(CoordinateMode mode);
     uint getRetrieveCoordinateMode() const; //change to RetrieveCoordinateMode
     double currentScale() const;
     bool imageAttached() const;
@@ -109,6 +109,8 @@ public slots:
     void zoomActual();
     void updateDisplayedImage();
     void updateDisplayedImage(const QImage *image);
+    void setRetrieveCoordinateMode(uint mode);
+    void setRectRegionSelected(QRect roi);
 
 protected:
     virtual void resizeEvent(QResizeEvent *event) override;
@@ -136,7 +138,7 @@ private:
     QRect region_m;
     QPoint dragStart_m;
     const QImage *attachedImage_m = nullptr;
-    uint retrieveCoordinateMode_m = RectROI;
+    uint retrieveCoordinateMode_m = NoClick;
     float scalar_m;
     bool fillScrollArea_m = true;
 };

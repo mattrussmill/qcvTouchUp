@@ -126,6 +126,7 @@ void FilterMenu::initializeSliders()
 {
     blockSignals(true);
 
+    //reinitialize buttons to unchecked
     QAbstractButton *checkedButton = buttonGroup_m->checkedButton();
     if(checkedButton != nullptr)
     {
