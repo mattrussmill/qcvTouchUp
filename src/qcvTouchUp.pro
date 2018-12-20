@@ -39,7 +39,8 @@ SOURCES += \
     filtermenu.cpp \
     temperaturemenu.cpp \
     transformmenu.cpp \
-    signalsuppressor.cpp
+    signalsuppressor.cpp \
+    mouseclickdetectoreventfilter.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -54,7 +55,8 @@ HEADERS += \
     filtermenu.h \
     temperaturemenu.h \
     transformmenu.h \
-    signalsuppressor.h
+    signalsuppressor.h \
+    mouseclickdetectoreventfilter.h
 
 FORMS += \
         mainwindow.ui \

@@ -1,4 +1,5 @@
 #include "mousewheeleatereventfilter.h"
+#include "mouseclickdetectoreventfilter.h"
 #include "transformmenu.h"
 #include "imagewidget.h"
 #include "ui_transformmenu.h"
@@ -16,7 +17,8 @@ TransformMenu::TransformMenu(QWidget *parent) :
     ui(new Ui::TransformMenu)
 {
     ui->setupUi(this);
-    MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this); //this needs installed
+    MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
+    MouseClickDetectorEventFilter *cropClickFilter = new MouseClickDetectorEventFilter(this);
 
     //fix radio buttons to work in separate group boxes (for asthetics)
     buttonGroup_m = new QButtonGroup(this);
@@ -25,13 +27,19 @@ TransformMenu::TransformMenu(QWidget *parent) :
     buttonGroup_m->addButton(ui->radioButton_ScaleEnable);
     buttonGroup_m->addButton(ui->radioButton_WarpEnable);
 
+
     ui->horizontalSlider_Rotate->installEventFilter(wheelFilter);
+    ui->lineEdit_CropRoiStart->installEventFilter(cropClickFilter);
+    ui->lineEdit_CropRoiEnd->installEventFilter(cropClickFilter);
+    connect(cropClickFilter, SIGNAL(clickDetected(bool)), ui->radioButton_CropEnable, SLOT(setChecked(bool)));
     connect(ui->radioButton_CropEnable, SIGNAL(toggled(bool)), this, SLOT(setSelectInImage(bool)));
     connect(ui->lineEdit_CropRoiStart, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
     connect(ui->lineEdit_CropRoiEnd, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
 
     imageSize_m = QRect(-1, -1, -1, -1);
     initializeMenu();
+
+    //NOTE: rotate and warp will need silentEnable like in Filter
 }
 
 TransformMenu::~TransformMenu()
@@ -184,3 +192,6 @@ void TransformMenu::setSelectInImage(bool checked)
         emit cancelRoiSelection();
     }
 }
+
+//have a slot for apply -> if radio button is enabled will send signal to WORKER
+//APPLY -> THIS -> WORKER (an intercepting call -> like a mux) explain to the different nature of this menu
