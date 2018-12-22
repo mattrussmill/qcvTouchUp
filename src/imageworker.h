@@ -3,11 +3,12 @@
 
 #include <opencv2/core/core.hpp>
 #include <QObject>
+#include <QRect>
 class QString;
 class QDir;
 class QSize;
 class QMutex;
-class SignalSuppressor;
+//class SignalSuppressor;
 
 
 class ImageWorker : public QObject
@@ -22,13 +23,15 @@ public slots:
     void doOpenImage(const QString imagePath);
     void doClearImageBuffer();
     void doSetHistogramDstAddress(uint **histo);
-    void doCopyRGBBufferToMasterBuffer();
+    void doCopyWorkerBufferToMasterBuffer();//change name please? Or make internal call from APPLY SLOT
     void doDisplayMasterBuffer();
     void doAdjustmentsComputation(QVector<float> parameter);
     void doSmoothFilterComputation(QVector<int> parameter);
     void doSharpenFilterComputation(QVector<int> parameter);
     void doEdgeFilterComputation(QVector<int> parameter);
     void doTemperatureComputation(int parameter);
+    void doCropComputation(QRect roi);
+    void doRotateComputation(uint degree);
 
 signals:
     void resultImageSet(const QImage*);
@@ -58,7 +61,6 @@ private:
     cv::Mat *tmpImage_m;
     cv::Mat *dstRGBImage_m;
     QImage *imageWrapper_m;
-
 
     //working RGB histogram plots
     uint **srcRGBHisto_m;

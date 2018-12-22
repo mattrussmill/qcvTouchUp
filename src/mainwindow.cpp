@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->quickMenu, SIGNAL(menuItemClicked(int)), ui->toolMenu, SLOT(setCurrentIndex(int)));
     connect(ui->toolMenu, SIGNAL(currentChanged(int)), imageWorker_m, SLOT(doDisplayMasterBuffer()));
     connect(ui->pushButtonCancel, SIGNAL(released()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-    connect(ui->pushButtonApply, SIGNAL(released()), imageWorker_m, SLOT(doCopyRGBBufferToMasterBuffer()));
+    connect(ui->pushButtonApply, SIGNAL(released()), imageWorker_m, SLOT(doCopyWorkerBufferToMasterBuffer()));
 
     //image widget / area - mainwindow/ui slots
     connect(ui->iw, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
@@ -97,6 +97,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->iw, SLOT(setRectRegionSelected(QRect)));
     connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->iw, SLOT(setRetrieveCoordinateMode(uint)));
     connect(transformMenu_m, SIGNAL(cancelRoiSelection()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+    connect(transformMenu_m, SIGNAL(performImageCrop(QRect)), imageWorker_m, SLOT(doCropComputation(QRect)));
     connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));
 
     //start worker thread event loop

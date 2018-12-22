@@ -72,7 +72,7 @@
           </widget>
          </item>
          <item>
-          <widget class="Line" name="line_4">
+          <widget class="Line" name="line_Crop">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>

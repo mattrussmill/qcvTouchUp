@@ -19,6 +19,7 @@ TransformMenu::TransformMenu(QWidget *parent) :
     ui->setupUi(this);
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
     MouseClickDetectorEventFilter *cropClickFilter = new MouseClickDetectorEventFilter(this);
+    MouseClickDetectorEventFilter *rotateClickFilter = new MouseClickDetectorEventFilter(this);
 
     //fix radio buttons to work in separate group boxes (for asthetics)
     buttonGroup_m = new QButtonGroup(this);
@@ -27,14 +28,24 @@ TransformMenu::TransformMenu(QWidget *parent) :
     buttonGroup_m->addButton(ui->radioButton_ScaleEnable);
     buttonGroup_m->addButton(ui->radioButton_WarpEnable);
 
-
-    ui->horizontalSlider_Rotate->installEventFilter(wheelFilter);
+    //setup crop menu options
     ui->lineEdit_CropRoiStart->installEventFilter(cropClickFilter);
     ui->lineEdit_CropRoiEnd->installEventFilter(cropClickFilter);
     connect(cropClickFilter, SIGNAL(clickDetected(bool)), ui->radioButton_CropEnable, SLOT(setChecked(bool)));
     connect(ui->radioButton_CropEnable, SIGNAL(toggled(bool)), this, SLOT(setSelectInImage(bool)));
+    connect(ui->radioButton_CropEnable, SIGNAL(toggled(bool)), ui->line_Crop, SLOT(setVisible(bool)));
     connect(ui->lineEdit_CropRoiStart, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
     connect(ui->lineEdit_CropRoiEnd, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
+
+    //setup rotate menu options
+    ui->horizontalSlider_Rotate->installEventFilter(wheelFilter);
+    ui->spinBox_RotateDegrees->installEventFilter(wheelFilter);
+    ui->spinBox_RotateDegrees->installEventFilter(rotateClickFilter);
+    //DOES NOTHING, NO EVENT FOR MOUSE? CHAGE TO FOCUS DETECTOR? <- PROBABLY THAT
+    connect(rotateClickFilter, SIGNAL(clickDetected(bool)), ui->radioButton_RotateEnable, SLOT(setChecked(bool)));
+    //silent enable signal slot necessary
+    connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), ui->horizontalSlider_Rotate, SLOT(setValue(int)));
+    connect(ui->horizontalSlider_Rotate, SIGNAL(valueChanged(int)), ui->spinBox_RotateDegrees, SLOT(setValue(int)));
 
     imageSize_m = QRect(-1, -1, -1, -1);
     initializeMenu();
@@ -85,6 +96,7 @@ void TransformMenu::initializeMenu()
 
     //crop
     ui->label_CropInstruction->setText("");
+    ui->line_Crop->setVisible(false);
 
     //rotate
     ui->horizontalSlider_Rotate->setValue(0);
@@ -92,12 +104,11 @@ void TransformMenu::initializeMenu()
 
     //scale
     ui->checkBox_ScaleLinked->setChecked(true);
-    ui->label_DegreesHigh->setText("0%");
-    ui->label_DegreesLow->setText("0%");
 
     //warp (needs more)
 
     blockSignals(false);
+    emit setGetCoordinateMode(ImageWidget::CoordinateMode::NoClick);
 }
 
 // setImageResolution sets the default image resolution for initializing menu items
@@ -132,6 +143,7 @@ void TransformMenu::setImageROI(QRect ROI)
 
     ui->label_CropInstruction->setText("Select ROI");
     croppedROI_m = ROI;
+    emit performImageCrop(ROI);
 }
 
 /* setImageInternalROI is a private slot that when signaled, pulls the string from the crop line edits
@@ -155,6 +167,7 @@ void TransformMenu::setImageInternalROI()
             ui->label_CropInstruction->setText("Select ROI");
             croppedROI_m = ROI;
             emit giveImageROI(ROI);
+            emit performImageCrop(ROI);
         }
         else
         {
@@ -193,5 +206,3 @@ void TransformMenu::setSelectInImage(bool checked)
     }
 }
 
-//have a slot for apply -> if radio button is enabled will send signal to WORKER
-//APPLY -> THIS -> WORKER (an intercepting call -> like a mux) explain to the different nature of this menu

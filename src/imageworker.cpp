@@ -10,6 +10,7 @@
 #include <QSize>
 #include <QMutex>
 #include <QString>
+#include <QRect>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -137,7 +138,7 @@ inline void ImageWorker::deriveWorkingBuffersFromMaster()
 }
 
 // Applies the most recent destination RGB buffer information into the master buffer and src Histogram
-void ImageWorker::doCopyRGBBufferToMasterBuffer()
+void ImageWorker::doCopyWorkerBufferToMasterBuffer()
 {
     if(!masterRGBImage_m || !dstRGBImage_m) return;
     mutex_m->lock();
@@ -145,7 +146,7 @@ void ImageWorker::doCopyRGBBufferToMasterBuffer()
     *imageWrapper_m = qcv::cvMatToQImage(*masterRGBImage_m);
     HistogramWidget::copy(const_cast<const uint**>(dstRGBHisto_m), srcRGBHisto_m);
     mutex_m->unlock();
-    emit resultImageUpdate(imageWrapper_m);
+    emit resultImageSet(imageWrapper_m);
 }
 
 // Reverts the image and histogram back to the most previously un-applied form (the master image
@@ -181,7 +182,7 @@ bool ImageWorker::preImageOperationMutex()
 void ImageWorker::postImageOperationMutex()
 {
     *imageWrapper_m = qcv::cvMatToQImage(*dstRGBImage_m);
-    HistogramWidget::generateHistogram(*imageWrapper_m, dstRGBHisto_m);
+    HistogramWidget::generateHistogram(*imageWrapper_m, dstRGBHisto_m); //this should not be in here anymore
     emit updateStatus("");
     mutex_m->unlock();
     emit resultImageUpdate(imageWrapper_m);
@@ -603,11 +604,32 @@ void ImageWorker::doTemperatureComputation(int parameter)
     postImageOperationMutex();
 }
 
+/////////////////////////////--- Transform Menu Computations ---/////////////////////////////
+/* This slot performs a cropping computation on the image. It is passed a ROI, which is assumed
+ * to already be in bounds from the signal, assigns the new ROI to the dstRGBImage_m buffer. The
+ * postImageOperationMutex is not used as the image on screen should not be updated (signal) until
+ * the crop selection is complete according to the user so that adjustments to the ROI can be made.*/
+void ImageWorker::doCropComputation(QRect roi)
+{
+    if(!preImageOperationMutex()) return;
+    cv::Rect region(roi.topLeft().x(), roi.topLeft().y(), roi.width(), roi.height());
+    *dstRGBImage_m = cv::Mat(*masterRGBImage_m, region);
+    emit updateStatus("");
+    mutex_m->unlock();
+}
 
+void ImageWorker::doRotateComputation(uint degree)
+{
+    if(!preImageOperationMutex()) return;
 
-
-
-
+    //image set must be called as the canvas size changes with each degree
+    *imageWrapper_m = qcv::cvMatToQImage(*dstRGBImage_m);
+    emit updateStatus("");
+    mutex_m->unlock();
+    emit resultImageSet(imageWrapper_m);
+}
+//rotate
+//https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
 
 
 

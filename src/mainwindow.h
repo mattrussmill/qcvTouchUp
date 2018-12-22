@@ -46,7 +46,6 @@ private:
     FilterMenu *filterMenu_m;
     TemperatureMenu *temperatureMenu_m;
     TransformMenu *transformMenu_m;
-
 };
 
 #endif // MAINWINDOW_H
