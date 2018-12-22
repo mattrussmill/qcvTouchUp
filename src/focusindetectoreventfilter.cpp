@@ -42,20 +42,20 @@
 * 0.1           December 19, 2018       Matthew R. Miller       Initial Rev
 *
 ************************************************************************/
-#include "mouseclickdetectoreventfilter.h"
+#include "focusindetectoreventfilter.h"
 #include <QObject>
 #include <QEvent>
 
-MouseClickDetectorEventFilter::MouseClickDetectorEventFilter(QObject *parent) : QObject(parent)
+FocusInDetectorEventFilter::FocusInDetectorEventFilter(QObject *parent) : QObject(parent)
 {
 
 }
 
 /*If the intercepted event is a mouse button release, emits a signal passing true to signal detection
  * then returns false to continue event processing*/
-bool MouseClickDetectorEventFilter::eventFilter(QObject *watched, QEvent *event)
+bool FocusInDetectorEventFilter::eventFilter(QObject *watched, QEvent *event)
 {
-    if(event->type() == QEvent::MouseButtonRelease)
-        emit clickDetected(true);
+    if(event->type() == QEvent::FocusIn)
+        emit focusDetected(true);
     return false;
 }

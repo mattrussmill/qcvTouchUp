@@ -43,19 +43,19 @@
 *
 ************************************************************************/
 
-#ifndef MOUSECLICKDETECTOREVENTFILTER_H
-#define MOUSECLICKDETECTOREVENTFILTER_H
+#ifndef FOCUSINDETECTOREVENTFILTER_H
+#define FOCUSINDETECTOREVENTFILTER_H
 
 #include <QObject>
 
-class MouseClickDetectorEventFilter : public QObject
+class FocusInDetectorEventFilter : public QObject
 {
     Q_OBJECT
 public:
-    explicit MouseClickDetectorEventFilter(QObject *parent = nullptr);
+    explicit FocusInDetectorEventFilter(QObject *parent = nullptr);
 
 signals:
-    void clickDetected(bool);
+    void focusDetected(bool);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event);
@@ -63,4 +63,4 @@ protected:
 public slots:
 };
 
-#endif // MOUSECLICKDETECTOREVENTFILTER_H
+#endif // FOCUSINDETECTOREVENTFILTER_H

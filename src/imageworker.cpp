@@ -618,7 +618,7 @@ void ImageWorker::doCropComputation(QRect roi)
     mutex_m->unlock();
 }
 
-void ImageWorker::doRotateComputation(uint degree)
+void ImageWorker::doRotateComputation(int degree)
 {
     if(!preImageOperationMutex()) return;
 

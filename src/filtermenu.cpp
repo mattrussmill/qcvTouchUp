@@ -51,6 +51,7 @@
 ************************************************************************/
 
 #include "mousewheeleatereventfilter.h"
+#include "focusindetectoreventfilter.h"
 #include "filtermenu.h"
 #include "ui_filtermenu.h"
 #include <QScrollArea>
@@ -66,6 +67,9 @@ FilterMenu::FilterMenu(QWidget *parent) :
 {
     ui->setupUi(this);
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
+    FocusInDetectorEventFilter *smoothFocusFilter = new FocusInDetectorEventFilter(this);
+    FocusInDetectorEventFilter *sharpenFocusFilter = new FocusInDetectorEventFilter(this);
+    FocusInDetectorEventFilter *edgeFocusFilter = new FocusInDetectorEventFilter(this);
 
     //fix radio buttons to work in separate group boxes (for asthetics)
     buttonGroup_m = new QButtonGroup(this);
@@ -79,10 +83,12 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Smooth->addItem("Median");     //comboBox index 2
     ui->comboBox_Smooth->installEventFilter(wheelFilter);
     ui->horizontalSlider_SmoothWeight->installEventFilter(wheelFilter);
+    ui->horizontalSlider_SmoothWeight->installEventFilter(smoothFocusFilter);
     connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(collectBlurParameters()));
     connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Smooth, SIGNAL(currentIndexChanged(int)), this, SLOT(collectBlurParameters()));
-    connect(ui->horizontalSlider_SmoothWeight, SIGNAL(sliderPressed()), this, SLOT(radioBlurSilentEnable()));
+    connect(smoothFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_SmoothEnable, SLOT(setChecked(bool)));
+    connect(smoothFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage()));
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
 
     //setup sharpen menu options
@@ -90,11 +96,13 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Sharpen->addItem("Laplacian"); //comboBox index 1
     ui->comboBox_Sharpen->installEventFilter(wheelFilter);
     ui->horizontalSlider_SharpenWeight->installEventFilter(wheelFilter);
+    ui->horizontalSlider_SharpenWeight->installEventFilter(sharpenFocusFilter);
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(collectSharpenParameters()));
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustSharpenSliderRange(int)));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
-    connect(ui->horizontalSlider_SharpenWeight, SIGNAL(sliderPressed()), this, SLOT(radioSharpenSilentEnable()));
+    connect(sharpenFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_SharpenEnable, SLOT(setChecked(bool)));
+    connect(sharpenFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage()));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
 
     //setup edge detect menu options
@@ -103,11 +111,13 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->comboBox_Edge->addItem("Sobel");        //comboBox index 2
     ui->comboBox_Edge->installEventFilter(wheelFilter);
     ui->horizontalSlider_EdgeWeight->installEventFilter(wheelFilter);
+    ui->horizontalSlider_EdgeWeight->installEventFilter(edgeFocusFilter);
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(collectEdgeDetectParameters()));
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustEdgeSliderRange(int)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(collectEdgeDetectParameters()));
-    connect(ui->horizontalSlider_EdgeWeight, SIGNAL(sliderPressed()), this, SLOT(radioEdgeSilentEnable()));
+    connect(edgeFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_EdgeEnable, SLOT(setChecked(bool)));
+    connect(edgeFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage()));
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
     //other initializations
@@ -229,37 +239,4 @@ void FilterMenu::setVisible(bool visible)
     if(!visible)
         initializeSliders();
     QWidget::setVisible(visible);
-}
-
-//Enables the Blur QRadioButton without triggering an additional checked signal
-void FilterMenu::radioBlurSilentEnable()
-{
-    if(!ui->radioButton_SmoothEnable->isChecked())
-    {
-        ui->radioButton_SmoothEnable->setChecked(true);
-        collectBlurParameters();
-        changeSampleImage();
-    }
-}
-
-//Enables the Sharpen QRadioButton without triggering an additional checked signal
-void FilterMenu::radioSharpenSilentEnable()
-{
-    if(!ui->radioButton_SharpenEnable->isChecked())
-    {
-        ui->radioButton_SharpenEnable->setChecked(true);
-        collectBlurParameters();
-        changeSampleImage();
-    }
-}
-
-//Enables the Edge QRadioButton without triggering an additional checked signal
-void FilterMenu::radioEdgeSilentEnable()
-{
-    if(!ui->radioButton_EdgeEnable->isChecked())
-    {
-        ui->radioButton_EdgeEnable->setChecked(true);
-        collectBlurParameters();
-        changeSampleImage();
-    }
 }

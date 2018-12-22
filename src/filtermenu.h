@@ -101,9 +101,6 @@ private slots:
     void collectSharpenParameters();
     void collectEdgeDetectParameters();
     void changeSampleImage();
-    void radioBlurSilentEnable();
-    void radioSharpenSilentEnable();
-    void radioEdgeSilentEnable();
 
 private:
     Ui::FilterMenu *ui;

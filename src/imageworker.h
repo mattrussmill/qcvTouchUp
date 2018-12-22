@@ -31,7 +31,7 @@ public slots:
     void doEdgeFilterComputation(QVector<int> parameter);
     void doTemperatureComputation(int parameter);
     void doCropComputation(QRect roi);
-    void doRotateComputation(uint degree);
+    void doRotateComputation(int degree);
 
 signals:
     void resultImageSet(const QImage*);
