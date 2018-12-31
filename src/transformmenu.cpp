@@ -20,6 +20,7 @@ TransformMenu::TransformMenu(QWidget *parent) :
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
     FocusInDetectorEventFilter *cropFocusFilter = new FocusInDetectorEventFilter(this);
     FocusInDetectorEventFilter *rotateFocusFilter = new FocusInDetectorEventFilter(this);
+    FocusInDetectorEventFilter *scaleFocusFilter = new FocusInDetectorEventFilter(this);
 
     //fix radio buttons to work in separate group boxes (for asthetics)
     buttonGroup_m = new QButtonGroup(this);
@@ -45,6 +46,12 @@ TransformMenu::TransformMenu(QWidget *parent) :
     connect(rotateFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_RotateEnable, SLOT(setChecked(bool)));
     connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), ui->horizontalSlider_Rotate, SLOT(setValue(int)));
     connect(ui->horizontalSlider_Rotate, SIGNAL(valueChanged(int)), ui->spinBox_RotateDegrees, SLOT(setValue(int)));
+    connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), this, SIGNAL(performImageRotate(int)));
+
+    //setup scale menu options
+    ui->checkBox_ScaleLinked->installEventFilter(scaleFocusFilter);
+    ui->spinBox_ScaleHeight->installEventFilter(scaleFocusFilter);
+    ui->spinBox_ScaleWidth->installEventFilter(scaleFocusFilter);
 
     imageSize_m = QRect(-1, -1, -1, -1);
     initializeMenu();

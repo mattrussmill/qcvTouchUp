@@ -328,6 +328,19 @@ void ImageWidget::zoomActual()
     }
 }
 
+/* The zoomAgain method is a private zoom function that performs the current zoom setting
+ * again so that if an attached image buffer changes changes size that the Pixmap is displayed
+ * without being skewed*/
+void ImageWidget::zoomAgain()
+{
+    if(!imageAttached()) return;
+    if(fillScrollArea_m == true)
+        zoomFit();
+    else
+       imageLabel_m->resize(scalar_m * attachedImage_m->size());
+}
+
+
 /*When called, the Pixmap is refreshed (reloaded) with the attached QImage but not resized.
  * Because of the possibility this function will operate on an image outside of the class,
  * a mutex locks the operation if it is available and reinitializes the paint member variables*/
@@ -360,11 +373,12 @@ void ImageWidget::updateDisplayedImage(const QImage *image)
         while(!mutex_m->tryLock())
             QApplication::processEvents(QEventLoop::AllEvents, 100);
     }
-
+    attachedImage_m = image;
     imageLabel_m->setPixmap(QPixmap::fromImage(*attachedImage_m));
     qDebug() << *imageLabel_m->pixmap();
+    zoomAgain();
     attachedImage_m = image;
-    if(mutex_m) mutex_m->unlock(); //move mutex up
+    if(mutex_m) mutex_m->unlock();
     initializePaintMembers();
 }
 

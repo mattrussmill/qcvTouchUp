@@ -13,8 +13,7 @@
 #include <QRect>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/photo/photo.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
 
 ImageWorker::ImageWorker(QMutex &m)
 {
@@ -189,6 +188,61 @@ void ImageWorker::postImageOperationMutex()
     emit resultHistoUpdate();
 }
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ WORKING ON THIS ONE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+cv::Rect ImageWorker::innerRectOfRotatedRect(const cv::Point2f corners[]) //should degrees also be passed? determine in this funct?
+{
+    const cv::Point2f *top = &corners[0];
+    const cv::Point2f *bottom = &corners[0];
+    const cv::Point2f *left = &corners[0];
+    const cv::Point2f *right = &corners[0];
+    //qDebug() << corners[0].x << corners[0].y << corners[1].x << corners[1].y << corners[2].x << corners[2].y << corners[3].x << corners[3].y;
+
+    //find position-most point of rotated rect
+    for(int i = 0; i < 4; i++) //one loop, set initial values first
+    {
+
+        //worry about bounding case after (if points are equal and rect is square)
+        if(top->y < corners[i].y) //not indexing properly?
+            top = &corners[i];
+        if(bottom->y > corners[i].y)
+            bottom = &corners[i];
+        if(left->x > corners[i].x)
+            left = &corners[i];
+        if(right->x < corners[i].x)
+            right = &corners[i];
+    }
+    qDebug() << top->x << top->y << bottom->x << bottom->y << left->x << left->y << right->x << right->y;
+
+    //bottom lines are parallel
+    float slopeTopLeft = (top->y - left->y) / (top->x - left->x);
+    float slopeTopRight = (top->y - right->y) / (top->x - right->x);;
+    qDebug() << slopeTopLeft << slopeTopRight;
+
+    //find line intercepts for each side
+    float yInterceptTopLeft = -1 * (slopeTopLeft * top->x);
+    float yInterceptTopRight = -1 * (slopeTopRight * top->x);
+    float yInterceptBottomLeft = -1 * (slopeTopRight * bottom->x);
+    float yInterceptBottomRight = -1 * (slopeTopLeft * top->x);
+
+    //find point on opposite intercepting lines from image corners at 45deg
+    cv::Point2f topIntercept;
+    cv::Point2f bottomIntercept;
+    cv::Point2f leftIntercept;
+    cv::Point2f rightIntercept;
+
+    topIntercept.x = bottom->x;
+    if(top->x < bottom->x)
+        topIntercept.y = slopeTopRight * bottom->x + yInterceptTopRight;
+    else
+        topIntercept.y = slopeTopLeft * bottom->x + yInterceptTopLeft;
+
+
+
+    //x,y,width,height
+
+    //between 0 and 45 degrees
+    return cv::Rect(top->x, left->y, bottom->x - top->x, right->y - left->y);
+}
 
 
 ///////////////////////////////--- Adjust Menu Computations ---///////////////////////////////
@@ -622,26 +676,87 @@ void ImageWorker::doRotateComputation(int degree)
 {
     if(!preImageOperationMutex()) return;
 
-    //image set must be called as the canvas size changes with each degree
-    *imageWrapper_m = qcv::cvMatToQImage(*dstRGBImage_m);
-    emit updateStatus("");
-    mutex_m->unlock();
-    emit resultImageSet(imageWrapper_m);
+    //center of rotation, rotation matrix, and containing size for rotation
+    cv::Point2f center = cv::Point2f((masterRGBImage_m->cols -1) / 2.0, (masterRGBImage_m->rows -1) / 2.0);
+    cv::Mat rotationMatrix = cv::getRotationMatrix2D(center, -1 * degree, 1);
+    cv::RotatedRect rotatedRegion(center, masterRGBImage_m->size(), -1 * degree);
+    cv::Rect boundingRegion = rotatedRegion.boundingRect();
+
+    //adjust the rotation matrix
+    rotationMatrix.at<double>(0, 2) += boundingRegion.width / 2.0 - masterRGBImage_m->cols / 2.0;
+    rotationMatrix.at<double>(1, 2) += boundingRegion.height / 2.0 - masterRGBImage_m->rows / 2.0;
+
+    //perform transform
+    *dstRGBImage_m = cv::Mat(boundingRegion.size(), masterRGBImage_m->type());
+    cv::warpAffine(*masterRGBImage_m, *dstRGBImage_m, rotationMatrix, boundingRegion.size());
+
+    //crop image so that no black edges due to rotation are showing if not square
+    //float ratio = static_cast<float>(masterRGBImage_m->cols) / static_cast<float>(masterRGBImage_m->rows); //needed?
+    if(degree != 0 && abs(degree) != 90 && abs(degree) != 180)
+    { 
+        cv::Point2f corners[4]; // [0] = bottom left; [1] = top left; [2] = bottom right; [3] = top right; << this has to be wrong comment out != 0 and try again Look at OpenCV coordinate plane
+        rotatedRegion.points(corners);
+
+        //offset for points in boundingRegion
+        for(int i = 0; i < 4; i ++)
+        {
+            corners[i].x += boundingRegion.width / 2.0 - masterRGBImage_m->cols / 2.0;
+            corners[i].y += boundingRegion.height / 2.0 - masterRGBImage_m->rows / 2.0;
+        }
+
+        //qDebug() << corners[0].x << corners[0].y << corners[1].x << corners[1].y << corners[2].x << corners[2].y << corners[3].x << corners[3].y;
+
+        cv::rectangle(*dstRGBImage_m, innerRectOfRotatedRect(corners), cv::Scalar( 255, 0, 0 ), 3);
+
+
+        //        if (abs(degree) < 45)
+//        {
+//            innerRect = cv::Rect(0, 0, corners[3].x, corners[2].y);
+//        }
+
+
+
+        //shift points arc equation? find intercepts for bounds after shifting? -- can get center point from bounding region.
+        //https://math.stackexchange.com/questions/1384994/rotate-a-point-on-a-circle-with-known-radius-and-position
+
+
+//        int roiWidth = ratio * cos(degree * M_PI / 180.0) * masterRGBImage_m->rows; //dont happen at right rate .. should I grab points from rotatedRect and use points as boundaries for region?
+//        int roiHeight = (1 / ratio) * cos(degree * M_PI / 180.0) * masterRGBImage_m->cols;
+
+//        int xOffset = abs(dstRGBImage_m->cols - masterRGBImage_m->cols) / 2; //or is the offset wrong?
+//        int yOffset = abs(dstRGBImage_m->rows - masterRGBImage_m->rows) / 2;
+        //qDebug() << roiWidth << roiHeight << ratio << xOffset << yOffset;
+
+        //cv::Rect region(xOffset, yOffset, roiWidth, roiHeight);
+        //cv::rectangle(*dstRGBImage_m, innerRect, cv::Scalar( 255, 0, 0 ), 3);
+        //*dstRGBImage_m = cv::Mat(*dstRGBImage_m, region);
+    }
+
+    postImageOperationMutex();
 }
-//rotate
-//https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
+
+//don't do warpAffine for now, only perspective. Call it "square" or "perspective"
+//https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_geometric_transformations/py_geometric_transformations.html
+
+//other info here for last menu:
+//http://answers.opencv.org/question/31840/recontruct-the-undefined-area-using-mosaicking/#31996
+
+//https://docs.opencv.org/3.0-beta/modules/refman.html
 
 
+//https://math.stackexchange.com/questions/103202/calculating-the-position-of-a-point-along-an-arc
 
 
+//rotate point
+//https://stackoverflow.com/questions/7953316/rotate-a-point-around-a-point-with-opencv
 
-
-
-
-
-
-
-
-
+////RotatedRect myRect;
+/*
+Point2f oldPoints[4];
+myRect.points(oldPoints);  //gives existing points of the rectangle.
+myRect.angle = 0;          //change the angle.
+Point2f newPoints[4];
+myRect.points(newPoints);  //gives rotated points of the rectangle.
+*/
 
 

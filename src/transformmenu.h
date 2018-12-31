@@ -35,6 +35,7 @@ signals:
     void giveImageROI(QRect ROI);
     void setGetCoordinateMode(uint);
     void cancelRoiSelection();
+    void performImageRotate(int);
 
 private:
     bool boundCheck(const QRect &ROI);

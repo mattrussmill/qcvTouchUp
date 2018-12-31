@@ -125,6 +125,7 @@ protected:
 private:
     void selectRegionOnPixmap();
     void initializePaintMembers();
+    void zoomAgain();
     QPoint getPointInImage();
     QRect getAdjustedRegion();
     QAction *zoomInAction_m;

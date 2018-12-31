@@ -53,6 +53,7 @@ private:
     cv::Mat makeLaplacianKernel(int size);
     bool preImageOperationMutex();
     void postImageOperationMutex();
+    cv::Rect innerRectOfRotatedRect(const cv::Point2f corners[]);
 
     //working image buffers (if heap allocated - for sharing between threads)
     std::vector <cv::Mat> splitChannelsTmp_m;
