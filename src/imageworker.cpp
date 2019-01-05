@@ -655,12 +655,10 @@ void ImageWorker::doRotateComputation(int degree)
         cv::Point2f *bottom = &corners[0];
         cv::Point2f *left = &corners[0];
         cv::Point2f *right = &corners[0];
-        //qDebug() << corners[0].x << corners[0].y << corners[1].x << corners[1].y << corners[2].x << corners[2].y << corners[3].x << corners[3].y;
 
         //find position-most point of rotated rect
         for(int i = 0; i < 4; i++) //one loop, set initial values first
         {
-
             //should not be called if points are square (ignore bounding case for now)
             if(top->y < corners[i].y)
                 top = &corners[i];
@@ -677,21 +675,16 @@ void ImageWorker::doRotateComputation(int degree)
 
         //for testing purposes to visualize points
         qDebug() << "T:"<< top->x << top->y << "B:" << bottom->x << bottom->y << "L:" << left->x << left->y << "R:" << right->x << right->y;
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(top->x, top->y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(bottom->x, bottom->y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(left->x, left->y, 5, 5), cv::Scalar( 255, 0, 0 ), 5);
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(right->x, right->y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
 
         //bottom lines are parallel
-        float slopeTopLeft = (top->y - left->y) / (top->x - left->x);
-        float slopeTopRight = (top->y - right->y) / (top->x - right->x);
-        qDebug() << slopeTopLeft << slopeTopRight;
+        double slopeTopLeft = (top->y - left->y) / (top->x - left->x);
+        double slopeTopRight = (top->y - right->y) / (top->x - right->x);
 
-        //find line intercepts for each side
-        float yInterceptTopLeft = -1 * (slopeTopLeft * top->x);
-        float yInterceptTopRight = -1 * (slopeTopRight * top->x);
-        float yInterceptBottomLeft = -1 * (slopeTopRight * ((bottom->x + left->x) / 2.0)); //THESE ARE MESSED UP <---
-        float yInterceptBottomRight = -1 * (slopeTopLeft * ((bottom->x + right->x) / 2.0));
+        //find line intercepts for each side (y is inverted for lower intercepts so they are adjusted accordingly)
+        double yInterceptTopLeft = -1 * (slopeTopLeft * top->x);
+        double yInterceptTopRight = -1 * (slopeTopRight * top->x);
+        double yInterceptBottomLeft = left->y;
+        double yInterceptBottomRight = -1 * (slopeTopLeft * bottom->x) + boundingRegion.height;
 
         //find point on opposite intercepting lines from image corners straight up or across
         cv::Point2f interceptOppositeOfTopCorner;
@@ -699,21 +692,18 @@ void ImageWorker::doRotateComputation(int degree)
         cv::Point2f interceptOppositeOfLeftCorner;
         cv::Point2f interceptOppositeOfRightCorner;
 
-        //these coordinates are messed up in opencv somehow so Hagrid tells you you're a wizard and "magic" happens FIX THIS COMMENT
+        //calculates the intercepts on the edge of the rectangle opposite its corners
         interceptOppositeOfBottomCorner.x = bottom->x;
         interceptOppositeOfTopCorner.x = top->x;
         if(top->x < bottom->x)
         {
             interceptOppositeOfBottomCorner.y = slopeTopRight * interceptOppositeOfBottomCorner.x + yInterceptTopRight;
-
-            //interceptOppositeOfTopCorner.y = slopeTopRight * interceptOppositeOfTopCorner.x + yInterceptBottomLeft; //incorrect
-
+            interceptOppositeOfTopCorner.y = slopeTopRight * interceptOppositeOfTopCorner.x + yInterceptBottomLeft;
         }
         else
         {
-            interceptOppositeOfBottomCorner.y = slopeTopLeft * bottom->x + yInterceptTopLeft;
-            qDebug() << "THIS";
-            //interceptOppositeOfTopCorner.y = slopeTopLeft * interceptOppositeOfTopCorner.x + yInterceptBottomRight; //incorrect
+            interceptOppositeOfBottomCorner.y = slopeTopLeft * interceptOppositeOfBottomCorner.x + yInterceptTopLeft;
+            interceptOppositeOfTopCorner.y = slopeTopLeft * interceptOppositeOfTopCorner.x + yInterceptBottomRight;
         }
 
         interceptOppositeOfRightCorner.y = right->y;
@@ -721,85 +711,30 @@ void ImageWorker::doRotateComputation(int degree)
         if(left->y < right->y)
         {
             interceptOppositeOfLeftCorner.x = (interceptOppositeOfLeftCorner.y - yInterceptTopRight) / slopeTopRight;
-            //interceptOppositeOfRightCorner.x = (interceptOppositeOfRightCorner.y - yInterceptBottomLeft) / slopeTopRight; //incorrect
+            interceptOppositeOfRightCorner.x = (interceptOppositeOfRightCorner.y - yInterceptBottomLeft) / slopeTopRight;
         }
         else
         {
-            //interceptOppositeOfLeftCorner.x = (interceptOppositeOfLeftCorner.y - yInterceptBottomRight) / slopeTopLeft; //incorrect as if x axis is switched
+            interceptOppositeOfLeftCorner.x = (interceptOppositeOfLeftCorner.y - yInterceptBottomRight) / slopeTopLeft;
             interceptOppositeOfRightCorner.x = (interceptOppositeOfRightCorner.y - yInterceptTopLeft) / slopeTopLeft;
         }
 
         cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfTopCorner.x, interceptOppositeOfTopCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
-        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfBottomCorner.x, interceptOppositeOfBottomCorner.y, 5, 5), cv::Scalar( 255, 0, 0 ), 5);
-        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfLeftCorner.x, interceptOppositeOfLeftCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
+        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfBottomCorner.x, interceptOppositeOfBottomCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
+        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfLeftCorner.x, interceptOppositeOfLeftCorner.y, 5, 5), cv::Scalar( 255, 0, 0 ), 5);
         cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfRightCorner.x, interceptOppositeOfRightCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
 
+        //WORKING HERE NOW
+        //x,y,width,height
+        cv::Rect rectasdf = cv::Rect(interceptOppositeOfRightCorner.x, interceptOppositeOfBottomCorner.y,
+                                     interceptOppositeOfLeftCorner.x - interceptOppositeOfRightCorner.x,
+                                     interceptOppositeOfTopCorner.y - interceptOppositeOfBottomCorner.y);
 
-        //between 0 and 45 degrees //x,y,width,height
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(top->x, top->y, 5, 5), cv::Scalar( 255, 0, 0 ), 3);
-
-        //GARBAGE BELOW
-
-        //shift points arc equation? find intercepts for bounds after shifting? -- can get center point from bounding region.
-        //https://math.stackexchange.com/questions/1384994/rotate-a-point-on-a-circle-with-known-radius-and-position
-
-
-        //        int roiWidth = ratio * cos(degree * M_PI / 180.0) * masterRGBImage_m->rows; //dont happen at right rate .. should I grab points from rotatedRect and use points as boundaries for region?
-        //        int roiHeight = (1 / ratio) * cos(degree * M_PI / 180.0) * masterRGBImage_m->cols;
-
-        //        int xOffset = abs(dstRGBImage_m->cols - masterRGBImage_m->cols) / 2; //or is the offset wrong?
-        //        int yOffset = abs(dstRGBImage_m->rows - masterRGBImage_m->rows) / 2;
-        //qDebug() << roiWidth << roiHeight << ratio << xOffset << yOffset;
-
-        //cv::Rect region(xOffset, yOffset, roiWidth, roiHeight);
-        //cv::rectangle(*dstRGBImage_m, innerRect, cv::Scalar( 255, 0, 0 ), 3);
-        //*dstRGBImage_m = cv::Mat(*dstRGBImage_m, region);
+        //Hagrid tells you you're a wizard and you draw this rectangle
+        cv::rectangle(*dstRGBImage_m, rectasdf, cv::Scalar( 255, 0, 0 ), 3);
     }
 
     postImageOperationMutex();
 }
-
-//don't do warpAffine for now, only perspective. Call it "square" or "perspective"
-//https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_geometric_transformations/py_geometric_transformations.html
-
-//other info here for last menu:
-//http://answers.opencv.org/question/31840/recontruct-the-undefined-area-using-mosaicking/#31996
-
-//https://docs.opencv.org/3.0-beta/modules/refman.html
-
-
-//https://math.stackexchange.com/questions/103202/calculating-the-position-of-a-point-along-an-arc
-
-
-//rotate point
-//https://stackoverflow.com/questions/7953316/rotate-a-point-around-a-point-with-opencv
-
-////RotatedRect myRect;
-/*
-Point2f oldPoints[4];
-myRect.points(oldPoints);  //gives existing points of the rectangle.
-myRect.angle = 0;          //change the angle.
-Point2f newPoints[4];
-myRect.points(newPoints);  //gives rotated points of the rectangle.
-*/
 
 
