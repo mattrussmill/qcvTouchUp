@@ -636,8 +636,10 @@ void ImageWorker::doRotateComputation(int degree)
     *dstRGBImage_m = cv::Mat(boundingRegion.size(), masterRGBImage_m->type());
     cv::warpAffine(*masterRGBImage_m, *dstRGBImage_m, rotationMatrix, boundingRegion.size());
 
-    //crop image so that no black edges due to rotation are showing if not square
-    //float ratio = static_cast<float>(masterRGBImage_m->cols) / static_cast<float>(masterRGBImage_m->rows); //needed?
+    /* crop image so that no black edges due to rotation are showing if not square
+     * NOTE: maybe in a later update use the opposite line equations here to calculate the optimal position
+     * of image within the original frame, then warp to fit instead of trying to adjust the frame to the
+     * optimal size within the rotated region*/
     if(degree != 0 && abs(degree) != 90 && abs(degree) != 180)
     { 
         cv::Point2f corners[4];
@@ -673,7 +675,7 @@ void ImageWorker::doRotateComputation(int degree)
         std::swap(right->y, left->y);
         std::swap(top->y, bottom->y);
 
-        //for testing purposes to visualize points
+        //for testing purposes to visualize points (good place to visualize points if debugging)
         qDebug() << "T:"<< top->x << top->y << "B:" << bottom->x << bottom->y << "L:" << left->x << left->y << "R:" << right->x << right->y;
 
         //bottom lines are parallel
@@ -719,21 +721,46 @@ void ImageWorker::doRotateComputation(int degree)
             interceptOppositeOfRightCorner.x = (interceptOppositeOfRightCorner.y - yInterceptTopLeft) / slopeTopLeft;
         }
 
-        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfTopCorner.x, interceptOppositeOfTopCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
-        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfBottomCorner.x, interceptOppositeOfBottomCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
-        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfLeftCorner.x, interceptOppositeOfLeftCorner.y, 5, 5), cv::Scalar( 255, 0, 0 ), 5);
-        cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfRightCorner.x, interceptOppositeOfRightCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
+        //(good place to visualize points if debugging)
+        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfTopCorner.x, interceptOppositeOfTopCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
+        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfBottomCorner.x, interceptOppositeOfBottomCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
+        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfLeftCorner.x, interceptOppositeOfLeftCorner.y, 5, 5), cv::Scalar( 255, 0, 0 ), 5);
+        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfRightCorner.x, interceptOppositeOfRightCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
 
-        //WORKING HERE NOW
-        //x,y,width,height
-        cv::Rect rectasdf = cv::Rect(interceptOppositeOfRightCorner.x, interceptOppositeOfBottomCorner.y,
-                                     interceptOppositeOfLeftCorner.x - interceptOppositeOfRightCorner.x,
-                                     interceptOppositeOfTopCorner.y - interceptOppositeOfBottomCorner.y);
 
-        //Hagrid tells you you're a wizard and you draw this rectangle
-        cv::rectangle(*dstRGBImage_m, rectasdf, cv::Scalar( 255, 0, 0 ), 3);
+        //detect and define the 4 states that can exist on how to draw this rectangle COMMENT HERE
+
+
+        //WORKING HERE NOW        
+        double x, y, width, height;
+
+        if(interceptOppositeOfTopCorner.x < interceptOppositeOfBottomCorner.x)
+        {
+            x = (interceptOppositeOfRightCorner.x + interceptOppositeOfTopCorner.x) / 2.0;
+            width = (interceptOppositeOfLeftCorner.x + interceptOppositeOfBottomCorner.x) / 2.0 - x;
+        }
+        else
+        {
+            x = (interceptOppositeOfRightCorner.x + interceptOppositeOfBottomCorner.x) / 2.0;
+            width = (interceptOppositeOfLeftCorner.x + interceptOppositeOfTopCorner.x) / 2.0 - x;
+        }
+
+        if(interceptOppositeOfLeftCorner.y < interceptOppositeOfRightCorner.y)
+        {
+            y = (interceptOppositeOfBottomCorner.y + interceptOppositeOfLeftCorner.y) / 2.0;
+            height = (interceptOppositeOfTopCorner.y + interceptOppositeOfRightCorner.y) / 2.0 - y;
+        }
+        else
+        {
+            y = (interceptOppositeOfBottomCorner.y + interceptOppositeOfRightCorner.y) / 2.0;
+            height = (interceptOppositeOfTopCorner.y + interceptOppositeOfLeftCorner.y) / 2.0 - y;
+        }
+
+        //Hagrid tells you you're a wizard and you draw/crop this rectangle (good place to visualize rect region if debugging)
+        cv::Rect cropRegion(x, y, width, height);
+        //cv::rectangle(*dstRGBImage_m, cropRegion, cv::Scalar( 255, 0, 0 ), 3);
+        *dstRGBImage_m = cv::Mat(*dstRGBImage_m, cropRegion);
     }
-
     postImageOperationMutex();
 }
 

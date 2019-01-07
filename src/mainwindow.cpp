@@ -180,6 +180,7 @@ void MainWindow::openImage()
     ui->iw->clearImage();
     ui->histo->clear();
     imageWorker_m->doOpenImage(userImagePath_m.absolutePath());
+    ui->iw->setFocus();
 }
 
 /* An overload of openImage without the use of a dialog box. Takes the image path directly as a parameter
@@ -197,6 +198,7 @@ void MainWindow::openImage(QString imagePath)
     ui->histo->clear();
     userImagePath_m.setPath(imagePath);
     imageWorker_m->doOpenImage(imagePath);
+    ui->iw->setFocus();
 }
 
 // Displays a histogram window with x and y axis plot when triggered.

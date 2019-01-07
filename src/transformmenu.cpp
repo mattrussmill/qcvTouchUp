@@ -27,7 +27,6 @@ TransformMenu::TransformMenu(QWidget *parent) :
     buttonGroup_m->addButton(ui->radioButton_CropEnable);
     buttonGroup_m->addButton(ui->radioButton_RotateEnable);
     buttonGroup_m->addButton(ui->radioButton_ScaleEnable);
-    buttonGroup_m->addButton(ui->radioButton_WarpEnable);
 
     //setup crop menu options
     ui->lineEdit_CropRoiStart->installEventFilter(cropFocusFilter);

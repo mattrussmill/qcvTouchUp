@@ -269,6 +269,16 @@
          </item>
         </layout>
        </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_rotateAutoCrop">
+         <property name="text">
+          <string>Auto Crop</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -286,25 +296,11 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_ScaleEnable">
-         <item>
-          <widget class="QRadioButton" name="radioButton_ScaleEnable">
-           <property name="text">
-            <string>Enable</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_ScaleLinked">
-           <property name="text">
-            <string>Linked</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QRadioButton" name="radioButton_ScaleEnable">
+         <property name="text">
+          <string>Enable</string>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_ScaleWidth">
@@ -398,47 +394,13 @@
          </item>
         </layout>
        </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="groupBox_Warp">
-      <property name="title">
-       <string>Warp</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_6">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_WarpEnable">
-         <item>
-          <widget class="QRadioButton" name="radioButton_WarpEnable">
-           <property name="text">
-            <string>Enable</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="comboBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_11">
+        <widget class="QCheckBox" name="checkBox_ScaleLinked">
          <property name="text">
-          <string>MENU ON AFFINE OR PERSPECTIVE</string>
+          <string>Linked</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -446,7 +408,7 @@
      </widget>
     </item>
     <item>
-     <widget class="Line" name="line_5">
+     <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
