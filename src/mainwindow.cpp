@@ -98,7 +98,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->iw, SLOT(setRetrieveCoordinateMode(uint)));
     connect(transformMenu_m, SIGNAL(cancelRoiSelection()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
     connect(transformMenu_m, SIGNAL(performImageCrop(QRect)), imageWorker_m, SLOT(doCropComputation(QRect)));
-
+    connect(transformMenu_m, SIGNAL(setAutoCropOnRotate(bool)), imageWorker_m, SLOT(setAutoCropForRotate(bool)));
     connect(transformMenu_m, SIGNAL(performImageRotate(int)), imageWorker_m, SLOT(doRotateComputation(int)));
 
     connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));

@@ -42,10 +42,13 @@ TransformMenu::TransformMenu(QWidget *parent) :
     ui->spinBox_RotateDegrees->installEventFilter(wheelFilter);
     ui->horizontalSlider_Rotate->installEventFilter(rotateFocusFilter);
     ui->spinBox_RotateDegrees->installEventFilter(rotateFocusFilter);
+    ui->checkBox_rotateAutoCrop->installEventFilter(rotateFocusFilter);
     connect(rotateFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_RotateEnable, SLOT(setChecked(bool)));
     connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), ui->horizontalSlider_Rotate, SLOT(setValue(int)));
     connect(ui->horizontalSlider_Rotate, SIGNAL(valueChanged(int)), ui->spinBox_RotateDegrees, SLOT(setValue(int)));
     connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), this, SIGNAL(performImageRotate(int)));
+    connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SIGNAL(setAutoCropOnRotate(bool)));
+    connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SLOT(resendImageRotateSignal()));
 
     //setup scale menu options
     ui->checkBox_ScaleLinked->installEventFilter(scaleFocusFilter);
@@ -109,10 +112,10 @@ void TransformMenu::initializeMenu()
 
     //scale
     ui->checkBox_ScaleLinked->setChecked(true);
-
-    //warp (needs more)
-
     blockSignals(false);
+
+    //signal must be emitted on reset
+    ui->checkBox_rotateAutoCrop->setChecked(false);
     emit setGetCoordinateMode(ImageWidget::CoordinateMode::NoClick);
 }
 
@@ -209,5 +212,11 @@ void TransformMenu::setSelectInImage(bool checked)
         ui->label_CropInstruction->setText("");
         emit cancelRoiSelection();
     }
+}
+
+//sends a signal to perform the image rotate operation. Intended to send value again to kick off operation @ toggle event
+void TransformMenu::resendImageRotateSignal()
+{
+    emit performImageRotate(ui->spinBox_RotateDegrees->value());
 }
 

@@ -36,6 +36,8 @@ signals:
     void setGetCoordinateMode(uint);
     void cancelRoiSelection();
     void performImageRotate(int);
+    void setAutoCropOnRotate(bool);
+    void giveScaledRect(QRect ROI); //unused
 
 private:
     bool boundCheck(const QRect &ROI);
@@ -48,6 +50,8 @@ private:
 private slots:
     void setSelectInImage(bool checked);
     void setImageInternalROI();
+    void resendImageRotateSignal();
+    void setImageInternalScale(int); //unused (useCroppedROI?)
 };
 
 #endif // TRANSFORMMENU_H

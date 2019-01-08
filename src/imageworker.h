@@ -32,6 +32,8 @@ public slots:
     void doTemperatureComputation(int parameter);
     void doCropComputation(QRect roi);
     void doRotateComputation(int degree);
+    void setAutoCropForRotate(bool value);
+    void doScaleComputation(QRect newSize);
 
 signals:
     void resultImageSet(const QImage*);
@@ -62,6 +64,7 @@ private:
     cv::Mat *tmpImage_m;
     cv::Mat *dstRGBImage_m;
     QImage *imageWrapper_m;
+    bool autoCropforRotate_m;
 
     //working RGB histogram plots
     uint **srcRGBHisto_m;

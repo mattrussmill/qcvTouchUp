@@ -24,6 +24,7 @@ ImageWorker::ImageWorker(QMutex &m)
     tmpImage_m = nullptr;
     dstRGBImage_m = nullptr;
     imageWrapper_m = nullptr;
+    autoCropforRotate_m = false;
     splitChannelsTmp_m.push_back(cv::Mat());
     splitChannelsTmp_m.push_back(cv::Mat());
     splitChannelsTmp_m.push_back(cv::Mat());
@@ -617,6 +618,12 @@ void ImageWorker::doCropComputation(QRect roi)
     mutex_m->unlock();
 }
 
+/* This slot performs the rotation computation on the image. It is passed a value that represents the
+ * number of degrees to rotate the image. After the image is rotated using an adjusted rotation matrix,
+ * the new image is warped to fit inside the rectangular boundary of the rotated region. If auto-crop is
+ * enabled the method attempts to crop the image after rotation to a useful size within the rotated region,
+ * but excluding any black corners that were not part of the original image. In the notes a suggestion for
+ * a better solution is discussed for a further update */
 void ImageWorker::doRotateComputation(int degree)
 {
     if(!preImageOperationMutex()) return;
@@ -640,7 +647,7 @@ void ImageWorker::doRotateComputation(int degree)
      * NOTE: maybe in a later update use the opposite line equations here to calculate the optimal position
      * of image within the original frame, then warp to fit instead of trying to adjust the frame to the
      * optimal size within the rotated region*/
-    if(degree != 0 && abs(degree) != 90 && abs(degree) != 180)
+    if(autoCropforRotate_m && degree != 0 && abs(degree) != 90 && abs(degree) != 180)
     { 
         cv::Point2f corners[4];
         rotatedRegion.points(corners);
@@ -719,21 +726,11 @@ void ImageWorker::doRotateComputation(int degree)
         {
             interceptOppositeOfLeftCorner.x = (interceptOppositeOfLeftCorner.y - yInterceptBottomRight) / slopeTopLeft;
             interceptOppositeOfRightCorner.x = (interceptOppositeOfRightCorner.y - yInterceptTopLeft) / slopeTopLeft;
-        }
-
-        //(good place to visualize points if debugging)
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfTopCorner.x, interceptOppositeOfTopCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfBottomCorner.x, interceptOppositeOfBottomCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfLeftCorner.x, interceptOppositeOfLeftCorner.y, 5, 5), cv::Scalar( 255, 0, 0 ), 5);
-        //cv::rectangle(*dstRGBImage_m, cv::Rect(interceptOppositeOfRightCorner.x, interceptOppositeOfRightCorner.y, 5, 5), cv::Scalar( 255, 255, 0 ), 5);
+        }//(good place to visualize points if debugging)
 
 
-        //detect and define the 4 states that can exist on how to draw this rectangle COMMENT HERE
-
-
-        //WORKING HERE NOW        
+        //using the location of the opposite intercept points, attempt to create a ROI large as possible while excluding black edges
         double x, y, width, height;
-
         if(interceptOppositeOfTopCorner.x < interceptOppositeOfBottomCorner.x)
         {
             x = (interceptOppositeOfRightCorner.x + interceptOppositeOfTopCorner.x) / 2.0;
@@ -762,6 +759,17 @@ void ImageWorker::doRotateComputation(int degree)
         *dstRGBImage_m = cv::Mat(*dstRGBImage_m, cropRegion);
     }
     postImageOperationMutex();
+}
+
+//sets the autoCropForRotate member used in the doRotateComputation function to enable or disable the auto crop attempt.
+void ImageWorker::setAutoCropForRotate(bool value)
+{
+    autoCropforRotate_m = value;
+}
+
+void ImageWorker::doScaleComputation(QRect newSize)
+{
+
 }
 
 
