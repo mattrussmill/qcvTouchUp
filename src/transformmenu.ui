@@ -89,6 +89,9 @@
            <property name="text">
             <string>Instruction</string>
            </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
         </layout>
@@ -296,11 +299,38 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QRadioButton" name="radioButton_ScaleEnable">
-         <property name="text">
-          <string>Enable</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_ScaleEnable">
+         <item>
+          <widget class="QRadioButton" name="radioButton_ScaleEnable">
+           <property name="text">
+            <string>Enable</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line_Scale">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_ScaleInstruction">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Instruction</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_ScaleWidth">

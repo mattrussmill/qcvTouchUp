@@ -3,6 +3,7 @@
 #include "transformmenu.h"
 #include "imagewidget.h"
 #include "ui_transformmenu.h"
+#include <cmath>
 #include <QButtonGroup>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
@@ -54,6 +55,11 @@ TransformMenu::TransformMenu(QWidget *parent) :
     ui->checkBox_ScaleLinked->installEventFilter(scaleFocusFilter);
     ui->spinBox_ScaleHeight->installEventFilter(scaleFocusFilter);
     ui->spinBox_ScaleWidth->installEventFilter(scaleFocusFilter);
+    connect(scaleFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_ScaleEnable, SLOT(setChecked(bool)));
+    connect(ui->radioButton_ScaleEnable, SIGNAL(toggled(bool)), ui->label_ScaleInstruction, SLOT(setVisible(bool)));
+    connect(ui->radioButton_ScaleEnable, SIGNAL(toggled(bool)), ui->line_Scale, SLOT(setVisible(bool)));
+    connect(ui->spinBox_ScaleHeight, SIGNAL(valueChanged(int)), this, SLOT(setImageInternalSizeHeight(int)));
+    connect(ui->spinBox_ScaleWidth, SIGNAL(valueChanged(int)), this, SLOT(setImageInternalSizeWidth(int)));
 
     imageSize_m = QRect(-1, -1, -1, -1);
     initializeMenu();
@@ -111,6 +117,9 @@ void TransformMenu::initializeMenu()
     ui->spinBox_RotateDegrees->setValue(0);
 
     //scale
+    ui->label_ScaleInstruction->setText("Return to Preview");
+    ui->label_ScaleInstruction->setVisible(false);
+    ui->line_Scale->setVisible(false);
     ui->checkBox_ScaleLinked->setChecked(true);
     blockSignals(false);
 
@@ -219,4 +228,44 @@ void TransformMenu::resendImageRotateSignal()
 {
     emit performImageRotate(ui->spinBox_RotateDegrees->value());
 }
+
+void TransformMenu::setImageInternalSizeHeight(int height)
+{
+    croppedROI_m.setHeight(height);
+    if(ui->checkBox_ScaleLinked->isChecked())
+    {
+        double ratio = height / static_cast<double>(imageSize_m.height());
+        croppedROI_m.setWidth(round(imageSize_m.width() * ratio));
+        ui->spinBox_ScaleWidth->blockSignals(true);
+        ui->spinBox_ScaleWidth->setValue(croppedROI_m.width());
+        ui->spinBox_ScaleWidth->blockSignals(false);
+    }
+    else
+    {
+        croppedROI_m.setWidth(ui->spinBox_ScaleWidth->value());
+    }
+    ui->label_RatioWidth->setText(QString::number(croppedROI_m.width() / static_cast<double>(imageSize_m.width()) * 100, 'f', 2) + '%');
+    ui->label_RatioHeight->setText(QString::number(croppedROI_m.height() / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
+}
+
+void TransformMenu::setImageInternalSizeWidth(int width)
+{
+    croppedROI_m.setWidth(width);
+    if(ui->checkBox_ScaleLinked->isChecked())
+    {
+        double ratio = width / static_cast<double>(imageSize_m.width());
+        croppedROI_m.setHeight(round(imageSize_m.height() * ratio));
+        ui->spinBox_ScaleHeight->blockSignals(true);
+        ui->spinBox_ScaleHeight->setValue(croppedROI_m.height());
+        ui->spinBox_ScaleHeight->blockSignals(false);
+    }
+    else
+    {
+        croppedROI_m.setHeight(ui->spinBox_ScaleHeight->value());
+    }
+    ui->label_RatioWidth->setText(QString::number(croppedROI_m.width() / static_cast<double>(imageSize_m.width()) * 100, 'f', 2) + '%');
+    ui->label_RatioHeight->setText(QString::number(croppedROI_m.height() / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
+}
+
+//on return or apply, set croppedROI before sending or applying to prevent runtime error
 

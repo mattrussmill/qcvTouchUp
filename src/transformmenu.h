@@ -51,7 +51,8 @@ private slots:
     void setSelectInImage(bool checked);
     void setImageInternalROI();
     void resendImageRotateSignal();
-    void setImageInternalScale(int); //unused (useCroppedROI?)
+    void setImageInternalSizeWidth(int width);
+    void setImageInternalSizeHeight(int height);
 };
 
 #endif // TRANSFORMMENU_H
