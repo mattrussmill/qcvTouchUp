@@ -351,7 +351,7 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="resources.qrc">:/img/icons/filterMenu/blur.png</pixmap>
+         <pixmap resource="resources.qrc">:/img/icons/masterIcons/rgb.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>

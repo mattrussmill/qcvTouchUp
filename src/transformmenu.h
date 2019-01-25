@@ -22,6 +22,7 @@ public:
         Affine      = 0,
         Perspective = 1
     };
+    QRect getSizeOfScale() const;
 
 public slots:
     void initializeMenu();
@@ -37,7 +38,7 @@ signals:
     void cancelRoiSelection();
     void performImageRotate(int);
     void setAutoCropOnRotate(bool);
-    void giveScaledRect(QRect ROI); //unused
+    void performImageScale(QRect size);
 
 private:
     bool boundCheck(const QRect &ROI);
@@ -53,6 +54,9 @@ private slots:
     void resendImageRotateSignal();
     void setImageInternalSizeWidth(int width);
     void setImageInternalSizeHeight(int height);
+    void setImageInterSizeOnFocusIn(bool focus);
+    void performImageScalePreview();
+    void changeSampleImage(bool detected);
 };
 
 #endif // TRANSFORMMENU_H

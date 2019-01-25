@@ -100,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(transformMenu_m, SIGNAL(performImageCrop(QRect)), imageWorker_m, SLOT(doCropComputation(QRect)));
     connect(transformMenu_m, SIGNAL(setAutoCropOnRotate(bool)), imageWorker_m, SLOT(setAutoCropForRotate(bool)));
     connect(transformMenu_m, SIGNAL(performImageRotate(int)), imageWorker_m, SLOT(doRotateComputation(int)));
-
+    connect(transformMenu_m, SIGNAL(performImageScale(QRect)), imageWorker_m, SLOT(doScaleComputation(QRect)));
     connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));
 
     //start worker thread event loop

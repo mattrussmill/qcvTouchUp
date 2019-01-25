@@ -37,6 +37,7 @@ TransformMenu::TransformMenu(QWidget *parent) :
     connect(ui->radioButton_CropEnable, SIGNAL(toggled(bool)), ui->line_Crop, SLOT(setVisible(bool)));
     connect(ui->lineEdit_CropRoiStart, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
     connect(ui->lineEdit_CropRoiEnd, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
+    connect(cropFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
 
     //setup rotate menu options
     ui->horizontalSlider_Rotate->installEventFilter(wheelFilter);
@@ -50,16 +51,21 @@ TransformMenu::TransformMenu(QWidget *parent) :
     connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), this, SIGNAL(performImageRotate(int)));
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SIGNAL(setAutoCropOnRotate(bool)));
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SLOT(resendImageRotateSignal()));
+    connect(rotateFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
 
     //setup scale menu options
     ui->checkBox_ScaleLinked->installEventFilter(scaleFocusFilter);
     ui->spinBox_ScaleHeight->installEventFilter(scaleFocusFilter);
     ui->spinBox_ScaleWidth->installEventFilter(scaleFocusFilter);
     connect(scaleFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_ScaleEnable, SLOT(setChecked(bool)));
+    connect(scaleFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(setImageInterSizeOnFocusIn(bool)));
     connect(ui->radioButton_ScaleEnable, SIGNAL(toggled(bool)), ui->label_ScaleInstruction, SLOT(setVisible(bool)));
     connect(ui->radioButton_ScaleEnable, SIGNAL(toggled(bool)), ui->line_Scale, SLOT(setVisible(bool)));
     connect(ui->spinBox_ScaleHeight, SIGNAL(valueChanged(int)), this, SLOT(setImageInternalSizeHeight(int)));
     connect(ui->spinBox_ScaleWidth, SIGNAL(valueChanged(int)), this, SLOT(setImageInternalSizeWidth(int)));
+    connect(ui->spinBox_ScaleHeight, SIGNAL(editingFinished()), this, SLOT(performImageScalePreview()));
+    connect(ui->spinBox_ScaleWidth, SIGNAL(editingFinished()), this, SLOT(performImageScalePreview()));
+    connect(scaleFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
 
     imageSize_m = QRect(-1, -1, -1, -1);
     initializeMenu();
@@ -106,6 +112,8 @@ void TransformMenu::initializeMenu()
         //scale
         ui->spinBox_ScaleHeight->setValue(imageSize_m.height());
         ui->spinBox_ScaleWidth->setValue(imageSize_m.width());
+        ui->label_RatioWidth->setText("100%");
+        ui->label_RatioHeight->setText("100%");
     }
 
     //crop
@@ -125,6 +133,8 @@ void TransformMenu::initializeMenu()
 
     //signal must be emitted on reset
     ui->checkBox_rotateAutoCrop->setChecked(false);
+
+    ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/masterIcons/rgb.png")));
     emit setGetCoordinateMode(ImageWidget::CoordinateMode::NoClick);
 }
 
@@ -229,6 +239,9 @@ void TransformMenu::resendImageRotateSignal()
     emit performImageRotate(ui->spinBox_RotateDegrees->value());
 }
 
+/* setImageInternalSizeHeight sets the member storing the desired Scaled Image Size according to the new value in
+ * spinBox_ScaleHeight. If the ScaleLinked checkbox is checked, the width is dynamically adjusted to maintain the
+ * aspect ratio of the image. The labels indicating the % the image is scaled are also updated. */
 void TransformMenu::setImageInternalSizeHeight(int height)
 {
     croppedROI_m.setHeight(height);
@@ -248,6 +261,9 @@ void TransformMenu::setImageInternalSizeHeight(int height)
     ui->label_RatioHeight->setText(QString::number(croppedROI_m.height() / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
 }
 
+/* setImageInternalSizeWidth sets the member storing the desired Scaled Image Size according to the new value in
+ * spinBox_ScaleWidth. If the ScaleLinked checkbox is checked, the width is dynamically adjusted to maintain the
+ * aspect ratio of the image. The labels indicating the % the image is scaled are also updated. */
 void TransformMenu::setImageInternalSizeWidth(int width)
 {
     croppedROI_m.setWidth(width);
@@ -267,5 +283,43 @@ void TransformMenu::setImageInternalSizeWidth(int width)
     ui->label_RatioHeight->setText(QString::number(croppedROI_m.height() / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
 }
 
-//on return or apply, set croppedROI before sending or applying to prevent runtime error
+/* Emits the values stored in the spinboxes associated with scaling/resizing the image. This should be
+ * connected to the FocusIn event on any Scale Image widgets*/
+void TransformMenu::setImageInterSizeOnFocusIn(bool focus)
+{
+    if(focus)
+    {
+        croppedROI_m.setWidth(ui->spinBox_ScaleWidth->value());
+        croppedROI_m.setHeight(ui->spinBox_ScaleHeight->value());
+    }
+}
+
+// member function that allows access to the currently stored size of the new desired image for a Scale operation
+QRect TransformMenu::getSizeOfScale() const
+{
+    return croppedROI_m;
+}
+
+/* emits the performImageScale signal. This should only be called from this object when previewing the image. A different
+ * trigger will signal the worker thread to perform the final image transformation so it is not doing extra work each
+ * time a value is adjusted*/
+void TransformMenu::performImageScalePreview()
+{
+    emit performImageScale(croppedROI_m);
+}
+
+//Sets the sample image based on the menu item selected.
+void TransformMenu::changeSampleImage(bool detected) //STILL ISNT WORKING - BOTH FUNCTIONS
+{
+    if(detected)
+    {
+        if(ui->radioButton_CropEnable->isChecked())
+            ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/transformMenu/crop.png")));
+        else if(ui->radioButton_ScaleEnable->isChecked())
+            ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/transformMenu/scale.png")));
+        else if(ui->radioButton_RotateEnable->isChecked())
+            ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/transformMenu/rotate.png")));
+    }
+
+}
 

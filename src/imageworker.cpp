@@ -767,9 +767,12 @@ void ImageWorker::setAutoCropForRotate(bool value)
     autoCropforRotate_m = value;
 }
 
+//performs a resize operation using 4x4 interpolation
 void ImageWorker::doScaleComputation(QRect newSize)
 {
-
+    if(!preImageOperationMutex()) return;
+    cv::resize(*masterRGBImage_m, *dstRGBImage_m, cv::Size(newSize.width(), newSize.height()), 0, 0, cv::INTER_CUBIC);
+    postImageOperationMutex();
 }
 
 

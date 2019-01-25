@@ -65,6 +65,7 @@ private:
     cv::Mat *dstRGBImage_m;
     QImage *imageWrapper_m;
     bool autoCropforRotate_m;
+    cv::Rect tmpRect;
 
     //working RGB histogram plots
     uint **srcRGBHisto_m;

@@ -100,7 +100,7 @@ private slots:
     void collectBlurParameters();
     void collectSharpenParameters();
     void collectEdgeDetectParameters();
-    void changeSampleImage();
+    void changeSampleImage(bool detected);
 
 private:
     Ui::FilterMenu *ui;

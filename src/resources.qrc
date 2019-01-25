@@ -10,5 +10,9 @@
         <file>icons/filterMenu/sharp.png</file>
         <file>icons/temperatureMenu/cold.png</file>
         <file>icons/temperatureMenu/warm.png</file>
+        <file>icons/transformMenu/crop.png</file>
+        <file>icons/transformMenu/rotate.png</file>
+        <file>icons/transformMenu/scale.png</file>
+        <file>icons/masterIcons/rgb.png</file>
     </qresource>
 </RCC>

@@ -85,10 +85,10 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->horizontalSlider_SmoothWeight->installEventFilter(wheelFilter);
     ui->horizontalSlider_SmoothWeight->installEventFilter(smoothFocusFilter);
     connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(collectBlurParameters()));
-    connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
+    connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(changeSampleImage(bool)));
     connect(ui->comboBox_Smooth, SIGNAL(currentIndexChanged(int)), this, SLOT(collectBlurParameters()));
     connect(smoothFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_SmoothEnable, SLOT(setChecked(bool)));
-    connect(smoothFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage()));
+    connect(smoothFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
 
     //setup sharpen menu options
@@ -98,11 +98,11 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->horizontalSlider_SharpenWeight->installEventFilter(wheelFilter);
     ui->horizontalSlider_SharpenWeight->installEventFilter(sharpenFocusFilter);
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(collectSharpenParameters()));
-    connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
+    connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(changeSampleImage(bool)));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustSharpenSliderRange(int)));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
     connect(sharpenFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_SharpenEnable, SLOT(setChecked(bool)));
-    connect(sharpenFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage()));
+    connect(sharpenFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
 
     //setup edge detect menu options
@@ -113,11 +113,11 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->horizontalSlider_EdgeWeight->installEventFilter(wheelFilter);
     ui->horizontalSlider_EdgeWeight->installEventFilter(edgeFocusFilter);
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(collectEdgeDetectParameters()));
-    connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(changeSampleImage()));
+    connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(changeSampleImage(bool)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustEdgeSliderRange(int)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(collectEdgeDetectParameters()));
     connect(edgeFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_EdgeEnable, SLOT(setChecked(bool)));
-    connect(edgeFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage()));
+    connect(edgeFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
 
     //other initializations
@@ -148,7 +148,7 @@ void FilterMenu::initializeSliders()
     ui->horizontalSlider_SmoothWeight->setValue(ui->horizontalSlider_SmoothWeight->minimum());
     ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->minimum());
     ui->horizontalSlider_EdgeWeight->setValue(ui->horizontalSlider_EdgeWeight->minimum());
-
+    ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/masterIcons/rgb.png")));
     blockSignals(false);
 }
 
@@ -223,14 +223,17 @@ void FilterMenu::collectEdgeDetectParameters()
 }
 
 //Sets the sample image based on the menu item selected.
-void FilterMenu::changeSampleImage()
+void FilterMenu::changeSampleImage(bool detected)
 {
-    if(ui->radioButton_SmoothEnable->isChecked())
-        ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/blur.png")));
-    else if(ui->radioButton_SharpenEnable->isChecked())
-        ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/sharp.png")));
-    else if(ui->radioButton_EdgeEnable->isChecked())
-        ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/edge.png")));
+    if(detected)
+    {
+        if(ui->radioButton_SmoothEnable->isChecked())
+            ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/blur.png")));
+        else if(ui->radioButton_SharpenEnable->isChecked())
+            ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/sharp.png")));
+        else if(ui->radioButton_EdgeEnable->isChecked())
+            ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/filterMenu/edge.png")));
+    }
 }
 
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
