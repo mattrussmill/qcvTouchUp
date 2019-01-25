@@ -85,11 +85,11 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->horizontalSlider_SmoothWeight->installEventFilter(wheelFilter);
     ui->horizontalSlider_SmoothWeight->installEventFilter(smoothFocusFilter);
     connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(collectBlurParameters()));
-    connect(ui->radioButton_SmoothEnable, SIGNAL(released()), this, SLOT(changeSampleImage(bool)));
     connect(ui->comboBox_Smooth, SIGNAL(currentIndexChanged(int)), this, SLOT(collectBlurParameters()));
     connect(smoothFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_SmoothEnable, SLOT(setChecked(bool)));
     connect(smoothFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
     connect(ui->horizontalSlider_SmoothWeight, SIGNAL(valueChanged(int)), this, SLOT(collectBlurParameters()));
+    connect(ui->radioButton_SmoothEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     //setup sharpen menu options
     ui->comboBox_Sharpen->addItem("Unsharpen"); //comboBox index 0 (default)
@@ -98,12 +98,12 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->horizontalSlider_SharpenWeight->installEventFilter(wheelFilter);
     ui->horizontalSlider_SharpenWeight->installEventFilter(sharpenFocusFilter);
     connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(collectSharpenParameters()));
-    connect(ui->radioButton_SharpenEnable, SIGNAL(released()), this, SLOT(changeSampleImage(bool)));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustSharpenSliderRange(int)));
     connect(ui->comboBox_Sharpen, SIGNAL(currentIndexChanged(int)), this, SLOT(collectSharpenParameters()));
     connect(sharpenFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_SharpenEnable, SLOT(setChecked(bool)));
     connect(sharpenFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
     connect(ui->horizontalSlider_SharpenWeight, SIGNAL(valueChanged(int)), this, SLOT(collectSharpenParameters()));
+    connect(ui->radioButton_SharpenEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     //setup edge detect menu options
     ui->comboBox_Edge->addItem("Canny");        //comboBox index 0 (default)
@@ -113,12 +113,12 @@ FilterMenu::FilterMenu(QWidget *parent) :
     ui->horizontalSlider_EdgeWeight->installEventFilter(wheelFilter);
     ui->horizontalSlider_EdgeWeight->installEventFilter(edgeFocusFilter);
     connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(collectEdgeDetectParameters()));
-    connect(ui->radioButton_EdgeEnable, SIGNAL(released()), this, SLOT(changeSampleImage(bool)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(adjustEdgeSliderRange(int)));
     connect(ui->comboBox_Edge, SIGNAL(currentIndexChanged(int)), this, SLOT(collectEdgeDetectParameters()));
     connect(edgeFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_EdgeEnable, SLOT(setChecked(bool)));
     connect(edgeFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
+    connect(ui->radioButton_EdgeEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     //other initializations
     menuValues_m.resize(2);

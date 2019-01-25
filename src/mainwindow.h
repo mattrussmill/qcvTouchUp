@@ -13,6 +13,7 @@ class AdjustMenu;
 class FilterMenu;
 class TemperatureMenu;
 class TransformMenu;
+class ColorSliceMenu;
 
 namespace Ui {
 class MainWindow;
@@ -46,6 +47,7 @@ private:
     FilterMenu *filterMenu_m;
     TemperatureMenu *temperatureMenu_m;
     TransformMenu *transformMenu_m;
+    ColorSliceMenu *colorSliceMenu_m;
 };
 
 #endif // MAINWINDOW_H

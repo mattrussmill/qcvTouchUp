@@ -37,7 +37,7 @@ TransformMenu::TransformMenu(QWidget *parent) :
     connect(ui->radioButton_CropEnable, SIGNAL(toggled(bool)), ui->line_Crop, SLOT(setVisible(bool)));
     connect(ui->lineEdit_CropRoiStart, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
     connect(ui->lineEdit_CropRoiEnd, SIGNAL(textEdited(QString)), this, SLOT(setImageInternalROI()));
-    connect(cropFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
+    connect(ui->radioButton_CropEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     //setup rotate menu options
     ui->horizontalSlider_Rotate->installEventFilter(wheelFilter);
@@ -51,9 +51,11 @@ TransformMenu::TransformMenu(QWidget *parent) :
     connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), this, SIGNAL(performImageRotate(int)));
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SIGNAL(setAutoCropOnRotate(bool)));
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SLOT(resendImageRotateSignal()));
-    connect(rotateFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
+    connect(ui->radioButton_RotateEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     //setup scale menu options
+    ui->spinBox_ScaleHeight->installEventFilter(wheelFilter);
+    ui->spinBox_ScaleWidth->installEventFilter(wheelFilter);
     ui->checkBox_ScaleLinked->installEventFilter(scaleFocusFilter);
     ui->spinBox_ScaleHeight->installEventFilter(scaleFocusFilter);
     ui->spinBox_ScaleWidth->installEventFilter(scaleFocusFilter);
@@ -65,7 +67,7 @@ TransformMenu::TransformMenu(QWidget *parent) :
     connect(ui->spinBox_ScaleWidth, SIGNAL(valueChanged(int)), this, SLOT(setImageInternalSizeWidth(int)));
     connect(ui->spinBox_ScaleHeight, SIGNAL(editingFinished()), this, SLOT(performImageScalePreview()));
     connect(ui->spinBox_ScaleWidth, SIGNAL(editingFinished()), this, SLOT(performImageScalePreview()));
-    connect(scaleFocusFilter, SIGNAL(focusDetected(bool)), this, SLOT(changeSampleImage(bool)));
+    connect(ui->radioButton_ScaleEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     imageSize_m = QRect(-1, -1, -1, -1);
     initializeMenu();
@@ -309,7 +311,7 @@ void TransformMenu::performImageScalePreview()
 }
 
 //Sets the sample image based on the menu item selected.
-void TransformMenu::changeSampleImage(bool detected) //STILL ISNT WORKING - BOTH FUNCTIONS
+void TransformMenu::changeSampleImage(bool detected)
 {
     if(detected)
     {

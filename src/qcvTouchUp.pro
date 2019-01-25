@@ -40,7 +40,9 @@ SOURCES += \
     temperaturemenu.cpp \
     transformmenu.cpp \
     signalsuppressor.cpp \
-    focusindetectoreventfilter.cpp
+    focusindetectoreventfilter.cpp \
+    colorslicemenu.cpp \
+    colorselectionwidget.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -56,7 +58,9 @@ HEADERS += \
     temperaturemenu.h \
     transformmenu.h \
     signalsuppressor.h \
-    focusindetectoreventfilter.h
+    focusindetectoreventfilter.h \
+    colorslicemenu.h \
+    colorselectionwidget.h
 
 FORMS += \
         mainwindow.ui \
@@ -64,7 +68,8 @@ FORMS += \
     adjustmenu.ui \
     filtermenu.ui \
     temperaturemenu.ui \
-    transformmenu.ui
+    transformmenu.ui \
+    colorslicemenu.ui
 
 RESOURCES += \
     resources.qrc

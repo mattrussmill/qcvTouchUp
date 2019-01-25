@@ -5,6 +5,7 @@
 #include "filtermenu.h"
 #include "temperaturemenu.h"
 #include "transformmenu.h"
+#include "colorslicemenu.h"
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
 #include "histogramwindow.h"
@@ -47,6 +48,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui->toolMenu->addWidget(temperatureMenu_m);
     transformMenu_m = new TransformMenu(this);
     ui->toolMenu->addWidget(transformMenu_m);
+    colorSliceMenu_m = new ColorSliceMenu(this);
+    ui->toolMenu->addWidget(colorSliceMenu_m);
+
 
     //connect necessary internal mainwindow/ui slots
     connect(ui->actionZoom_In, SIGNAL(triggered()), ui->iw, SLOT(zoomIn()));
