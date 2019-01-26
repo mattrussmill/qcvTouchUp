@@ -629,7 +629,7 @@ void ImageWidget::selectRegionOnPixmap()
         while(!mutex_m->tryLock())
             QApplication::processEvents(QEventLoop::AllEvents, 100);
     }
-    painterBuffer_m = QPixmap::fromImage(*attachedImage_m); //try to make a copy of the QImage? also try swap data? But do this on loads now.
+    painterBuffer_m = QPixmap::fromImage(*attachedImage_m);
     if(mutex_m) mutex_m->unlock();
 
     QRect region = getAdjustedRegion();

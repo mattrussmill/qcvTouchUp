@@ -19,7 +19,6 @@ public:
 private:
     Ui::ColorSelectionWidget *ui;
     QImage valueDisplay_m;
-    QImage paletteDisplay_m;
 };
 
 #endif // COLORSELECTIONWIDGET_H
