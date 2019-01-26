@@ -69,7 +69,8 @@ FORMS += \
     filtermenu.ui \
     temperaturemenu.ui \
     transformmenu.ui \
-    colorslicemenu.ui
+    colorslicemenu.ui \
+    colorselectionwidget.ui
 
 RESOURCES += \
     resources.qrc

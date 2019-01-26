@@ -37,6 +37,16 @@
      <height>469</height>
     </rect>
    </property>
+   <widget class="QWidget" name="widget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>50</y>
+      <width>181</width>
+      <height>161</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

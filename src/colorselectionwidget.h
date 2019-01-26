@@ -1,17 +1,25 @@
 #ifndef COLORSELECTIONWIDGET_H
 #define COLORSELECTIONWIDGET_H
 
-#include <QColorDialog>
+#include <QWidget>
+class QImage;
 
-class ColorSelectionWidget : public QColorDialog
+namespace Ui {
+class ColorSelectionWidget;
+}
+
+class ColorSelectionWidget : public QWidget
 {
     Q_OBJECT
+
 public:
-    explicit ColorSelectionWidget(QWidget *parent = nullptr);
+    explicit ColorSelectionWidget(QWidget *parent = 0);
+    ~ColorSelectionWidget();
 
-signals:
-
-public slots:
+private:
+    Ui::ColorSelectionWidget *ui;
+    QImage valueDisplay_m;
+    QImage paletteDisplay_m;
 };
 
 #endif // COLORSELECTIONWIDGET_H
