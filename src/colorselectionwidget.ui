@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>262</width>
+    <width>250</width>
     <height>314</height>
    </rect>
   </property>
@@ -93,7 +93,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>30</width>
+         <width>20</width>
          <height>190</height>
         </size>
        </property>
@@ -273,7 +273,7 @@
       </widget>
      </item>
      <item row="4" column="3">
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="label_Color">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
          <horstretch>0</horstretch>
