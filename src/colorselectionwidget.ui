@@ -170,6 +170,9 @@
        <property name="keyboardTracking">
         <bool>true</bool>
        </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
       </widget>
      </item>
      <item row="1" column="2">
@@ -189,6 +192,9 @@
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
+       </property>
+       <property name="maximum">
+        <number>255</number>
        </property>
       </widget>
      </item>
@@ -230,6 +236,9 @@
        <property name="keyboardTracking">
         <bool>true</bool>
        </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
       </widget>
      </item>
      <item row="2" column="1">
@@ -239,6 +248,9 @@
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
+       </property>
+       <property name="maximum">
+        <number>255</number>
        </property>
       </widget>
      </item>
@@ -250,6 +262,9 @@
        <property name="keyboardTracking">
         <bool>true</bool>
        </property>
+       <property name="maximum">
+        <number>359</number>
+       </property>
       </widget>
      </item>
      <item row="1" column="1">
@@ -259,6 +274,9 @@
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
+       </property>
+       <property name="maximum">
+        <number>255</number>
        </property>
       </widget>
      </item>
@@ -275,10 +293,22 @@
      <item row="4" column="3">
       <widget class="QLabel" name="label_Color">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+        <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>64</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>64</width>
+         <height>20</height>
+        </size>
        </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -318,6 +348,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="placeholderText">
+        <string notr="true"/>
        </property>
       </widget>
      </item>

@@ -398,7 +398,7 @@ void ImageWidget::resizeEvent(QResizeEvent *event)
  * selected, the coordinates under the mouse are emitted as a QPoint relative to the
  * attachedImage_m's origin. If RectROI is selected, the region is finished being set, cropped
  * and drawn before being emitted, else if DragROI the region is only cropped to fit and emitted. */
-void ImageWidget::mouseReleaseEvent(QMouseEvent *event) //UPDATE THIS COMMENT
+void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
@@ -408,7 +408,7 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event) //UPDATE THIS COMMENT
             {
                 region_m.setBottomRight(getPointInImage());
                 region_m = getAdjustedRegion();
-                selectRegionOnPixmap(); //do I need to draw again here? Check mouse movement in debug or can I just emit adjusted
+                selectRegionOnPixmap();
                 emit imageRectRegionSelected(region_m);
                 retrieveCoordinateMode_m = DragROI;
                 //qDebug() << region_m;
@@ -476,7 +476,7 @@ void ImageWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        if(!event->pos().isNull() == Qt::LeftButton && retrieveCoordinateMode_m & 0x38)
+        if(!event->pos().isNull() && retrieveCoordinateMode_m & 0x38)
         {
             if(retrieveCoordinateMode_m == RectROI)
             {
