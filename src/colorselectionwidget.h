@@ -21,10 +21,15 @@ public:
     virtual ~ColorSelectionWidget();
 
 public slots:
+    virtual void setColor(const QColor *color);
+
+signals:
+    void colorSelected(QColor);
+
+protected slots:
     virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
-    virtual void setColor(const QColor *color);
 
 private:
     void paintCursorOnPalette();
@@ -34,8 +39,12 @@ private:
     QColor selectedColor_m;
 
 private slots:
-    void setColorFromPalette();
     void populateColorValues();
+    void setColorFromPalette();
+    void setColorFromRGB();
+    void setColorFromHSV();
+    void setColorFromHTML();
+    void setCursorFromColor();
 };
 
 #endif // COLORSELECTIONWIDGET_H
