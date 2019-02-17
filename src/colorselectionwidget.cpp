@@ -6,9 +6,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPoint>
-#include <QRegExp>
-
-#include <QDebug>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 ColorSelectionWidget::ColorSelectionWidget(QWidget *parent) :
     QWidget(parent),
@@ -116,6 +115,7 @@ void ColorSelectionWidget::mousePressEvent(QMouseEvent *event)
     QWidget::mousePressEvent(event);
 }
 
+//this member function sets the selected color of the widget from an outside source.
 void ColorSelectionWidget::setColor(const QColor *color)
 {
     selectedColor_m = *color;
@@ -185,6 +185,8 @@ void ColorSelectionWidget::populateColorValues()
     emit colorSelected(selectedColor_m);
 }
 
+/* setColorFromRGB is a private slot that sets the internal color value based on an updated RGB value from the designated
+ * RGB spinboxes in the UI, then updates the dependent member variables for the widget.*/
 void ColorSelectionWidget::setColorFromRGB()
 {
     selectedColor_m = QColor::fromRgb(ui->spinBox_Red->value(), ui->spinBox_Green->value(), ui->spinBox_Blue->value());
@@ -192,6 +194,8 @@ void ColorSelectionWidget::setColorFromRGB()
     setCursorFromColor();
 }
 
+/* setColorFromHSV is a private slot that sets the internal color value based on an updated HSV value from the designated
+ * HSV spinboxes in the UI, then updates the dependent member variables for the widget.*/
 void ColorSelectionWidget::setColorFromHSV()
 {
     selectedColor_m = QColor::fromHsv(ui->spinBox_Hue->value(), ui->spinBox_Saturation->value(), ui->spinBox_Value->value());
@@ -199,9 +203,24 @@ void ColorSelectionWidget::setColorFromHSV()
     setCursorFromColor();
 }
 
+/* setColorFromHTML is a private slot that sets the color (and dependent member variables) based on the HTML color code typed
+ * into the appropriate line edit only if the format first matches the #xxxxxx color format. If it does not match then the
+ * color box on the widget displays "Invalid" to notify the user that the desired input is not the correct format.*/
 void ColorSelectionWidget::setColorFromHTML()
 {
-    //regex to validate before updating
+    QRegularExpression re("^#[0-9a-fA-F]{6}$");
+    QRegularExpressionMatch colorCode = re.match(ui->lineEdit_HTML->text());
+
+    if(colorCode.hasMatch())
+    {
+        selectedColor_m.setNamedColor(colorCode.captured());
+        populateColorValues();
+        setCursorFromColor();
+    }
+    else
+    {
+        ui->label_Color->setText("Invalid");
+    }
 }
 
 
