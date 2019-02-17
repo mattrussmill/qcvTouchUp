@@ -415,6 +415,7 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
             }
             else if(retrieveCoordinateMode_m == DragROI)
             {
+                setCursor(Qt::ArrowCursor);
                 emit imageRectRegionSelected(getAdjustedRegion());
                 //qDebug() << getAdjustedRegion();
             }
@@ -455,6 +456,7 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
                 }
                 else
                 {
+                    setCursor(Qt::SizeAllCursor);
                     retrieveCoordinateMode_m = DragROI;
                 }
             }
@@ -680,7 +682,7 @@ void ImageWidget::initializePaintMembers()
     region_m = QRect(dragStart_m, dragStart_m);
 }
 
-/* getAdjustedRegion uses the selected region_m member variable and cleans it up so that <-- DOES NOT DO THIS
+/* getAdjustedRegion uses the selected region_m member variable and cleans it up so that
  * it fits within the attachedImage_m's dimensions. It also reverts the region_m's top left
  * and bottom right corners if they become inverted due to mouse location during selection
  * so that the QPainter can draw the ROI if the ROI is selected from top left to bottom right

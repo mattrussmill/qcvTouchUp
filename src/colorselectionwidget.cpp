@@ -1,3 +1,48 @@
+/***********************************************************************
+* FILENAME :    colorselectionwidget.cpp
+*
+* LICENSE:
+*       qcvTouchUp provides an image processing toolset for editing
+*       photographs, purposed and packaged for use in a desktop application
+*       user environment. Copyright (C) 2018,  Matthew R. Miller
+*
+*       This program is free software: you can redistribute it and/or modify
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
+*       3-clause BSD License as agreed upon through the use of the Qt toolkit
+*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
+*       of the appropriate license files for qcvTouchup, and its source code,
+*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*
+*       This program is distributed in the hope that it will be useful,
+*       but WITHOUT ANY WARRANTY; without even the implied warranty of
+*       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*       GNU General Public License for more details.
+*
+*       You should have received a copy of the GNU General Public License and
+*       3-clause BSD License along with this program.  If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
+*
+*       If you wish to contact the developer about this project, please do so
+*       through their account at <https://github.com/mattrussmill>
+*
+* DESCRIPTION :
+*       This is a compact, widget version of QColorDialog. It is a graphical color
+*       selection widget which emits a signal for a desired color when any internal
+*       widget is updated which changes the value of the color.
+*
+* NOTES :
+*       This object was created because QColorDialog was difficult to embed into
+*       another widget with no real way of removing some of its widgets.
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    January 01/28/2019
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           02/17/2019      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
 #include "colorselectionwidget.h"
 #include "mousewheeleatereventfilter.h"
 #include "ui_colorselectionwidget.h"
@@ -9,6 +54,11 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 
+/* The constructor first installs any event filters. Then by populating a small QImage for the color
+ * palette picker and shifting the HSV values appropriately, it uses hardware acceleration to interpolate
+ * the "in-between" values for the larger representation of the color selection palette for selecting
+ * Hue and Saturation values keeping the memory footprint lower and loating times down. Lastly all
+ * appropriate signals and slots are connected.*/
 ColorSelectionWidget::ColorSelectionWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ColorSelectionWidget)
@@ -39,6 +89,7 @@ ColorSelectionWidget::ColorSelectionWidget(QWidget *parent) :
     ui->label_PaletteVisual->setPixmap(QPixmap::fromImage(paletteDisplay)
                                        .scaled(ui->label_PaletteVisual->width(), ui->label_PaletteVisual->height(),
                                                Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    ui->label_PaletteVisual->setCursor(Qt::CrossCursor);
 
     //set initial menu items
     populateColorValues();
@@ -60,6 +111,8 @@ ColorSelectionWidget::~ColorSelectionWidget()
     delete ui;
 }
 
+/* If the mouse release event is left click and within the palette selection widget the appropriate
+ * method is called to select the hue and saturation values from the palette graphic.*/
 void ColorSelectionWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
@@ -79,6 +132,8 @@ void ColorSelectionWidget::mouseReleaseEvent(QMouseEvent *event)
     QWidget::mouseReleaseEvent(event);
 }
 
+/* If the mouse move event is within the palette selection widget the appropriate
+ * method is called to select the hue and saturation values from the palette graphic.*/
 void ColorSelectionWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if(!event->pos().isNull())
@@ -97,6 +152,8 @@ void ColorSelectionWidget::mouseMoveEvent(QMouseEvent *event)
     QWidget::mouseMoveEvent(event);
 }
 
+/* If the mouse press event is left click and within the palette selection widget the appropriate
+ * method is called to select the hue and saturation values from the palette graphic.*/
 void ColorSelectionWidget::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
@@ -135,11 +192,9 @@ void ColorSelectionWidget::setColorFromPalette()
     populateColorValues();
 }
 
-void ColorSelectionWidget::paintCursorOnPalette()
-{
-    //need pixmap to be a member?
-}
-
+/* This method populates the Value display and all other widget values and their position based on the color value
+ * stored internally in the private member selectedColor_m. This should be called every time that value is updated
+ * so all widgets reflect the correct value corresponding to the color selected.*/
 void ColorSelectionWidget::populateColorValues()
 {
     //see comments in constructor for value-bar generation
@@ -222,7 +277,6 @@ void ColorSelectionWidget::setColorFromHTML()
         ui->label_Color->setText("Invalid");
     }
 }
-
 
 /* setCursorFromColor sets the member variable paletPoint_m to the point on the palette based on the selectedColor_m value.
  * This is specifically useful when the spinboxes are used to set the color instead of the palette because calling

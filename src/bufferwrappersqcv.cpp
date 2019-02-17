@@ -1,5 +1,5 @@
 /***********************************************************************
-* FILENAME :    bufferwrappersqcv.c
+* FILENAME :    bufferwrappersqcv.cpp
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing

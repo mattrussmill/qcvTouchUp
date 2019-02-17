@@ -184,6 +184,7 @@ void ImageWorker::postImageOperationMutex()
 {
     *imageWrapper_m = qcv::cvMatToQImage(*dstRGBImage_m);
     HistogramWidget::generateHistogram(*imageWrapper_m, dstRGBHisto_m); //this should not be in here anymore
+
     emit updateStatus("");
     mutex_m->unlock();
     emit resultImageUpdate(imageWrapper_m);
