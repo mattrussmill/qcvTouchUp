@@ -21,10 +21,11 @@ public:
 public slots:
     void initializeMenu();
     void setImageReference(const QImage *image);
+    void receiveCoordinate(QPoint clickCenterPoint);
 
 signals:
     void performColorSlice(int); //worker will calculate the offset from the hue selected and shift all masked pix so the averate matches the selection
-    void setCursorBrushRadius(int);
+    void setCursorBrushRadius(uchar);
     void setSelectionToWand(bool);
     void setSelectionToBrush(bool);
     void cancelPainting();

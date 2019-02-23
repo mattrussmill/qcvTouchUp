@@ -139,6 +139,7 @@ void MainWindow::updateImageInformation(const QImage *image)
         ui->labelSize->setText("Size:");
         ui->labelType->setText("Type:");
         transformMenu_m->setImageResolution(QRect(-1 , -1, -1, -1));
+        colorSliceMenu_m->setImageReference(nullptr);
     }
     else
     {
@@ -146,6 +147,7 @@ void MainWindow::updateImageInformation(const QImage *image)
         ui->labelSize->setText("Size: " + QString::number(image->width())+"x"+QString::number(image->height()));
         ui->labelType->setText("Type: " + qcv::getMatType(qcv::qImageToCvMat(*image)));
         transformMenu_m->setImageResolution(image->rect());
+        colorSliceMenu_m->setImageReference(image);
     }
 }
 

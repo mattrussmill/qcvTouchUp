@@ -680,6 +680,7 @@ void ImageWidget::initializePaintMembers()
 {
     dragStart_m = QPoint(-1, -1);
     region_m = QRect(dragStart_m, dragStart_m);
+    brushRadius_m = 0;
 }
 
 /* getAdjustedRegion uses the selected region_m member variable and cleans it up so that
@@ -700,5 +701,26 @@ QRect ImageWidget::getAdjustedRegion()
     if(bottomRightY >= attachedImage_m->height()) bottomRightY = attachedImage_m->height();
 
     return QRect(QPoint(topLeftX, topLeftY), QPoint(bottomRightX, bottomRightY));
+}
+
+void ImageWidget::displayBrushOnPixmap()
+{
+    //while waiting for mutex, process main event loop to keep gui responsive
+    if(mutex_m)
+    {
+        while(!mutex_m->tryLock())
+            QApplication::processEvents(QEventLoop::AllEvents, 100);
+    }
+    painterBuffer_m = QPixmap::fromImage(*attachedImage_m);
+    if(mutex_m) mutex_m->unlock();
+
+    QPainter painter(&painterBuffer_m);
+    painter.setBrush(QColor(50, 50, 50));
+    painter.setPen(QColor(50, 50, 50));
+    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+
+    //bound this somehow?
+    painter.drawEllipse(getPointInImage(), brushRadius_m, brushRadius_m);
+
 }
 

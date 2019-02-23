@@ -15,6 +15,8 @@ ColorSliceMenu::ColorSliceMenu(QWidget *parent) :
     FocusInDetectorEventFilter *brushFocusFilter = new FocusInDetectorEventFilter(this);
     FocusInDetectorEventFilter *wandFocusFilter = new FocusInDetectorEventFilter(this);
 
+    imageMask_m = nullptr;
+
     //fix radio buttons to work in separate group boxes (for asthetics)
     buttonGroup_m = new QButtonGroup(this);
     buttonGroup_m->addButton(ui->radioButton_EnableBrush);
@@ -47,7 +49,13 @@ void ColorSliceMenu::initializeMenu()
 
 }
 
+//stores a pointer to the image that is loaded for image data needed by this object. For external use only.
 void ColorSliceMenu::setImageReference(const QImage *image)
+{
+    imageReference_m = image;
+}
+
+void ColorSliceMenu::receiveCoordinate(QPoint clickCenterPoint)
 {
 
 }
@@ -59,5 +67,11 @@ void ColorSliceMenu::selectNeighborsOfPoint(int hueVariance)
 
 void ColorSliceMenu::checkAndUpdateOverlayState()
 {
+
+}
+
+void ColorSliceMenu::generateBrushCursor()
+{
+    QBitmap(ui->spinBox_Brush->value(), ui->spinBox_Brush->value();
 
 }

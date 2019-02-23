@@ -76,7 +76,8 @@ public:
         ClickUnclick   = 0x4,
         ClickDrag      = 0x8,
         RectROI        = 0x10,
-        DragROI        = 0x20
+        DragROI        = 0x20,
+        BrushImage     = 0x40
     };
     Qt::ScrollBarPolicy verticalScrollBarPolicy() const;
     Qt::ScrollBarPolicy horizontalScrollBarPolicy() const;
@@ -124,6 +125,7 @@ protected:
 
 private:
     void selectRegionOnPixmap();
+    void displayBrushOnPixmap();
     void initializePaintMembers();
     void zoomAgain();
     QPoint getPointInImage();
@@ -138,6 +140,7 @@ private:
     QMutex *mutex_m = nullptr;
     QRect region_m;
     QPoint dragStart_m;
+    uchar brushRadius_m;
     const QImage *attachedImage_m = nullptr;
     uint retrieveCoordinateMode_m = NoClick;
     float scalar_m;
