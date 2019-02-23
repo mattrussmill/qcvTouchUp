@@ -66,6 +66,12 @@ ColorSelectionWidget::ColorSelectionWidget(QWidget *parent) :
     ui->setupUi(this);
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
     ui->verticalSlider_ValueSelect->installEventFilter(wheelFilter);
+    ui->spinBox_Red->installEventFilter(wheelFilter);
+    ui->spinBox_Green->installEventFilter(wheelFilter);
+    ui->spinBox_Blue->installEventFilter(wheelFilter);
+    ui->spinBox_Hue->installEventFilter(wheelFilter);
+    ui->spinBox_Saturation->installEventFilter(wheelFilter);
+    ui->spinBox_Value->installEventFilter(wheelFilter);
 
     //setup pixmaps via populating color scanlines - 7 distinct colors in Qt HSV Color Wheel (http://doc.qt.io/qt-5/qcolor.html)
     QImage paletteDisplay = QImage(7, 10, QImage::Format_RGB888);

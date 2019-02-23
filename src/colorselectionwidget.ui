@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>250</width>
-    <height>314</height>
+    <height>308</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,7 +19,7 @@
   <property name="maximumSize">
    <size>
     <width>262</width>
-    <height>314</height>
+    <height>308</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -165,7 +165,7 @@
      <item row="2" column="3">
       <widget class="QSpinBox" name="spinBox_Blue">
        <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::UpDownArrows</enum>
+        <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
@@ -188,7 +188,7 @@
      <item row="1" column="3">
       <widget class="QSpinBox" name="spinBox_Green">
        <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::UpDownArrows</enum>
+        <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
@@ -231,7 +231,7 @@
      <item row="0" column="3">
       <widget class="QSpinBox" name="spinBox_Red">
        <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::UpDownArrows</enum>
+        <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
@@ -244,7 +244,7 @@
      <item row="2" column="1">
       <widget class="QSpinBox" name="spinBox_Value">
        <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::UpDownArrows</enum>
+        <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
@@ -257,7 +257,7 @@
      <item row="0" column="1">
       <widget class="QSpinBox" name="spinBox_Hue">
        <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::UpDownArrows</enum>
+        <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
@@ -270,7 +270,7 @@
      <item row="1" column="1">
       <widget class="QSpinBox" name="spinBox_Saturation">
        <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::UpDownArrows</enum>
+        <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
        <property name="keyboardTracking">
         <bool>true</bool>
