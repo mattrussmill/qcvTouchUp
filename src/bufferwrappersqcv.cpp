@@ -96,7 +96,7 @@ namespace qcv
      * shared if implicitBuffer is TRUE to avoid large copying operations. During destruction, if implicitly
      * shared, detach the buffer from the image before the Mat is deleted. If it fails an empty QImage is
      * returned. */
-    QImage cvMatToQImage(const Mat &image, const bool implicitBuffer)
+    QImage cvMatToQImage(const Mat &image, bool implicitBuffer)
     {
         switch(image.type())
         {
@@ -128,7 +128,7 @@ namespace qcv
      * shared if implicitBuffer is TRUE to avoid large copying operations. During destruction, if implicitly
      * shared, detach the buffer from the image before the Mat is deleted. If it fails an empty Mat is
      * returned. Mats must be converted to BGR before saving or displaying with OpenCV functions/methods. */
-    Mat qImageToCvMat(const QImage &image, const bool implicitBuffer)
+    Mat qImageToCvMat(const QImage &image, bool implicitBuffer)
     {
         switch(image.format())
         {

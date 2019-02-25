@@ -23,6 +23,8 @@
 #include <QMutex>
 #include <QRect>
 #include <QStackedWidget>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -32,12 +34,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui->setupUi(this);
     setWindowTitle("qcvTouchUp");
     userImagePath_m = QDir::homePath();
-    ui->iw->setMutex(mutex);
+    ui->iw->setMutex(mutex_m);
 
     //setup worker thread event loop for ImageWorker
-    imageWorker_m = new ImageWorker(mutex);
+    imageWorker_m = new ImageWorker(mutex_m);
     imageWorker_m->moveToThread(&workerThread);
-    connect(&workerThread, SIGNAL(finished()), imageWorker_m, SLOT(deleteLater()));
+    connect(&workerThread, SIGNAL(finished()), imageWorker_m, SLOT(deleteLater())); //how to structure this -> look at example again
 
     //image menus initializations - signals are connected after to not be emitted during initialization
     adjustMenu_m = new AdjustMenu(this);
@@ -57,7 +59,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->actionZoom_Out, SIGNAL(triggered()), ui->iw, SLOT(zoomOut()));
     connect(ui->actionZoom_Fit, SIGNAL(triggered()), ui->iw, SLOT(zoomFit()));
     connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->iw, SLOT(zoomActual()));
-    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(openImage()));
+    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(getImagePath()));
     connect(ui->actionHistogram, SIGNAL(triggered()), this, SLOT(loadHistogramTool()));
 
     //right side tool menu - mainwindow/ui slots
@@ -68,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     //image widget / area - mainwindow/ui slots
     connect(ui->iw, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
-    connect(ui->iw, SIGNAL(droppedImagePath(QString)), this, SLOT(openImage(QString)));
+    connect(ui->iw, SIGNAL(droppedImagePath(QString)), this, SLOT(loadImageIntoMemory(QString)));
     connect(ui->iw, SIGNAL(droppedImageError()), this, SLOT(imageOpenOperationFailed()));
 
     //connect necessary worker thread - mainwindow/ui slots
@@ -125,6 +127,7 @@ MainWindow::~MainWindow()
 void MainWindow::imageOpenOperationFailed()
 {
     ui->iw->clearImage();
+    masterRGBImage_m.release();
     updateImageInformation(nullptr);
     QMessageBox::warning(this, "Error", "Unable to access desired image.");
 }
@@ -168,53 +171,69 @@ void MainWindow::updateHistogram()
 }
 
 /* Creates a dialog box listing supported file types by OpenCV and a file dialog window. If the open dialog
- * box is closed, the status bar is cleared and function exits. If the dialog box has a path that is not NULL
- * the absolute path is passed to the worker thread to open the image. */
-void MainWindow::openImage()
+ * box is closed, the function exits. If the dialog box has a path that is not NULL the absolute path is
+ * passed to the image loading function to open the image.*/
+void MainWindow::getImagePath()
 {
-    statusBar()->showMessage("Opening...");
-    userImagePath_m.setPath(QFileDialog::getOpenFileName(this, "Select an Image", userImagePath_m.absolutePath(),
+    QDir imagePath;
+    imagePath.setPath(QFileDialog::getOpenFileName(this, "Select an Image", userImagePath_m.absolutePath(), //use a tmp image path first
                           "All Files (*);;Bitmap (*.bmp *.dib);;JPEG(*.jpeg *.jpg *.jpe);;"
                           "JPEG 2000 (*.jp2);;OpenEXR (*.exr);;PIF (*.pbm *.pgm *.pnm *.ppm *.pxm);;"
                           "PNG (*.png);;Radiance HDR (*.hdr *.pic);;Sun Raster (*.sr *.ras);;"
                           "TIFF (*.tiff *.tif);;WebP (*.webp)"));
-    if(userImagePath_m.absolutePath().isNull())
-    {
-        return;
-        statusBar()->showMessage("");
-    }
-    ui->iw->clearImage();
-    ui->histo->clear();
-    imageWorker_m->doOpenImage(userImagePath_m.absolutePath());
-    ui->iw->setFocus();
+
+    if(imagePath.absolutePath().isNull()) return;
+    loadImageIntoMemory(imagePath.absolutePath());
 }
 
-/* An overload of openImage without the use of a dialog box. Takes the image path directly as a parameter
- * and preps the image widget for a new image. Then passes the image path to the worker thread to open the
- * image. */
-void MainWindow::openImage(QString imagePath)
+/* Takes an image path and attempts to open it. First the image buffer and path are released so that
+ * that if the image fails to be loaded into a cv::Mat it can be detected. If the image is loaded
+ * it is converted from a BGR (default for OpenCV) to a RGB color format and then wrapped in a QImage
+ * wrapper implicitly sharing the data. If successful it returns true, else false.*/
+bool MainWindow::loadImageIntoMemory(QString imagePath)
 {
-    if(imagePath.isEmpty())
+    statusBar()->showMessage("Opening...");
+    //while waiting for mutex, process main event loop to keep gui responsive
+    while(!mutex_m.tryLock())
+        QApplication::processEvents(QEventLoop::AllEvents, 100);
+
+    //clear the image buffer and path. Try to open image in BGR format
+    masterRGBImage_m.release();
+    masterRGBImage_m = cv::imread(imagePath.toStdString(), cv::IMREAD_COLOR);
+    userImagePath_m.setPath(QString());
+
+    //check if operation was successful
+    bool returnSuccess = true;
+    if(masterRGBImage_m.empty())
     {
-        statusBar()->showMessage("");
         imageOpenOperationFailed();
-        return;
+        returnSuccess = false;
     }
-    ui->iw->clearImage();
-    ui->histo->clear();
-    userImagePath_m.setPath(imagePath);
-    imageWorker_m->doOpenImage(imagePath);
+
+    mutex_m.unlock();
+
+    //if successfully loaded, convert to RGB color space and wrap in QImage
+    if(returnSuccess)
+    {
+        cv::cvtColor(masterRGBImage_m, masterRGBImage_m, cv::COLOR_BGR2RGB);
+        imageWrapper_m = QImage(qcv::cvMatToQImage(masterRGBImage_m));
+        ui->iw->setImage(&imageWrapper_m);
+        userImagePath_m = imagePath;
+    }
+
+    statusBar()->showMessage("");
     ui->iw->setFocus();
+    return returnSuccess;
 }
 
 // Displays a histogram window with x and y axis plot when triggered.
 void MainWindow::loadHistogramTool()
 {
     statusBar()->showMessage("Histogram...");
-    mutex.lock();
+    mutex_m.lock();
     QImage *currentImage = const_cast<QImage*>(ui->iw->displayedImage());
     HistogramWindow *histogramWindow = new HistogramWindow(*currentImage, this);
-    mutex.unlock();
+    mutex_m.unlock();
     histogramWindow->exec();
     statusBar()->showMessage("");
 }

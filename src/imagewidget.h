@@ -122,6 +122,7 @@ protected:
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
     virtual void dragLeaveEvent(QDragLeaveEvent *event) override;
     virtual void dropEvent(QDropEvent *event) override;
+    QMutex *mutex_m = nullptr;
 
 private:
     void selectRegionOnPixmap();
@@ -137,7 +138,6 @@ private:
     QLabel *imageLabel_m;
     QPixmap painterBuffer_m;
     QScrollArea *scrollArea_m;
-    QMutex *mutex_m = nullptr;
     QRect region_m;
     QPoint dragStart_m;
     uchar brushRadius_m;

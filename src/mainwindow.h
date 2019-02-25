@@ -22,32 +22,39 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    QThread workerThread;
+    QThread workerThread; //get rid of this
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    QMutex mutex;
+
+protected:
+    QMutex mutex_m;
 
 private slots:
     void imageOpenOperationFailed();
     void updateImageInformation(const QImage *image);
     void initializeWorkerThreadData();
     void updateHistogram();
-    void openImage();
-    void openImage(QString imagePath);
+    void getImagePath();
     void loadHistogramTool();
+    bool loadImageIntoMemory(QString imagePath);
 
 private:
     void clearImageBuffers();
     Ui::MainWindow *ui;
     QDir userImagePath_m;
-    ImageWorker *imageWorker_m;
+    cv::Mat masterRGBImage_m;
+    QImage imageWrapper_m;
+
+    //menus
     AdjustMenu *adjustMenu_m;
     FilterMenu *filterMenu_m;
     TemperatureMenu *temperatureMenu_m;
     TransformMenu *transformMenu_m;
     ColorSliceMenu *colorSliceMenu_m;
+
+    ImageWorker *imageWorker_m;
 };
 
 #endif // MAINWINDOW_H

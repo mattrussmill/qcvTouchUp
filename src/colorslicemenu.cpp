@@ -72,6 +72,6 @@ void ColorSliceMenu::checkAndUpdateOverlayState()
 
 void ColorSliceMenu::generateBrushCursor()
 {
-    QBitmap(ui->spinBox_Brush->value(), ui->spinBox_Brush->value();
+    QBitmap(ui->spinBox_Brush->value(), ui->spinBox_Brush->value());
 
 }

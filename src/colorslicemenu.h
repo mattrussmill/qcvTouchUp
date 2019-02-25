@@ -35,6 +35,7 @@ signals:
 private:
     void selectNeighborsOfPoint(int hueVariance);
     void checkAndUpdateOverlayState();
+    void generateBrushCursor();
     Ui::ColorSliceMenu *ui;
     QButtonGroup *buttonGroup_m;
     QBitmap *imageMask_m;

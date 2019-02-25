@@ -54,6 +54,7 @@
 
 #include <QScrollArea>
 #include <QVector>
+#include <QThread>
 
 namespace Ui {
 class AdjustMenu;
@@ -88,8 +89,8 @@ signals:
     void performImageAdjustments(QVector<float>);
 
 private:
-
     Ui::AdjustMenu *ui;
+    QThread worker_m;
     QVector<float> sliderValues_m;
 
 

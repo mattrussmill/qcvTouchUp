@@ -57,8 +57,8 @@ namespace qcv
 {
     using namespace cv;
     QString getMatType(const Mat &image);
-    QImage cvMatToQImage(const Mat &image, const bool implicitBuffer = true);
-    Mat qImageToCvMat(const QImage &image, const bool implicitBuffer = true);
+    QImage cvMatToQImage(const Mat &image, bool implicitBuffer = true);
+    Mat qImageToCvMat(const QImage &image, bool implicitBuffer = true);
 
     /* Prints a single channel <float> Mat's contents to the debug stream in Qt.
      * Convolution Kernels for input must be 32F for openCV, hence no template
