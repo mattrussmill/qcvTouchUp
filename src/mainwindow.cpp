@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(&workerThread, SIGNAL(finished()), imageWorker_m, SLOT(deleteLater())); //how to structure this -> look at example again
 
     //image menus initializations - signals are connected after to not be emitted during initialization
-    adjustMenu_m = new AdjustMenu(this);
+    adjustMenu_m = new AdjustMenu(&masterRGBImage_m, &mutex_m, this);
     ui->toolMenu->addWidget(adjustMenu_m);
     filterMenu_m = new FilterMenu(this);
     ui->toolMenu->addWidget(filterMenu_m);

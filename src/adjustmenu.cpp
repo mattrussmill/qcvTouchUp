@@ -51,16 +51,22 @@
 
 #include "adjustmenu.h"
 #include "ui_adjustmenu.h"
+#include "adjustworker.h"
 #include "mousewheeleatereventfilter.h"
 #include <cmath>
+#include <QMutex>
+#include <QDebug>
 
 //Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
 //QVector appropriately, and establishes all signals/slots necessary for the ui.
-AdjustMenu::AdjustMenu(QWidget *parent) :
+AdjustMenu::AdjustMenu(cv::Mat *masterImage, QMutex *mutex, QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::AdjustMenu)
 {
     ui->setupUi(this);
+    masterImage_m = masterImage;
+    workerMutex_m = mutex;
+    adjustWorker_m = nullptr;
 
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
     ui->horizontalSlider_Brightness->installEventFilter(wheelFilter);
@@ -85,7 +91,6 @@ AdjustMenu::AdjustMenu(QWidget *parent) :
     connect(ui->radioButton_Color, SIGNAL(released()), this, SLOT(changeToColorImage()));
     connect(ui->radioButton_Grayscale, SIGNAL(released()), this, SLOT(changeToGrayscaleImage()));
 
-
     sliderValues_m.resize(10);
     initializeSliders();
 }
@@ -93,6 +98,15 @@ AdjustMenu::AdjustMenu(QWidget *parent) :
 // destructor
 AdjustMenu::~AdjustMenu()
 {
+    //end worker thread once event loop finishes
+    if(adjustWorker_m)
+    {
+        worker_m.terminate();
+        worker_m.wait();
+        delete adjustWorker_m; //safe? Different way to handle this?
+        adjustWorker_m = nullptr;
+    }
+
     delete ui;
 }
 
@@ -230,9 +244,50 @@ void AdjustMenu::changeShadowsValue(int value)
 }
 
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
-void AdjustMenu::setVisible(bool visible)
-{
+void AdjustMenu::setVisible(bool visible) //https://doc.qt.io/qt-5/qwidget.html#visible-prop
+{                                           //use showevent override instead
+    manageWorker(visible);
     if(!visible)
         initializeSliders();
     QWidget::setVisible(visible);
+}
+
+void AdjustMenu::manageWorker(bool life)
+{
+    if(life)
+    {
+        if(!adjustWorker_m)
+        {
+            //If worker is still trying to exit, wait and process other events until its done
+            if(worker_m.isFinished())
+            {
+                QApplication::setOverrideCursor(Qt::WaitCursor);
+                qDebug() << "Waiting for thread to exit";
+                while(!worker_m.isFinished())
+                {
+                    QApplication::processEvents(QEventLoop::AllEvents, 100);
+                }
+                QApplication::restoreOverrideCursor();
+            }
+
+            adjustWorker_m = new AdjustWorker(); //needs mutex and masterimage and vector
+            adjustWorker_m->moveToThread(&worker_m);
+            //signal slot connections
+
+            worker_m.start();
+        }
+
+    }
+    else
+    {
+        //while the worker event loop is running, tell it to delete itself once loop is empty.
+        if(adjustWorker_m)
+        {
+            adjustWorker_m->deleteLater();
+            /* All signals to and from the object are automatically disconnected,
+             * and any pending posted events for the object are removed from the event queue.*/
+            adjustWorker_m = nullptr;
+        }
+
+    }
 }

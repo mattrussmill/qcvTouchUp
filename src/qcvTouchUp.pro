@@ -42,7 +42,8 @@ SOURCES += \
     signalsuppressor.cpp \
     focusindetectoreventfilter.cpp \
     colorslicemenu.cpp \
-    colorselectionwidget.cpp
+    colorselectionwidget.cpp \
+    adjustworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -60,7 +61,8 @@ HEADERS += \
     signalsuppressor.h \
     focusindetectoreventfilter.h \
     colorslicemenu.h \
-    colorselectionwidget.h
+    colorselectionwidget.h \
+    adjustworker.h
 
 FORMS += \
         mainwindow.ui \

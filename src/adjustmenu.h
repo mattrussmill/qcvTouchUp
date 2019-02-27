@@ -55,6 +55,9 @@
 #include <QScrollArea>
 #include <QVector>
 #include <QThread>
+#include <opencv2/core/core.hpp>
+class QMutex;
+class AdjustWorker;
 
 namespace Ui {
 class AdjustMenu;
@@ -65,7 +68,7 @@ class AdjustMenu : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit AdjustMenu(QWidget *parent = 0);
+    explicit AdjustMenu(cv::Mat *masterImage = nullptr, QMutex *mutex = nullptr, QWidget *parent = 0);
     ~AdjustMenu();
     enum ParameterIndex
     {
@@ -83,16 +86,23 @@ public:
 
 public slots:
     void initializeSliders();
-    void setVisible(bool visible) override;
+    void setVisible(bool visible) override; //change to event -> see comments in class body
 
 signals:
     void performImageAdjustments(QVector<float>);
 
+protected:
+    cv::Mat *masterImage_m;
+    QMutex *workerMutex_m;
+    QThread worker_m;
+    AdjustWorker *adjustWorker_m;
+
+protected slots:
+    void manageWorker(bool life);
+
 private:
     Ui::AdjustMenu *ui;
-    QThread worker_m;
     QVector<float> sliderValues_m;
-
 
 private slots:
     void changeContrastValue(int value);
