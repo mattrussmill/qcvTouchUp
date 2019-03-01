@@ -7,7 +7,7 @@ class AdjustWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit AdjustWorker(QObject *parent = nullptr);
+    explicit AdjustWorker(const cv::Mat *masterImage = nullptr, cv::Mat *previewImage = nullptr, QMutex *mutex = nullptr, QObject *parent = nullptr);
     ~AdjustWorker();
 
 signals:

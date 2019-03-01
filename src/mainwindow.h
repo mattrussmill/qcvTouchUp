@@ -28,6 +28,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+signals:
+    setImage(const QImage*);
+
 protected:
     QMutex mutex_m;
 
@@ -38,6 +41,9 @@ private slots:
     void updateHistogram();
     void getImagePath();
     void loadHistogramTool();
+    void cancelPreview();
+    void applyPreviewToMaster();
+    void displayPreview();
     bool loadImageIntoMemory(QString imagePath);
 
 private:
@@ -45,6 +51,7 @@ private:
     Ui::MainWindow *ui;
     QDir userImagePath_m;
     cv::Mat masterRGBImage_m;
+    cv::Mat previewRGBImage_m;
     QImage imageWrapper_m;
 
     //menus

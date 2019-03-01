@@ -48,7 +48,6 @@
 * 0.1           04/18/2018      Matthew R. Miller       Initial Rev
 *
 ************************************************************************/
-
 #include "adjustmenu.h"
 #include "ui_adjustmenu.h"
 #include "adjustworker.h"
@@ -59,12 +58,13 @@
 
 //Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
 //QVector appropriately, and establishes all signals/slots necessary for the ui.
-AdjustMenu::AdjustMenu(cv::Mat *masterImage, QMutex *mutex, QWidget *parent) :
+AdjustMenu::AdjustMenu(const cv::Mat *masterImage, cv::Mat *previewImage, QMutex *mutex, QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::AdjustMenu)
 {
     ui->setupUi(this);
     masterImage_m = masterImage;
+    previewImage = previewImage;
     workerMutex_m = mutex;
     adjustWorker_m = nullptr;
 
@@ -79,6 +79,7 @@ AdjustMenu::AdjustMenu(cv::Mat *masterImage, QMutex *mutex, QWidget *parent) :
     ui->horizontalSlider_Highlight->installEventFilter(wheelFilter);
     ui->horizontalSlider_Shadows->installEventFilter(wheelFilter);
 
+    //adjust menu signals / slots
     connect(ui->horizontalSlider_Contrast, SIGNAL(valueChanged(int)), this, SLOT(changeContrastValue(int)));
     connect(ui->horizontalSlider_Brightness, SIGNAL(valueChanged(int)), this, SLOT(changeBrightnessValue(int)));
     connect(ui->horizontalSlider_Depth, SIGNAL(valueChanged(int)), this, SLOT(changeDepthValue(int)));
@@ -91,7 +92,9 @@ AdjustMenu::AdjustMenu(cv::Mat *masterImage, QMutex *mutex, QWidget *parent) :
     connect(ui->radioButton_Color, SIGNAL(released()), this, SLOT(changeToColorImage()));
     connect(ui->radioButton_Grayscale, SIGNAL(released()), this, SLOT(changeToGrayscaleImage()));
 
-    sliderValues_m.resize(10);
+    //worker thread signals / slots (since these are string-based sig/slot and established at runtime can they be declared once?
+                                    //(will the functor one need to be connected / disconnected at creation?)
+
     initializeSliders();
 }
 
@@ -135,7 +138,7 @@ void AdjustMenu::initializeSliders()
     this->blockSignals(false);
 
     //Set initial parameter array for sliders
-    sliderValues_m[Brightness] = 0.0;
+    sliderValues_m[Brightness] = 0.0; //cast to byte array so can be transferred via QVariant
     sliderValues_m[Contrast] = 1.0;
     sliderValues_m[Depth] = 255.0;
     sliderValues_m[Hue] = 0.0;
@@ -270,9 +273,9 @@ void AdjustMenu::manageWorker(bool life)
                 QApplication::restoreOverrideCursor();
             }
 
-            adjustWorker_m = new AdjustWorker(); //needs mutex and masterimage and vector
+            adjustWorker_m = new AdjustWorker(masterImage_m, previewImage_m, workerMutex_m); //needs vector (change to list)
             adjustWorker_m->moveToThread(&worker_m);
-            //signal slot connections
+            //signal slot connections (might be able to do them in constructor?)
 
             worker_m.start();
         }
@@ -284,7 +287,7 @@ void AdjustMenu::manageWorker(bool life)
         if(adjustWorker_m)
         {
             adjustWorker_m->deleteLater();
-            /* All signals to and from the object are automatically disconnected,
+            /* All signals to and from the object are automatically disconnected (string based, not functor),
              * and any pending posted events for the object are removed from the event queue.*/
             adjustWorker_m = nullptr;
         }

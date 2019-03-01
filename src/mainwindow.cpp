@@ -34,83 +34,80 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui->setupUi(this);
     setWindowTitle("qcvTouchUp");
     userImagePath_m = QDir::homePath();
-    ui->iw->setMutex(mutex_m);
+    ui->imageWidget->setMutex(mutex_m);
 
     //setup worker thread event loop for ImageWorker
-    imageWorker_m = new ImageWorker(mutex_m);
+/*    imageWorker_m = new ImageWorker(mutex_m);
     imageWorker_m->moveToThread(&workerThread);
-    connect(&workerThread, SIGNAL(finished()), imageWorker_m, SLOT(deleteLater())); //how to structure this -> look at example again
+    connect(&workerThread, SIGNAL(finished()), imageWorker_m, SLOT(deleteLater()));*/ //how to structure this -> look at example again
 
     //image menus initializations - signals are connected after to not be emitted during initialization
-    adjustMenu_m = new AdjustMenu(&masterRGBImage_m, &mutex_m, this);
+    adjustMenu_m = new AdjustMenu(&masterRGBImage_m, &previewRGBImage_m, &mutex_m, this);
     ui->toolMenu->addWidget(adjustMenu_m);
-    filterMenu_m = new FilterMenu(this);
-    ui->toolMenu->addWidget(filterMenu_m);
-    temperatureMenu_m = new TemperatureMenu(this);
-    ui->toolMenu->addWidget(temperatureMenu_m);
-    transformMenu_m = new TransformMenu(this);
-    ui->toolMenu->addWidget(transformMenu_m);
-    colorSliceMenu_m = new ColorSliceMenu(this);
-    ui->toolMenu->addWidget(colorSliceMenu_m);
+//    filterMenu_m = new FilterMenu(this);
+//    ui->toolMenu->addWidget(filterMenu_m);
+//    temperatureMenu_m = new TemperatureMenu(this);
+//    ui->toolMenu->addWidget(temperatureMenu_m);
+//    transformMenu_m = new TransformMenu(this);
+//    ui->toolMenu->addWidget(transformMenu_m);
+//    colorSliceMenu_m = new ColorSliceMenu(this);
+//    ui->toolMenu->addWidget(colorSliceMenu_m);
 
 
     //connect necessary internal mainwindow/ui slots
-    connect(ui->actionZoom_In, SIGNAL(triggered()), ui->iw, SLOT(zoomIn()));
-    connect(ui->actionZoom_Out, SIGNAL(triggered()), ui->iw, SLOT(zoomOut()));
-    connect(ui->actionZoom_Fit, SIGNAL(triggered()), ui->iw, SLOT(zoomFit()));
-    connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->iw, SLOT(zoomActual()));
+    connect(ui->actionZoom_In, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomIn()));
+    connect(ui->actionZoom_Out, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomOut()));
+    connect(ui->actionZoom_Fit, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomFit()));
+    connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomActual()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(getImagePath()));
     connect(ui->actionHistogram, SIGNAL(triggered()), this, SLOT(loadHistogramTool()));
 
     //right side tool menu - mainwindow/ui slots
     connect(ui->quickMenu, SIGNAL(menuItemClicked(int)), ui->toolMenu, SLOT(setCurrentIndex(int)));
-    connect(ui->toolMenu, SIGNAL(currentChanged(int)), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-    connect(ui->pushButtonCancel, SIGNAL(released()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-    connect(ui->pushButtonApply, SIGNAL(released()), imageWorker_m, SLOT(doCopyWorkerBufferToMasterBuffer()));
+    connect(ui->toolMenu, SIGNAL(currentChanged(int)), this, SLOT(cancelPreview()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), this, SLOT(cancelPreview()));
+    connect(ui->pushButtonApply, SIGNAL(released()), this, SLOT(applyPreviewToMaster()));
 
     //image widget / area - mainwindow/ui slots
-    connect(ui->iw, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
-    connect(ui->iw, SIGNAL(droppedImagePath(QString)), this, SLOT(loadImageIntoMemory(QString)));
-    connect(ui->iw, SIGNAL(droppedImageError()), this, SLOT(imageOpenOperationFailed()));
+    connect(ui->imageWidget, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
+    connect(ui->imageWidget, SIGNAL(droppedImagePath(QString)), this, SLOT(loadImageIntoMemory(QString)));
+    connect(ui->imageWidget, SIGNAL(droppedImageError()), this, SLOT(imageOpenOperationFailed()));
 
     //connect necessary worker thread - mainwindow/ui slots
-    connect(&workerThread, SIGNAL(started()), this, SLOT(initializeWorkerThreadData()));
-    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), this, SLOT(updateImageInformation(const QImage*)));
-    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), ui->iw, SLOT(setImage(const QImage*)));
-    connect(imageWorker_m, SIGNAL(resultImageUpdate(const QImage*)), ui->iw, SLOT(updateDisplayedImage(const QImage*)));
-    connect(imageWorker_m, SIGNAL(resultHistoUpdate()), this, SLOT(updateHistogram()));
-    connect(imageWorker_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
+//    connect(&workerThread, SIGNAL(started()), this, SLOT(initializeWorkerThreadData()));
+//    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), this, SLOT(updateImageInformation(const QImage*)));
+//    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), ui->imageWidget, SLOT(setImage(const QImage*)));
+//    connect(imageWorker_m, SIGNAL(resultImageUpdate(const QImage*)), ui->imageWidget, SLOT(updateDisplayedImage(const QImage*)));
+//    connect(imageWorker_m, SIGNAL(resultHistoUpdate()), this, SLOT(updateHistogram()));
+//    connect(imageWorker_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
     //connect necessary worker thread - adjustmenu / ui slots
-    connect(adjustMenu_m, SIGNAL(performImageAdjustments(QVector<float>)), imageWorker_m, SLOT(doAdjustmentsComputation(QVector<float>)));
-    connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
-    connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
+//    connect(adjustMenu_m, SIGNAL(performImageAdjustments(QVector<float>)), imageWorker_m, SLOT(doAdjustmentsComputation(QVector<float>)));
+//    connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
+//    connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
 
     //connect necessary worker thread - filtermenu / ui slots
-    connect(filterMenu_m, SIGNAL(performImageBlur(QVector<int>)), imageWorker_m, SLOT(doSmoothFilterComputation(QVector<int>)));
-    connect(filterMenu_m, SIGNAL(performImageSharpen(QVector<int>)), imageWorker_m, SLOT(doSharpenFilterComputation(QVector<int>)));
-    connect(filterMenu_m, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker_m, SLOT(doEdgeFilterComputation(QVector<int>)));
-    connect(ui->pushButtonCancel, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
-    connect(ui->pushButtonApply, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
+//    connect(filterMenu_m, SIGNAL(performImageBlur(QVector<int>)), imageWorker_m, SLOT(doSmoothFilterComputation(QVector<int>)));
+//    connect(filterMenu_m, SIGNAL(performImageSharpen(QVector<int>)), imageWorker_m, SLOT(doSharpenFilterComputation(QVector<int>)));
+//    connect(filterMenu_m, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker_m, SLOT(doEdgeFilterComputation(QVector<int>)));
+//    connect(ui->pushButtonCancel, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
+//    connect(ui->pushButtonApply, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
 
     //connect necessary worker thread - temperaturemenu / ui slots
-    connect(temperatureMenu_m, SIGNAL(performImageAdjustments(int)), imageWorker_m, SLOT(doTemperatureComputation(int)));
-    connect(ui->pushButtonCancel, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
-    connect(ui->pushButtonApply, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
+//    connect(temperatureMenu_m, SIGNAL(performImageAdjustments(int)), imageWorker_m, SLOT(doTemperatureComputation(int)));
+//    connect(ui->pushButtonCancel, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
+//    connect(ui->pushButtonApply, SIGNAL(released()), temperatureMenu_m, SLOT(initializeMenu()));
 
     //connect necessary worker thread - transformmenu / ui slots
-    connect(ui->iw, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
-    connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->iw, SLOT(setRectRegionSelected(QRect)));
-    connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->iw, SLOT(setRetrieveCoordinateMode(uint)));
-    connect(transformMenu_m, SIGNAL(cancelRoiSelection()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-    connect(transformMenu_m, SIGNAL(performImageCrop(QRect)), imageWorker_m, SLOT(doCropComputation(QRect)));
-    connect(transformMenu_m, SIGNAL(setAutoCropOnRotate(bool)), imageWorker_m, SLOT(setAutoCropForRotate(bool)));
-    connect(transformMenu_m, SIGNAL(performImageRotate(int)), imageWorker_m, SLOT(doRotateComputation(int)));
-    connect(transformMenu_m, SIGNAL(performImageScale(QRect)), imageWorker_m, SLOT(doScaleComputation(QRect)));
-    connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));
-
-    //start worker thread event loop
-    workerThread.start();
+//    connect(ui->imageWidget, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
+//    connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->imageWidget, SLOT(setRectRegionSelected(QRect)));
+//    connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->imageWidget, SLOT(setRetrieveCoordinateMode(uint)));
+//    connect(transformMenu_m, SIGNAL(cancelRoiSelection()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
+//    connect(transformMenu_m, SIGNAL(performImageCrop(QRect)), imageWorker_m, SLOT(doCropComputation(QRect)));
+//    connect(transformMenu_m, SIGNAL(setAutoCropOnRotate(bool)), imageWorker_m, SLOT(setAutoCropForRotate(bool)));
+//    connect(transformMenu_m, SIGNAL(performImageRotate(int)), imageWorker_m, SLOT(doRotateComputation(int)));
+//    connect(transformMenu_m, SIGNAL(performImageScale(QRect)), imageWorker_m, SLOT(doScaleComputation(QRect)));
+//    connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));
 }
 
 MainWindow::~MainWindow()
@@ -126,7 +123,7 @@ MainWindow::~MainWindow()
 // When an image fails at being opened, clears the image and generates a warning message box.
 void MainWindow::imageOpenOperationFailed()
 {
-    ui->iw->clearImage();
+    ui->imageWidget->clearImage();
     masterRGBImage_m.release();
     updateImageInformation(nullptr);
     QMessageBox::warning(this, "Error", "Unable to access desired image.");
@@ -200,7 +197,7 @@ bool MainWindow::loadImageIntoMemory(QString imagePath)
     //clear the image buffer and path. Try to open image in BGR format
     masterRGBImage_m.release();
     masterRGBImage_m = cv::imread(imagePath.toStdString(), cv::IMREAD_COLOR);
-    userImagePath_m.setPath(QString());
+    previewRGBImage_m = masterRGBImage_m.clone();
 
     //check if operation was successful
     bool returnSuccess = true;
@@ -217,12 +214,12 @@ bool MainWindow::loadImageIntoMemory(QString imagePath)
     {
         cv::cvtColor(masterRGBImage_m, masterRGBImage_m, cv::COLOR_BGR2RGB);
         imageWrapper_m = QImage(qcv::cvMatToQImage(masterRGBImage_m));
-        ui->iw->setImage(&imageWrapper_m);
+        ui->imageWidget->setImage(&imageWrapper_m);
         userImagePath_m = imagePath;
     }
 
     statusBar()->showMessage("");
-    ui->iw->setFocus();
+    ui->imageWidget->setFocus();
     return returnSuccess;
 }
 
@@ -231,9 +228,43 @@ void MainWindow::loadHistogramTool()
 {
     statusBar()->showMessage("Histogram...");
     mutex_m.lock();
-    QImage *currentImage = const_cast<QImage*>(ui->iw->displayedImage());
+    QImage *currentImage = const_cast<QImage*>(ui->imageWidget->displayedImage());
     HistogramWindow *histogramWindow = new HistogramWindow(*currentImage, this);
     mutex_m.unlock();
     histogramWindow->exec();
     statusBar()->showMessage("");
+}
+
+/* This slot cancels the image operations by wrapping the Mat in a Qimage and setting the imagewidget
+ * to display the master image buffer.*/
+void MainWindow::cancelPreview()
+{
+    while(!mutex_m.tryLock())
+        QApplication::processEvents(QEventLoop::AllEvents, 100);
+    imageWrapper_m = qcv::cvMatToQImage(masterRGBImage_m);
+    ui->imageWidget->setImage(&imageWrapper_m);
+    //previewRGBImage_m = masterRGBImage_m.clone();
+    mutex_m.unlock();
+}
+
+/* This slot applies the previewed operation of the image to the master buffer by performing a deep
+ * copy of the preview to the master buffer. Then it wraps the master buffer as a QImage and displays it*/
+void MainWindow::applyPreviewToMaster()
+{
+    while(!mutex_m.tryLock())
+        QApplication::processEvents(QEventLoop::AllEvents, 100);
+    masterRGBImage_m = previewRGBImage_m.clone();
+    imageWrapper_m = qcv::cvMatToQImage(masterRGBImage_m);
+    ui->imageWidget->setImage(&imageWrapper_m);
+    mutex_m.unlock();
+}
+
+// This slot wraps the preview image buffer in a QImage and displays it via the imageWidget
+void MainWindow::displayPreview()
+{
+    while(!mutex_m.tryLock())
+        QApplication::processEvents(QEventLoop::AllEvents, 100);
+    imageWrapper_m = qcv::cvMatToQImage(previewRGBImage_m);
+    ui->imageWidget->setImage(&imageWrapper_m);
+    mutex_m.unlock();
 }

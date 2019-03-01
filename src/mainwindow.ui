@@ -54,7 +54,7 @@
        <number>2</number>
       </property>
       <item>
-       <widget class="ImageWidget" name="iw" native="true">
+       <widget class="ImageWidget" name="imageWidget" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>

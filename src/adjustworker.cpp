@@ -1,7 +1,7 @@
 #include "adjustworker.h"
 #include <QDebug>
 
-AdjustWorker::AdjustWorker(QObject *parent) : QObject(parent)
+AdjustWorker::AdjustWorker(const cv::Mat *masterImage, cv::Mat *previewImage, QMutex *mutex, QObject *parent) : QObject(parent)
 {
     qDebug() << "AdjustWorker created";
 

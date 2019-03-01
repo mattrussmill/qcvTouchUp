@@ -109,7 +109,6 @@ public slots:
     void zoomFit();
     void zoomActual();
     void updateDisplayedImage();
-    void updateDisplayedImage(const QImage *image);
     void setRetrieveCoordinateMode(uint mode);
     void setRectRegionSelected(QRect roi);
 

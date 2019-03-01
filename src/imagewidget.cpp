@@ -163,10 +163,10 @@ void ImageWidget::setImage(const QImage *image)
 
     attachedImage_m = image;
     imageLabel_m->setPixmap(QPixmap::fromImage(*image));
+    if(mutex_m) mutex_m->unlock();
     qDebug() << *imageLabel_m->pixmap();
     zoomFit();
     imageLabel_m->setVisible(true);
-    if(mutex_m) mutex_m->unlock();
     initializePaintMembers();
     emit imageSet();
 }
@@ -341,7 +341,7 @@ void ImageWidget::zoomAgain()
 }
 
 
-/*When called, the Pixmap is refreshed (reloaded) with the attached QImage but not resized.
+/* When called, the Pixmap is refreshed (reloaded) with the attached QImage but not resized.
  * Because of the possibility this function will operate on an image outside of the class,
  * a mutex locks the operation if it is available and reinitializes the paint member variables*/
 void ImageWidget::updateDisplayedImage()
@@ -355,30 +355,8 @@ void ImageWidget::updateDisplayedImage()
             QApplication::processEvents(QEventLoop::AllEvents, 100);
     }
     imageLabel_m->setPixmap(QPixmap::fromImage(*attachedImage_m));
-    qDebug() << *imageLabel_m->pixmap();
     if(mutex_m) mutex_m->unlock();
-    initializePaintMembers();
-}
-
-/* Overload of updateDisplayedImage. Attaches a new image buffer without resizing. Because
- * of the possibility this function will operate on an image outside of the class, a mutex
- * locks the operation if it is available*/
-void ImageWidget::updateDisplayedImage(const QImage *image)
-{
-    if(image == nullptr) return;
-
-    //while waiting for mutex, process main event loop to keep gui responsive
-    if(mutex_m)
-    {
-        while(!mutex_m->tryLock())
-            QApplication::processEvents(QEventLoop::AllEvents, 100);
-    }
-    attachedImage_m = image;
-    imageLabel_m->setPixmap(QPixmap::fromImage(*attachedImage_m));
     qDebug() << *imageLabel_m->pixmap();
-    zoomAgain();
-    attachedImage_m = image;
-    if(mutex_m) mutex_m->unlock();
     initializePaintMembers();
 }
 
