@@ -29,7 +29,8 @@ public:
     ~MainWindow();
 
 signals:
-    setImage(const QImage*);
+    void setImage(const QImage*);
+    void distributeImageBufferAddresses(const cv::Mat*, cv::Mat*);
 
 protected:
     QMutex mutex_m;

@@ -78,9 +78,11 @@ signals:
 public slots:
     void receiveNewData(QVariant newData);
 
+protected:
+    QMutex mutex;
+
 private:
     QVariant data_m;
-    QMutex mutex;
     bool notWaitingForData = true;
 };
 

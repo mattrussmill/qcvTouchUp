@@ -188,7 +188,7 @@
           <number>100</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -216,7 +216,7 @@
           <number>7</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -254,7 +254,7 @@
           <number>128</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -301,7 +301,7 @@
           <number>5</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -336,7 +336,7 @@
           <number>7</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -371,7 +371,7 @@
           <number>7</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -421,7 +421,7 @@
           <number>0</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -449,7 +449,7 @@
           <number>5</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -494,7 +494,7 @@
           <number>5</number>
          </property>
          <property name="tracking">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

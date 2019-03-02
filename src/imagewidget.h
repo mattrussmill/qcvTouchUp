@@ -52,6 +52,7 @@
 #define IMAGEWIDGET_H
 
 #include <QWidget>
+#include <opencv2/core/core.hpp>
 class QLabel;
 class QScrollArea;
 class QImage;

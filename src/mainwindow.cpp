@@ -36,22 +36,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     userImagePath_m = QDir::homePath();
     ui->imageWidget->setMutex(mutex_m);
 
+    masterRGBImage_m = cv::Mat(0, 0, CV_8UC3);
+    previewRGBImage_m = cv::Mat(0, 0, CV_8UC3);
+
     //setup worker thread event loop for ImageWorker
 /*    imageWorker_m = new ImageWorker(mutex_m);
     imageWorker_m->moveToThread(&workerThread);
     connect(&workerThread, SIGNAL(finished()), imageWorker_m, SLOT(deleteLater()));*/ //how to structure this -> look at example again
 
     //image menus initializations - signals are connected after to not be emitted during initialization
-    adjustMenu_m = new AdjustMenu(&masterRGBImage_m, &previewRGBImage_m, &mutex_m, this);
+    adjustMenu_m = new AdjustMenu(&mutex_m, this);
     ui->toolMenu->addWidget(adjustMenu_m);
-//    filterMenu_m = new FilterMenu(this);
-//    ui->toolMenu->addWidget(filterMenu_m);
-//    temperatureMenu_m = new TemperatureMenu(this);
-//    ui->toolMenu->addWidget(temperatureMenu_m);
-//    transformMenu_m = new TransformMenu(this);
-//    ui->toolMenu->addWidget(transformMenu_m);
-//    colorSliceMenu_m = new ColorSliceMenu(this);
-//    ui->toolMenu->addWidget(colorSliceMenu_m);
+    filterMenu_m = new FilterMenu(this);
+    ui->toolMenu->addWidget(filterMenu_m);
+    temperatureMenu_m = new TemperatureMenu(this);
+    ui->toolMenu->addWidget(temperatureMenu_m);
+    transformMenu_m = new TransformMenu(this);
+    ui->toolMenu->addWidget(transformMenu_m);
+    colorSliceMenu_m = new ColorSliceMenu(this);
+    ui->toolMenu->addWidget(colorSliceMenu_m);
 
 
     //connect necessary internal mainwindow/ui slots
@@ -82,9 +85,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 //    connect(imageWorker_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
     //connect necessary worker thread - adjustmenu / ui slots
-//    connect(adjustMenu_m, SIGNAL(performImageAdjustments(QVector<float>)), imageWorker_m, SLOT(doAdjustmentsComputation(QVector<float>)));
-//    connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
-//    connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
+    connect(adjustMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
+    connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
+    connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
     //connect necessary worker thread - filtermenu / ui slots
 //    connect(filterMenu_m, SIGNAL(performImageBlur(QVector<int>)), imageWorker_m, SLOT(doSmoothFilterComputation(QVector<int>)));
@@ -195,9 +199,8 @@ bool MainWindow::loadImageIntoMemory(QString imagePath)
         QApplication::processEvents(QEventLoop::AllEvents, 100);
 
     //clear the image buffer and path. Try to open image in BGR format
-    masterRGBImage_m.release();
     masterRGBImage_m = cv::imread(imagePath.toStdString(), cv::IMREAD_COLOR);
-    previewRGBImage_m = masterRGBImage_m.clone();
+    qDebug() << "MainWindow Images:" << &masterRGBImage_m << &previewRGBImage_m;
 
     //check if operation was successful
     bool returnSuccess = true;
@@ -205,17 +208,24 @@ bool MainWindow::loadImageIntoMemory(QString imagePath)
     {
         imageOpenOperationFailed();
         returnSuccess = false;
+        emit distributeImageBufferAddresses(nullptr, nullptr);
+    }
+    else
+    {
+        //if successfully loaded, convert to RGB color space and wrap in QImage
+        cv::cvtColor(masterRGBImage_m, masterRGBImage_m, cv::COLOR_BGR2RGB);
+        masterRGBImage_m.copyTo(previewRGBImage_m);
+        imageWrapper_m = QImage(qcv::cvMatToQImage(masterRGBImage_m));
     }
 
     mutex_m.unlock();
 
-    //if successfully loaded, convert to RGB color space and wrap in QImage
+    // success ops outside of mutex
     if(returnSuccess)
     {
-        cv::cvtColor(masterRGBImage_m, masterRGBImage_m, cv::COLOR_BGR2RGB);
-        imageWrapper_m = QImage(qcv::cvMatToQImage(masterRGBImage_m));
-        ui->imageWidget->setImage(&imageWrapper_m);
+        ui->imageWidget->setImage(&imageWrapper_m); //mutex operation
         userImagePath_m = imagePath;
+        emit distributeImageBufferAddresses(&masterRGBImage_m, &previewRGBImage_m);
     }
 
     statusBar()->showMessage("");
@@ -242,9 +252,9 @@ void MainWindow::cancelPreview()
     while(!mutex_m.tryLock())
         QApplication::processEvents(QEventLoop::AllEvents, 100);
     imageWrapper_m = qcv::cvMatToQImage(masterRGBImage_m);
-    ui->imageWidget->setImage(&imageWrapper_m);
-    //previewRGBImage_m = masterRGBImage_m.clone();
+    masterRGBImage_m.copyTo(previewRGBImage_m);
     mutex_m.unlock();
+    ui->imageWidget->setImage(&imageWrapper_m);
 }
 
 /* This slot applies the previewed operation of the image to the master buffer by performing a deep
@@ -255,8 +265,8 @@ void MainWindow::applyPreviewToMaster()
         QApplication::processEvents(QEventLoop::AllEvents, 100);
     masterRGBImage_m = previewRGBImage_m.clone();
     imageWrapper_m = qcv::cvMatToQImage(masterRGBImage_m);
-    ui->imageWidget->setImage(&imageWrapper_m);
     mutex_m.unlock();
+    ui->imageWidget->setImage(&imageWrapper_m);
 }
 
 // This slot wraps the preview image buffer in a QImage and displays it via the imageWidget
@@ -265,6 +275,6 @@ void MainWindow::displayPreview()
     while(!mutex_m.tryLock())
         QApplication::processEvents(QEventLoop::AllEvents, 100);
     imageWrapper_m = qcv::cvMatToQImage(previewRGBImage_m);
-    ui->imageWidget->setImage(&imageWrapper_m);
     mutex_m.unlock();
+    ui->imageWidget->setImage(&imageWrapper_m);
 }

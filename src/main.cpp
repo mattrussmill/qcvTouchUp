@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QVector<float>>("QVector<float>");
     qRegisterMetaType<QVector<int>>("QVector<int>");
     qRegisterMetaType<SignalSuppressor*>("SignalSuppressor*");
+    qRegisterMetaType<cv::Mat*>("cv::Mat*");
 
     MainWindow w;
     w.show();

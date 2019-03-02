@@ -54,10 +54,10 @@
 
 #include <QScrollArea>
 #include <QThread>
+#include "signalsuppressor.h"
 #include <opencv2/core/core.hpp>
 class QMutex;
 class AdjustWorker;
-class QByteArray;
 
 namespace Ui {
 class AdjustMenu;
@@ -68,7 +68,7 @@ class AdjustMenu : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit AdjustMenu(const cv::Mat *masterImage = nullptr, cv::Mat *previewImage = nullptr, QMutex *mutex = nullptr, QWidget *parent = 0);
+    explicit AdjustMenu(QMutex *mutex = nullptr, QWidget *parent = 0);
     ~AdjustMenu();
     enum ParameterIndex
     {
@@ -86,10 +86,13 @@ public:
 
 public slots:
     void initializeSliders();
+    void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
     void setVisible(bool visible) override; //change to event -> see comments in class body
 
 signals:
     void performImageAdjustments(QByteArray);
+    void updateDisplayedImage();
+    void distributeImageBufferAddresses(const cv::Mat*,cv::Mat*);
 
 protected:
     const cv::Mat *masterImage_m;
@@ -104,6 +107,7 @@ protected slots:
 private:
     Ui::AdjustMenu *ui;
     float sliderValues_m[10];
+    SignalSuppressor workSignalSuppressor;
 
 private slots:
     void changeContrastValue(int value);

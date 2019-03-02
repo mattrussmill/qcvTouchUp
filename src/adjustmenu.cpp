@@ -54,17 +54,18 @@
 #include "mousewheeleatereventfilter.h"
 #include <cmath>
 #include <QMutex>
+#include <QByteArray>
 #include <QDebug>
 
 //Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
 //QVector appropriately, and establishes all signals/slots necessary for the ui.
-AdjustMenu::AdjustMenu(const cv::Mat *masterImage, cv::Mat *previewImage, QMutex *mutex, QWidget *parent) :
+AdjustMenu::AdjustMenu(QMutex *mutex, QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::AdjustMenu)
 {
     ui->setupUi(this);
-    masterImage_m = masterImage;
-    previewImage = previewImage;
+    masterImage_m = nullptr;
+    previewImage_m = nullptr;
     workerMutex_m = mutex;
     adjustWorker_m = nullptr;
 
@@ -92,9 +93,6 @@ AdjustMenu::AdjustMenu(const cv::Mat *masterImage, cv::Mat *previewImage, QMutex
     connect(ui->radioButton_Color, SIGNAL(released()), this, SLOT(changeToColorImage()));
     connect(ui->radioButton_Grayscale, SIGNAL(released()), this, SLOT(changeToGrayscaleImage()));
 
-    //worker thread signals / slots (since these are string-based sig/slot and established at runtime can they be declared once?
-                                    //(will the functor one need to be connected / disconnected at creation?)
-
     initializeSliders();
 }
 
@@ -111,6 +109,14 @@ AdjustMenu::~AdjustMenu()
     }
 
     delete ui;
+}
+
+void AdjustMenu::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage)
+{
+    masterImage_m = masterImage;
+    previewImage_m = previewImage;
+    qDebug() << "Adjust Menu Images:" << masterImage_m << previewImage_m;
+    emit distributeImageBufferAddresses(masterImage, previewImage);
 }
 
 /* Function initializes the sliders and corresponding shared array (for passing
@@ -158,7 +164,7 @@ void AdjustMenu::changeContrastValue(int value)
     //if > 1, increase range from 1 to 2.4 while keeping 1 the slider center point by using log10
     if(value > 100) value *= log10(value / 10.0);
     sliderValues_m[Contrast] = value / 100.0;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot adjusts brightness slider when triggered for RGB values. It adjusts the sliders
@@ -167,7 +173,7 @@ void AdjustMenu::changeContrastValue(int value)
 void AdjustMenu::changeBrightnessValue(int value)
 {
     sliderValues_m[Brightness] = value;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot adjusts the number of intensity values per channel allotted in the image. The value is adjusted on
@@ -176,7 +182,7 @@ void AdjustMenu::changeBrightnessValue(int value)
 void AdjustMenu::changeDepthValue(int value)
 {
     sliderValues_m[Depth] = pow(value, value / 255.0); // difference more noticeable to the eye closer to 1
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot adjusts hue slider when triggered for HLS values. It shifts the hue value from the sliders
@@ -185,7 +191,7 @@ void AdjustMenu::changeDepthValue(int value)
 void AdjustMenu::changeHueValue(int value)
 {
     sliderValues_m[Hue] = value;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot adjusts saturation slider when triggered for HLS values. It adjusts the sliders
@@ -194,7 +200,7 @@ void AdjustMenu::changeHueValue(int value)
 void AdjustMenu::changeSaturationValue(int value)
 {
     sliderValues_m[Saturation] = value;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot adjusts intensity (or lightness) slider when triggered for HLS values. It adjusts the sliders
@@ -203,21 +209,21 @@ void AdjustMenu::changeSaturationValue(int value)
 void AdjustMenu::changeIntensityValue(int value)
 {
     sliderValues_m[Intensity] = value;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 //Sets radio button to generate a color image
 void AdjustMenu::changeToColorImage()
 {
     sliderValues_m[Color] = 1.0;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 //Sets radio button to generate a grayscale image
 void AdjustMenu::changeToGrayscaleImage()
 {
     sliderValues_m[Color] = -1.0;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot adjusts gamma over the whole range of intensities in the image. It adjusts the sliders between -100 and 100.
@@ -229,21 +235,21 @@ void AdjustMenu::changeGammaValue(int value)
         sliderValues_m[Gamma] = (value / 150.0) + 1;
     else
         sliderValues_m[Gamma] = (value / 50.0) + 1;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot shifts the gamma adjustment plot vertically between 80 and -80 for values affected between 149 and 255*/
 void AdjustMenu::changeHighlightsValue(int value)
 {
     sliderValues_m[Highlight] = value; //should use highlight method with equations provided
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 /* Slot shifts the gamma adjustment plot vertically between 80 and -80 for values affected between 0 and 106*/
 void AdjustMenu::changeShadowsValue(int value)
 {
     sliderValues_m[Shadows] = value;
-    emit performImageAdjustments(sliderValues_m);
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
@@ -273,10 +279,12 @@ void AdjustMenu::manageWorker(bool life)
                 QApplication::restoreOverrideCursor();
             }
 
-            adjustWorker_m = new AdjustWorker(masterImage_m, previewImage_m, workerMutex_m); //needs vector (change to list)
+            adjustWorker_m = new AdjustWorker(workerMutex_m);
             adjustWorker_m->moveToThread(&worker_m);
             //signal slot connections (might be able to do them in constructor?)
-
+            connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), adjustWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+            connect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), adjustWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
+            connect(adjustWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
             worker_m.start();
         }
 
@@ -286,9 +294,12 @@ void AdjustMenu::manageWorker(bool life)
         //while the worker event loop is running, tell it to delete itself once loop is empty.
         if(adjustWorker_m)
         {
-            adjustWorker_m->deleteLater();
             /* All signals to and from the object are automatically disconnected (string based, not functor),
-             * and any pending posted events for the object are removed from the event queue.*/
+             * and any pending posted events for the object are removed from the event queue. This is done incase functor signal/slots used later*/
+            disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), adjustWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+            disconnect((&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), adjustWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*))));
+            disconnect(adjustWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            adjustWorker_m->deleteLater();
             adjustWorker_m = nullptr;
         }
 
