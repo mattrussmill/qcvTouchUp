@@ -23,8 +23,10 @@
 #include <QMutex>
 #include <QRect>
 #include <QStackedWidget>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/core/ocl.hpp>
+
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -85,9 +87,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 //    connect(imageWorker_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
     //connect necessary worker thread - adjustmenu / ui slots
-    connect(adjustMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
     connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
     connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
+    connect(adjustMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
+    connect(this, SIGNAL(setDefaultTracking(bool)), adjustMenu_m, SLOT(setMenuTracking(bool)));
+    connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
     //connect necessary worker thread - filtermenu / ui slots
@@ -112,6 +116,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 //    connect(transformMenu_m, SIGNAL(performImageRotate(int)), imageWorker_m, SLOT(doRotateComputation(int)));
 //    connect(transformMenu_m, SIGNAL(performImageScale(QRect)), imageWorker_m, SLOT(doScaleComputation(QRect)));
 //    connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));
+
+    //Check if OpenCL acceleration is available. If it is available, enable menu item tracking for all child menues, else disable
+    cv::ocl::Context ctx = cv::ocl::Context::getDefault();
+    if (!ctx.ptr())
+    {
+        qDebug() << "OpenCL is not available";
+        emit setDefaultTracking(false);
+    }
+    else
+    {
+
+       cv::ocl::setUseOpenCL(true);
+       emit setDefaultTracking(true);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -199,6 +217,9 @@ bool MainWindow::loadImageIntoMemory(QString imagePath)
         QApplication::processEvents(QEventLoop::AllEvents, 100);
 
     //clear the image buffer and path. Try to open image in BGR format
+    userImagePath_m = QDir::homePath();
+    previewRGBImage_m.release();
+    masterRGBImage_m.release();
     masterRGBImage_m = cv::imread(imagePath.toStdString(), cv::IMREAD_COLOR);
     qDebug() << "MainWindow Images:" << &masterRGBImage_m << &previewRGBImage_m;
 

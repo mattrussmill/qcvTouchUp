@@ -55,7 +55,7 @@
 #include <QScrollArea>
 #include <QThread>
 #include "signalsuppressor.h"
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 class QMutex;
 class AdjustWorker;
 
@@ -87,6 +87,7 @@ public:
 public slots:
     void initializeSliders();
     void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
+    void setMenuTracking(bool enable);
     void setVisible(bool visible) override; //change to event -> see comments in class body
 
 signals:

@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 #include <QThread>
 #include <QMutex>
 #include <QDir>
@@ -31,6 +31,7 @@ public:
 signals:
     void setImage(const QImage*);
     void distributeImageBufferAddresses(const cv::Mat*, cv::Mat*);
+    void setDefaultTracking(bool);
 
 protected:
     QMutex mutex_m;

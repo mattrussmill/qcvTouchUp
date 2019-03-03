@@ -2,15 +2,17 @@
 #include "signalsuppressor.h"
 #include "adjustmenu.h"
 #include <QMutex>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/imgproc.hpp>
 #include <QDebug>
 
-AdjustWorker::AdjustWorker(QMutex *mutex, QObject *parent) : QObject(parent)
+AdjustWorker::AdjustWorker(const cv::Mat *masterImage, cv::Mat *previewImage, QMutex *mutex, QObject *parent)
+    : QObject(parent)
 {
     qDebug() << "AdjustWorker created";
     mutex_m = mutex;
-    masterImage_m = nullptr;
-    previewImage_m = nullptr;
+    masterImage_m = masterImage;
+    previewImage_m = previewImage;
+    qDebug() << "Adjust Worker Images:" << masterImage_m << previewImage_m;
     lookUpTable_m = cv::Mat(1, 256, CV_8U);
 }
 
@@ -40,41 +42,25 @@ void AdjustWorker::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *pr
  * have changed from their default value. Using a QVector forces a copy when passing information*/
 void AdjustWorker::performImageAdjustments(float * parameter)
 {
-
-    if(mutex_m)
-        mutex_m->lock();
-    if(!(masterImage_m || previewImage_m))
+    if(mutex_m) mutex_m->lock();
+    if(masterImage_m == nullptr || previewImage_m == nullptr)
     {
-        if(mutex_m)
-            mutex_m->unlock();
+        if(mutex_m) mutex_m->unlock();
         qDebug() << "Cannot perform Adjustments, image not attached";
         return;
     }
 
-
     //clone necessary because internal checks will prevent GUI image from cycling.
-    masterImage_m->copyTo(*previewImage_m); //get rid of clone use copyTo
-
-    //--adjust the number of colors available of not at initial value of 255
-    if(parameter[AdjustMenu::Depth] < 255)
-    {
-        //create and normalize LUT from 0 to largest intensity value, then scale from 0 to 255
-        float scaleFactor = parameter[AdjustMenu::Depth] / 255;
-        for(int i = 0; i < 256; i++)
-            lookUpTable_m.data[i] = round(round(i * scaleFactor) / scaleFactor);
-
-        //replace pixel intensities based on their LUT value
-        cv::LUT(*previewImage_m, lookUpTable_m, *previewImage_m);
-    }
-
+    masterImage_m->copyTo(implicitOclImage_m);
 
     //--perform operations on hue, intensity, and saturation color space if values are not set to initial
     if(parameter[AdjustMenu::Hue] != 0.0 || parameter[AdjustMenu::Intensity] != 0.0
             || parameter[AdjustMenu::Saturation] != 0.0 || parameter[AdjustMenu::Gamma] != 1.0
-            || parameter[AdjustMenu::Highlight] != 0.0 || parameter[AdjustMenu::Shadows] != 0.0)
+            || parameter[AdjustMenu::Highlight] != 0.0 || parameter[AdjustMenu::Shadows] != 0.0
+            || parameter[AdjustMenu::Depth] < 255)
     {
-        cv::cvtColor(*previewImage_m, *previewImage_m, cv::COLOR_RGB2HLS);
-        cv::split(*previewImage_m, splitChannelsTmp_m);
+        cv::cvtColor(implicitOclImage_m, implicitOclImage_m, cv::COLOR_RGB2HLS);
+        cv::split(implicitOclImage_m, splitChannelsTmp_m);
 
         /* openCv hue is stored as 360/2 since uchar cannot store above 255 so a LUT is populated
              * from 0 to 180 and phase shifted between -180 and 180 based on slider input. */
@@ -175,18 +161,35 @@ void AdjustWorker::performImageAdjustments(float * parameter)
             cv::LUT(splitChannelsTmp_m.at(1), lookUpTable_m, splitChannelsTmp_m[1]);
         }
 
-        cv::merge(splitChannelsTmp_m, *previewImage_m);
-        cv::cvtColor(*previewImage_m, *previewImage_m, cv::COLOR_HLS2RGB);
+        //--adjust the number of colors available of not at initial value of 255
+        if(parameter[AdjustMenu::Depth] < 255)
+        {
+            //create and normalize LUT for 0 to 180 for Hue; replace pixel intensities based on their LUT value
+            float scaleFactor = (parameter[AdjustMenu::Depth] * (180 / 255)) / 180;
+            for(int i = 0; i < 180; i++)
+                lookUpTable_m.data[i] = round(round(i * scaleFactor) / scaleFactor);
+            cv::LUT(splitChannelsTmp_m.at(0), lookUpTable_m, splitChannelsTmp_m[0]);
+
+            //create and normalize LUT from 0 to largest intensity value, then scale from 0 to 255
+            scaleFactor = parameter[AdjustMenu::Depth] / 255;
+            for(int i = 0; i < 256; i++)
+                lookUpTable_m.data[i] = round(round(i * scaleFactor) / scaleFactor);
+            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable_m, splitChannelsTmp_m[1]);
+            cv::LUT(splitChannelsTmp_m.at(2), lookUpTable_m, splitChannelsTmp_m[2]);
+        }
+
+        cv::merge(splitChannelsTmp_m, implicitOclImage_m);
+        cv::cvtColor(implicitOclImage_m, implicitOclImage_m, cv::COLOR_HLS2RGB);
     }
 
 
     //--convert from color to grayscale if != 1.0
     if(parameter[AdjustMenu::Color] != 1.0)
     {
-        cv::cvtColor(*previewImage_m, splitChannelsTmp_m[0], cv::COLOR_RGB2GRAY);
+        cv::cvtColor(implicitOclImage_m, splitChannelsTmp_m[0], cv::COLOR_RGB2GRAY);
         splitChannelsTmp_m.at(0).copyTo(splitChannelsTmp_m.at(1));
         splitChannelsTmp_m.at(0).copyTo(splitChannelsTmp_m.at(2));
-        cv::merge(splitChannelsTmp_m, *previewImage_m);
+        cv::merge(splitChannelsTmp_m, implicitOclImage_m);
     }
 
 
@@ -203,11 +206,11 @@ void AdjustWorker::performImageAdjustments(float * parameter)
             beta += 127 * -log2(alpha) / sqrt(1 / alpha);
 
         //perform contrast computation and prime source buffer
-        previewImage_m->convertTo(*previewImage_m, -1, alpha, beta);
+        implicitOclImage_m.convertTo(implicitOclImage_m, -1, alpha, beta);
     }
 
+    implicitOclImage_m.copyTo(*previewImage_m);
 
     //after computation is complete, push image and histogram to GUI if changes were made
-    if(mutex_m)
-        mutex_m->unlock();
+    if(mutex_m) mutex_m->unlock();
 }

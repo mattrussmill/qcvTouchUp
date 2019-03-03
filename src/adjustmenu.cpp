@@ -119,13 +119,36 @@ void AdjustMenu::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *prev
     emit distributeImageBufferAddresses(masterImage, previewImage);
 }
 
+void AdjustMenu::setMenuTracking(bool enable)
+{
+    ui->horizontalSlider_Brightness->setTracking(enable);
+    ui->horizontalSlider_Contrast->setTracking(enable);
+    ui->horizontalSlider_Depth->setTracking(enable);
+    ui->horizontalSlider_Gamma->setTracking(enable);
+    ui->horizontalSlider_Highlight->setTracking(enable);
+    ui->horizontalSlider_Hue->setTracking(enable);
+    ui->horizontalSlider_Intensity->setTracking(enable);
+    ui->horizontalSlider_Saturation->setTracking(enable);
+    ui->horizontalSlider_Shadows->setTracking(enable);
+}
+
 /* Function initializes the sliders and corresponding shared array (for passing
  * slider values) while signals are blocked from being emitted from the class
  * as to not signal the worker thread to re-perform operations during initialization*/
 void AdjustMenu::initializeSliders()
 {
     //disable signals from being emitted by object
-    this->blockSignals(true);
+    ui->horizontalSlider_Brightness->blockSignals(true);
+    ui->horizontalSlider_Contrast->blockSignals(true);
+    ui->horizontalSlider_Depth->blockSignals(true);
+    ui->horizontalSlider_Hue->blockSignals(true);
+    ui->horizontalSlider_Saturation->blockSignals(true);
+    ui->horizontalSlider_Intensity->blockSignals(true);
+    ui->horizontalSlider_Gamma->blockSignals(true);
+    ui->horizontalSlider_Highlight->blockSignals(true);
+    ui->horizontalSlider_Shadows->blockSignals(true);
+    ui->radioButton_Color->blockSignals(true);
+    ui->radioButton_Grayscale->blockSignals(true);
 
     //reset slider positions
     ui->horizontalSlider_Brightness->setValue(0);
@@ -141,7 +164,17 @@ void AdjustMenu::initializeSliders()
     ui->radioButton_Grayscale->setChecked(false);
 
     //enable signals from being emitted by object
-    this->blockSignals(false);
+    ui->horizontalSlider_Brightness->blockSignals(false);
+    ui->horizontalSlider_Contrast->blockSignals(false);
+    ui->horizontalSlider_Depth->blockSignals(false);
+    ui->horizontalSlider_Hue->blockSignals(false);
+    ui->horizontalSlider_Saturation->blockSignals(false);
+    ui->horizontalSlider_Intensity->blockSignals(false);
+    ui->horizontalSlider_Gamma->blockSignals(false);
+    ui->horizontalSlider_Highlight->blockSignals(false);
+    ui->horizontalSlider_Shadows->blockSignals(false);
+    ui->radioButton_Color->blockSignals(false);
+    ui->radioButton_Grayscale->blockSignals(false);
 
     //Set initial parameter array for sliders
     sliderValues_m[Brightness] = 0.0; //cast to byte array so can be transferred via QVariant
@@ -279,7 +312,7 @@ void AdjustMenu::manageWorker(bool life)
                 QApplication::restoreOverrideCursor();
             }
 
-            adjustWorker_m = new AdjustWorker(workerMutex_m);
+            adjustWorker_m = new AdjustWorker(masterImage_m, previewImage_m, workerMutex_m);
             adjustWorker_m->moveToThread(&worker_m);
             //signal slot connections (might be able to do them in constructor?)
             connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), adjustWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));

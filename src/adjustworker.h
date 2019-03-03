@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QByteArray>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 class QMutex;
 class SignalSuppressor;
 
@@ -11,7 +11,7 @@ class AdjustWorker : public QObject
 {
     Q_OBJECT
 public:
-    explicit AdjustWorker(QMutex *mutex = nullptr, QObject *parent = nullptr);
+    explicit AdjustWorker(const cv::Mat *masterImage = nullptr, cv::Mat *previewImage = nullptr, QMutex *mutex = nullptr, QObject *parent = nullptr);
     ~AdjustWorker();
 
 signals:
@@ -27,8 +27,9 @@ private:
     QMutex *mutex_m;
     const cv::Mat *masterImage_m;
     cv::Mat *previewImage_m;
+    cv::UMat implicitOclImage_m;
     cv::Mat lookUpTable_m;
-    std::vector <cv::Mat> splitChannelsTmp_m;
+    std::vector <cv::UMat> splitChannelsTmp_m;
 };
 
 #endif // ADJUSTWORKER_H
