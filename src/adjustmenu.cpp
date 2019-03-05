@@ -36,7 +36,7 @@
 *
 * NOTES :
 *       This class is directly tied to adjustmenu.ui and has functionality
-*       tied to the ImageWorker class which uses the values selected here
+*       tied to the parent class which uses the values selected here
 *       as a basis to control calculations on the image.
 *
 *
@@ -46,7 +46,7 @@
 *
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           04/18/2018      Matthew R. Miller       Initial Rev
-*
+* 0.2           03/04/2019      Matthew R. Miller       Individ worker for menu
 ************************************************************************/
 #include "adjustmenu.h"
 #include "ui_adjustmenu.h"
@@ -55,6 +55,7 @@
 #include <cmath>
 #include <QMutex>
 #include <QByteArray>
+#include <QShowEvent>
 #include <QDebug>
 
 //Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
@@ -111,6 +112,9 @@ AdjustMenu::~AdjustMenu()
     delete ui;
 }
 
+/* This slot is used to update the member addresses for the master and preview images stored
+ * in the parent object. If the Mat's become empty in the parent object this slot
+ * should be signaled with nullptrs to signify they are empty. */
 void AdjustMenu::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage)
 {
     masterImage_m = masterImage;
@@ -119,6 +123,7 @@ void AdjustMenu::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *prev
     emit distributeImageBufferAddresses(masterImage, previewImage);
 }
 
+// Enables or disables tracking for the appropriate menu widgets
 void AdjustMenu::setMenuTracking(bool enable)
 {
     ui->horizontalSlider_Brightness->setTracking(enable);
@@ -285,15 +290,24 @@ void AdjustMenu::changeShadowsValue(int value)
     workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
-//overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
-void AdjustMenu::setVisible(bool visible) //https://doc.qt.io/qt-5/qwidget.html#visible-prop
-{                                           //use showevent override instead
+//overloads setVisible to signal the worker thread to be managed correctly
+void AdjustMenu::setVisible(bool visible)
+{
     manageWorker(visible);
-    if(!visible)
-        initializeSliders();
     QWidget::setVisible(visible);
 }
 
+//overloads show event to initialize the visible menu widgets before being seen
+void AdjustMenu::showEvent(QShowEvent *event)
+{
+    initializeSliders();
+    QWidget::showEvent(event);
+}
+
+/* This method determines when the worker thread should be created or destroyed so
+ * that the worker thread (with event loop) is only running if it is required (in
+ * this case if the menu is visible). This thread manages the creation, destruction,
+ * connection, and disconnection of the thread and its signals / slots.*/
 void AdjustMenu::manageWorker(bool life)
 {
     if(life)
@@ -301,7 +315,7 @@ void AdjustMenu::manageWorker(bool life)
         if(!adjustWorker_m)
         {
             //If worker is still trying to exit, wait and process other events until its done
-            if(worker_m.isFinished())
+            if(worker_m.isRunning())
             {
                 QApplication::setOverrideCursor(Qt::WaitCursor);
                 qDebug() << "Waiting for thread to exit";
@@ -318,9 +332,9 @@ void AdjustMenu::manageWorker(bool life)
             connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), adjustWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
             connect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), adjustWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
             connect(adjustWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            connect(adjustWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
             worker_m.start();
         }
-
     }
     else
     {
@@ -332,9 +346,10 @@ void AdjustMenu::manageWorker(bool life)
             disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), adjustWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
             disconnect((&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), adjustWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*))));
             disconnect(adjustWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            disconnect(adjustWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
             adjustWorker_m->deleteLater();
             adjustWorker_m = nullptr;
+            worker_m.quit();
         }
-
     }
 }

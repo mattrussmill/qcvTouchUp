@@ -1,26 +1,111 @@
+/***********************************************************************
+* FILENAME :    adjustworker.cpp
+*
+* LICENSE:
+*       qcvTouchUp provides an image processing toolset for editing
+*       photographs, purposed and packaged for use in a desktop application
+*       user environment. Copyright (C) 2018,  Matthew R. Miller
+*
+*       This program is free software: you can redistribute it and/or modify
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
+*       3-clause BSD License as agreed upon through the use of the Qt toolkit
+*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
+*       of the appropriate license files for qcvTouchup, and its source code,
+*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*
+*       This program is distributed in the hope that it will be useful,
+*       but WITHOUT ANY WARRANTY; without even the implied warranty of
+*       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*       GNU General Public License for more details.
+*
+*       You should have received a copy of the GNU General Public License and
+*       3-clause BSD License along with this program.  If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
+*
+*       If you wish to contact the developer about this project, please do so
+*       through their account at <https://github.com/mattrussmill>
+*
+* DESCRIPTION :
+*       This is the worker thread object tied to the adjustmenu.cpp object.
+*       The worker performs the operations for adjusting the color, brightness,
+*       contrast, pixel depth, hue, saturation, intensity including high and low
+*       adjustments to gamma correction. It collects all necessary slider
+*       values in a QVarient and copies the object through the signal/signal
+*       mechanism to provide the necessary parameters for image processing.
+*
+* NOTES :
+*       This worker thread uses OpenCV OpenCL accelerated function calls implicitly
+*       when OpenCL hardware is available through OpenCV's UMat object calls. In the
+*       constructor there is an OpenCL initialization step where the OpenCL commands
+*       are given before the functionality is actually used through calling the
+*       appropriate performImageAdjustments method prematurely. See Issue #41 for
+*       more detail.
+*
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    March 03/04/2019
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           03/04/2019      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
+
 #include "adjustworker.h"
 #include "signalsuppressor.h"
 #include "adjustmenu.h"
 #include <QMutex>
+#include <QString>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/core/ocl.hpp>
 #include <QDebug>
+//#include <QElapsedTimer>
 
+/* Constructor initializes the appropriate member variables for the worker object. If
+ * an OpenCL device is detected as available on the system, a pre-initialization step is
+ * performed to increase initial performance. */
 AdjustWorker::AdjustWorker(const cv::Mat *masterImage, cv::Mat *previewImage, QMutex *mutex, QObject *parent)
     : QObject(parent)
 {
-    qDebug() << "AdjustWorker created";
+    emit updateStatus("Adjust Menu initializing...");
+    //QElapsedTimer timer;
+    //timer.start();
+    lookUpTable_m = cv::Mat(1, 256, CV_8U);
+
+    //OpenCL initialization step to build the OpenCL calls in GPU before the worker is called with an attached image
+    cv::ocl::Context ctx = cv::ocl::Context::getDefault();
+    if (ctx.ptr())
+    {
+        cv::Mat tmpMat(100, 100, CV_8UC3);
+        cv::randu(tmpMat, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+        float tmpParameters[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+        mutex_m = nullptr;
+        masterImage_m = &tmpMat;
+        previewImage_m = &tmpMat;
+
+        performImageAdjustments(tmpParameters);
+    }
+
     mutex_m = mutex;
     masterImage_m = masterImage;
     previewImage_m = previewImage;
-    qDebug() << "Adjust Worker Images:" << masterImage_m << previewImage_m;
-    lookUpTable_m = cv::Mat(1, 256, CV_8U);
+    qDebug() << "Adjust Worker Created! - Images:" << masterImage_m << previewImage_m;
+
+    //qDebug() << "The slow operation took" << timer.elapsed() << "milliseconds";
+    emit updateStatus("");
 }
 
+// destructor
 AdjustWorker::~AdjustWorker()
 {
     qDebug() << "AdjustWorker destroyed";
 }
 
+/* This member (slot) recieves the data from the controlling class (slow thread). The data
+ * is sent as a pointer to the class itself who's member contains the data. To see how this
+ * works see signalsuppressor.h/cpp. The format is tied to the associated menu object. */
 void AdjustWorker::receiveSuppressedSignal(SignalSuppressor *dataContainer)
 {
     data = dataContainer->getNewData().toByteArray();
@@ -29,6 +114,9 @@ void AdjustWorker::receiveSuppressedSignal(SignalSuppressor *dataContainer)
     emit updateDisplayedImage();
 }
 
+/* This slot is used to update the member addresses for the master and preview images stored
+ * in the controlling thread. If the Mat's become empty in the controlling thread this slot
+ * should be signaled with nullptrs to signify they are empty. */
 void AdjustWorker::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage)
 {
     masterImage_m = masterImage;

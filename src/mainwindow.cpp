@@ -90,6 +90,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
     connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
     connect(adjustMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
+    connect(adjustMenu_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
     connect(this, SIGNAL(setDefaultTracking(bool)), adjustMenu_m, SLOT(setMenuTracking(bool)));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
@@ -126,8 +127,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     }
     else
     {
-
-       cv::ocl::setUseOpenCL(true);
        emit setDefaultTracking(true);
     }
 }

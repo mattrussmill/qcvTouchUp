@@ -56,6 +56,7 @@
 #include <QThread>
 #include "signalsuppressor.h"
 #include <opencv2/core.hpp>
+class QString;
 class QMutex;
 class AdjustWorker;
 
@@ -88,12 +89,14 @@ public slots:
     void initializeSliders();
     void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
     void setMenuTracking(bool enable);
-    void setVisible(bool visible) override; //change to event -> see comments in class body
+    void setVisible(bool visible) override;
+    void showEvent(QShowEvent *event) override;
 
 signals:
     void performImageAdjustments(QByteArray);
     void updateDisplayedImage();
     void distributeImageBufferAddresses(const cv::Mat*,cv::Mat*);
+    void updateStatus(QString);
 
 protected:
     const cv::Mat *masterImage_m;
