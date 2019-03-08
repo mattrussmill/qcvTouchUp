@@ -108,8 +108,8 @@ AdjustWorker::~AdjustWorker()
  * works see signalsuppressor.h/cpp. The format is tied to the associated menu object. */
 void AdjustWorker::receiveSuppressedSignal(SignalSuppressor *dataContainer)
 {
-    data = dataContainer->getNewData().toByteArray();
-    float *parameters = reinterpret_cast<float*>(data.data());
+    data_m = dataContainer->getNewData().toByteArray();
+    float *parameters = reinterpret_cast<float*>(data_m.data());
     performImageAdjustments(parameters);
     emit updateDisplayedImage();
 }

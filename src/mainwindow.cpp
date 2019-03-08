@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     //image menus initializations - signals are connected after to not be emitted during initialization
     adjustMenu_m = new AdjustMenu(&mutex_m, this);
     ui->toolMenu->addWidget(adjustMenu_m);
-    filterMenu_m = new FilterMenu(this);
+    filterMenu_m = new FilterMenu(&mutex_m, this);
     ui->toolMenu->addWidget(filterMenu_m);
     temperatureMenu_m = new TemperatureMenu(this);
     ui->toolMenu->addWidget(temperatureMenu_m);
@@ -96,11 +96,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
     //connect necessary worker thread - filtermenu / ui slots
-//    connect(filterMenu_m, SIGNAL(performImageBlur(QVector<int>)), imageWorker_m, SLOT(doSmoothFilterComputation(QVector<int>)));
-//    connect(filterMenu_m, SIGNAL(performImageSharpen(QVector<int>)), imageWorker_m, SLOT(doSharpenFilterComputation(QVector<int>)));
-//    connect(filterMenu_m, SIGNAL(performImageEdgeDetect(QVector<int>)), imageWorker_m, SLOT(doEdgeFilterComputation(QVector<int>)));
-//    connect(ui->pushButtonCancel, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
-//    connect(ui->pushButtonApply, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
+    connect(ui->pushButtonApply, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
+    connect(filterMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
+    connect(filterMenu_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
+    connect(this, SIGNAL(setDefaultTracking(bool)), filterMenu_m, SLOT(setMenuTracking(bool)));
+    connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), filterMenu_m, SLOT(initializeSliders()));
+    connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), filterMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+
 
     //connect necessary worker thread - temperaturemenu / ui slots
 //    connect(temperatureMenu_m, SIGNAL(performImageAdjustments(int)), imageWorker_m, SLOT(doTemperatureComputation(int)));

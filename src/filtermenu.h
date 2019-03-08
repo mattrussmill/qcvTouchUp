@@ -54,8 +54,14 @@
 #define FILTERMENU_H
 
 #include <QScrollArea>
-#include <QVector>
+#include <QThread>
+#include "signalsuppressor.h"
+#include <opencv2/core.hpp>
 class QButtonGroup;
+class QByteArray;
+class QString;
+class QMutex;
+class FilterWorker;
 
 namespace Ui {
 class FilterMenu;
@@ -66,7 +72,7 @@ class FilterMenu : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit FilterMenu(QWidget *parent = 0);
+    explicit FilterMenu(QMutex *mutex, QWidget *parent = 0);
     ~FilterMenu();
     enum ParameterIndex
     {
@@ -80,19 +86,44 @@ public:
         FilterCanny         = 0,
         FilterSobel         = 2,
 
+        SmoothFilter        = 0,
+        SharpenFilter       = 1,
+        EdgeFilter          = 2,
+
         KernelType          = 0,
-        KernelWeight        = 1
+        KernelWeight        = 1,
+        KernelOperation     = 2
+
+
     };
 
 public slots:
     void initializeSliders();
+    void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
+    void setMenuTracking(bool enable);
     void setVisible(bool visible) override;
+    void showEvent(QShowEvent *event) override;
 
 signals:
-    void performImageBlur(QVector<int>);
-    void performImageSharpen(QVector<int>);
-    void performImageEdgeDetect(QVector<int>);
-    void performImageNoiseRemove(QVector<int>);
+    void updateDisplayedImage();
+    void distributeImageBufferAddresses(const cv::Mat*, cv::Mat*);
+    void updateStatus(QString);
+
+protected:
+    const cv::Mat *masterImage_m;
+    cv::Mat *previewImage_m;
+    QMutex *workerMutex_m;
+    QThread worker_m;
+    FilterWorker *filterWorker_m;
+
+protected slots:
+    void manageWorker(bool life);
+
+private:
+    Ui::FilterMenu *ui;
+    int menuValues_m[3];
+    QButtonGroup *buttonGroup_m;
+    SignalSuppressor workSignalSuppressor;
 
 private slots:
     void adjustSharpenSliderRange(int value);
@@ -101,11 +132,6 @@ private slots:
     void collectSharpenParameters();
     void collectEdgeDetectParameters();
     void changeSampleImage(bool detected);
-
-private:
-    Ui::FilterMenu *ui;
-    QVector<int> menuValues_m;
-    QButtonGroup *buttonGroup_m;
 };
 
 #endif // FILTERMENU_H

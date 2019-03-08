@@ -59,6 +59,7 @@
 class QString;
 class QMutex;
 class AdjustWorker;
+class QByteArray;
 
 namespace Ui {
 class AdjustMenu;
@@ -93,7 +94,6 @@ public slots:
     void showEvent(QShowEvent *event) override;
 
 signals:
-    void performImageAdjustments(QByteArray);
     void updateDisplayedImage();
     void distributeImageBufferAddresses(const cv::Mat*,cv::Mat*);
     void updateStatus(QString);

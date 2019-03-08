@@ -79,7 +79,7 @@ public slots:
 
 private:
     void performImageAdjustments(float *parameter);
-    QByteArray data;
+    QByteArray data_m;
     QMutex *mutex_m;
     const cv::Mat *masterImage_m;
     cv::Mat *previewImage_m;

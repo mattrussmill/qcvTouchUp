@@ -58,8 +58,7 @@
 #include <QShowEvent>
 #include <QDebug>
 
-//Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
-//QVector appropriately, and establishes all signals/slots necessary for the ui.
+//Constructor initializes all members, installs event filters, and connects necessary signals / slots.
 AdjustMenu::AdjustMenu(QMutex *mutex, QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::AdjustMenu)

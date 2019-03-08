@@ -43,7 +43,8 @@ SOURCES += \
     focusindetectoreventfilter.cpp \
     colorslicemenu.cpp \
     colorselectionwidget.cpp \
-    adjustworker.cpp
+    adjustworker.cpp \
+    filterworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -62,7 +63,8 @@ HEADERS += \
     focusindetectoreventfilter.h \
     colorslicemenu.h \
     colorselectionwidget.h \
-    adjustworker.h
+    adjustworker.h \
+    filterworker.h
 
 FORMS += \
         mainwindow.ui \

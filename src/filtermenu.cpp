@@ -54,18 +54,26 @@
 #include "focusindetectoreventfilter.h"
 #include "filtermenu.h"
 #include "ui_filtermenu.h"
+#include "filterworker.h"
 #include <QScrollArea>
 #include <QVector>
 #include <QPixmap>
 #include <QButtonGroup>
+#include <QByteArray>
+#include <QDebug>
 
-//Constructor installs the MouseWheelEaterFilter for all sliders, resizes the parameter
-//QVector appropriately, sets up the ComboBox(es) and establishes all signals/slots necessary.
-FilterMenu::FilterMenu(QWidget *parent) :
+//Constructor initializes all members, installs event filters, and connects necessary signals / slots.
+FilterMenu::FilterMenu(QMutex *mutex, QWidget *parent) :
     QScrollArea(parent),
     ui(new Ui::FilterMenu)
 {
     ui->setupUi(this);
+    ui->setupUi(this);
+    masterImage_m = nullptr;
+    previewImage_m = nullptr;
+    workerMutex_m = mutex;
+    filterWorker_m = nullptr;
+
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
     FocusInDetectorEventFilter *smoothFocusFilter = new FocusInDetectorEventFilter(this);
     FocusInDetectorEventFilter *sharpenFocusFilter = new FocusInDetectorEventFilter(this);
@@ -121,7 +129,6 @@ FilterMenu::FilterMenu(QWidget *parent) :
     connect(ui->radioButton_EdgeEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     //other initializations
-    menuValues_m.resize(2);
     initializeSliders();
 }
 
@@ -131,10 +138,37 @@ FilterMenu::~FilterMenu()
     delete ui;
 }
 
+/* This slot is used to update the member addresses for the master and preview images stored
+ * in the parent object. If the Mat's become empty in the parent object this slot
+ * should be signaled with nullptrs to signify they are empty. */
+void FilterMenu::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage)
+{
+    masterImage_m = masterImage;
+    previewImage_m = previewImage;
+    qDebug() << "Filter Menu Images:" << masterImage_m << previewImage_m;
+    emit distributeImageBufferAddresses(masterImage, previewImage);
+}
+
+// Enables or disables tracking for the appropriate menu widgets
+void FilterMenu::setMenuTracking(bool enable)
+{
+    ui->horizontalSlider_SmoothWeight->setTracking(enable);
+    ui->horizontalSlider_SharpenWeight->setTracking(enable);
+    ui->horizontalSlider_EdgeWeight->setTracking(enable);
+}
+
 // Function initializes the necessary widget values to their starting values.
 void FilterMenu::initializeSliders()
 {
-    blockSignals(true);
+    ui->radioButton_SmoothEnable->blockSignals(true);
+    ui->radioButton_SharpenEnable->blockSignals(true);
+    ui->radioButton_EdgeEnable->blockSignals(true);
+    ui->horizontalSlider_SmoothWeight->blockSignals(true);
+    ui->horizontalSlider_SharpenWeight->blockSignals(true);
+    ui->horizontalSlider_EdgeWeight->blockSignals(true);
+    ui->comboBox_Smooth->blockSignals(true);
+    ui->comboBox_Sharpen->blockSignals(true);
+    ui->comboBox_Edge->blockSignals(true);
 
     //reinitialize buttons to unchecked
     QAbstractButton *checkedButton = buttonGroup_m->checkedButton();
@@ -149,7 +183,16 @@ void FilterMenu::initializeSliders()
     ui->horizontalSlider_SharpenWeight->setValue(ui->horizontalSlider_SharpenWeight->minimum());
     ui->horizontalSlider_EdgeWeight->setValue(ui->horizontalSlider_EdgeWeight->minimum());
     ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/masterIcons/rgb.png")));
-    blockSignals(false);
+
+    ui->radioButton_SmoothEnable->blockSignals(false);
+    ui->radioButton_SharpenEnable->blockSignals(false);
+    ui->radioButton_EdgeEnable->blockSignals(false);
+    ui->horizontalSlider_SmoothWeight->blockSignals(false);
+    ui->horizontalSlider_SharpenWeight->blockSignals(false);
+    ui->horizontalSlider_EdgeWeight->blockSignals(false);
+    ui->comboBox_Smooth->blockSignals(false);
+    ui->comboBox_Sharpen->blockSignals(false);
+    ui->comboBox_Edge->blockSignals(false);
 }
 
 //Changes the slider range for the SharpenSlider based on the needs of the filter selected from the combo box.
@@ -193,8 +236,9 @@ void FilterMenu::collectBlurParameters()
 
     menuValues_m[KernelType] = ui->comboBox_Smooth->currentIndex();
     menuValues_m[KernelWeight] = ui->horizontalSlider_SmoothWeight->value();
+    menuValues_m[KernelOperation] = SmoothFilter;
 
-    emit performImageBlur(menuValues_m);
+    emit workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
 }
 
 //Populates the menuValues_m parameter and passes it to a worker slot for the Sharpen operation.
@@ -205,8 +249,9 @@ void FilterMenu::collectSharpenParameters()
 
     menuValues_m[KernelType] = ui->comboBox_Sharpen->currentIndex();
     menuValues_m[KernelWeight] = ui->horizontalSlider_SharpenWeight->value();
+    menuValues_m[KernelOperation] = SharpenFilter;
 
-    emit performImageSharpen(menuValues_m);
+    emit workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
 }
 
 //Populates the menuValues_m parameter and passes it to a worker slot for the Edge Detect operation.
@@ -218,8 +263,9 @@ void FilterMenu::collectEdgeDetectParameters()
     //sends values of 1/3/5/7 for opencv functions. Slider ranges from 0 to 3
     menuValues_m[KernelType] = ui->comboBox_Edge->currentIndex();
     menuValues_m[KernelWeight] = ui->horizontalSlider_EdgeWeight->value() * 2 + 1;
+    menuValues_m[KernelOperation] = EdgeFilter;
 
-    emit performImageEdgeDetect(menuValues_m);
+    emit workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
 }
 
 //Sets the sample image based on the menu item selected.
@@ -239,7 +285,63 @@ void FilterMenu::changeSampleImage(bool detected)
 //overloads setVisible to signal the worker thread to cancel any adjustments that weren't applied when minimized
 void FilterMenu::setVisible(bool visible)
 {
-    if(!visible)
-        initializeSliders();
+    manageWorker(visible);
     QWidget::setVisible(visible);
+}
+
+//overloads show event to initialize the visible menu widgets before being seen
+void FilterMenu::showEvent(QShowEvent *event)
+{
+    initializeSliders();
+    QWidget::showEvent(event);
+}
+
+/* This method determines when the worker thread should be created or destroyed so
+ * that the worker thread (with event loop) is only running if it is required (in
+ * this case if the menu is visible). This thread manages the creation, destruction,
+ * connection, and disconnection of the thread and its signals / slots.*/
+void FilterMenu::manageWorker(bool life)
+{
+    if(life)
+    {
+        if(!filterWorker_m)
+        {
+            //If worker is still trying to exit, wait and process other events until its done
+            if(worker_m.isRunning())
+            {
+                QApplication::setOverrideCursor(Qt::WaitCursor);
+                qDebug() << "Waiting for thread to exit";
+                while(!worker_m.isFinished())
+                {
+                    QApplication::processEvents(QEventLoop::AllEvents, 100);
+                }
+                QApplication::restoreOverrideCursor();
+            }
+
+            filterWorker_m = new FilterWorker(masterImage_m, previewImage_m, workerMutex_m);
+            filterWorker_m->moveToThread(&worker_m);
+            //signal slot connections (might be able to do them in constructor?)
+            connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), filterWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+            connect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), filterWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
+            connect(filterWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            connect(filterWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
+            worker_m.start();
+        }
+    }
+    else
+    {
+        //while the worker event loop is running, tell it to delete itself once loop is empty.
+        if(filterWorker_m)
+        {
+            /* All signals to and from the object are automatically disconnected (string based, not functor),
+             * and any pending posted events for the object are removed from the event queue. This is done incase functor signal/slots used later*/
+            disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), filterWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+            disconnect((&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), filterWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*))));
+            disconnect(filterWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            disconnect(filterWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
+            filterWorker_m->deleteLater();
+            filterWorker_m = nullptr;
+            worker_m.quit();
+        }
+    }
 }
