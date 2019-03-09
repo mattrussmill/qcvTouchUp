@@ -130,6 +130,7 @@ void AdjustWorker::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *pr
  * have changed from their default value. Using a QVector forces a copy when passing information*/
 void AdjustWorker::performImageAdjustments(float * parameter)
 {
+    emit updateStatus("Working...");
     if(mutex_m) mutex_m->lock();
     if(masterImage_m == nullptr || previewImage_m == nullptr)
     {
@@ -301,4 +302,5 @@ void AdjustWorker::performImageAdjustments(float * parameter)
 
     //after computation is complete, push image and histogram to GUI if changes were made
     if(mutex_m) mutex_m->unlock();
+    emit updateStatus("");
 }

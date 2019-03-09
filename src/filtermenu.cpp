@@ -85,6 +85,8 @@ FilterMenu::FilterMenu(QMutex *mutex, QWidget *parent) :
     buttonGroup_m->addButton(ui->radioButton_SharpenEnable);
     buttonGroup_m->addButton(ui->radioButton_EdgeEnable);
 
+    initializeSliders();
+
     //setup smooth menu options
     ui->comboBox_Smooth->addItem("Average");    //comboBox index 0 (default)
     ui->comboBox_Smooth->addItem("Gaussian");   //comboBox index 1
@@ -128,13 +130,19 @@ FilterMenu::FilterMenu(QMutex *mutex, QWidget *parent) :
     connect(ui->horizontalSlider_EdgeWeight, SIGNAL(valueChanged(int)), this, SLOT(collectEdgeDetectParameters()));
     connect(ui->radioButton_EdgeEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
-    //other initializations
-    initializeSliders();
 }
 
 // destructor
 FilterMenu::~FilterMenu()
 {
+    //end worker thread once event loop finishes
+    if(filterWorker_m)
+    {
+        worker_m.terminate();
+        worker_m.wait();
+        delete filterWorker_m; //safe? Different way to handle this?
+        filterWorker_m = nullptr;
+    }
     delete ui;
 }
 
@@ -171,11 +179,10 @@ void FilterMenu::initializeSliders()
     ui->comboBox_Edge->blockSignals(true);
 
     //reinitialize buttons to unchecked
-    QAbstractButton *checkedButton = buttonGroup_m->checkedButton();
-    if(checkedButton != nullptr)
+    if(buttonGroup_m->checkedButton() != nullptr)
     {
         buttonGroup_m->setExclusive(false);
-        checkedButton->setChecked(false);
+        buttonGroup_m->checkedButton()->setChecked(false);
         buttonGroup_m->setExclusive(true);
     }
 

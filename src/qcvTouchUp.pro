@@ -44,7 +44,8 @@ SOURCES += \
     colorslicemenu.cpp \
     colorselectionwidget.cpp \
     adjustworker.cpp \
-    filterworker.cpp
+    filterworker.cpp \
+    temperatureworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -64,7 +65,8 @@ HEADERS += \
     colorslicemenu.h \
     colorselectionwidget.h \
     adjustworker.h \
-    filterworker.h
+    filterworker.h \
+    temperatureworker.h
 
 FORMS += \
         mainwindow.ui \

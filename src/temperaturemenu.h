@@ -45,6 +45,13 @@
 #define TEMPERATUREMENU_H
 
 #include <QScrollArea>
+#include <QThread>
+#include <opencv2/core.hpp>
+#include "signalsuppressor.h"
+class QString;
+class QMutex;
+class TemperatureWorker;
+class QByteArray;
 class QButtonGroup;
 
 namespace Ui {
@@ -56,23 +63,39 @@ class TemperatureMenu : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit TemperatureMenu(QWidget *parent = 0);
+    explicit TemperatureMenu(QMutex *mutex, QWidget *parent = 0);
     ~TemperatureMenu();
 
 public slots:
     void initializeMenu();
+    void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
+    void setMenuTracking(bool enable);
     void setVisible(bool visible) override;
+    void showEvent(QShowEvent *event) override;
 
 signals:
-    void performImageAdjustments(int);
+    void updateDisplayedImage();
+    void distributeImageBufferAddresses(const cv::Mat*,cv::Mat*);
+    void updateStatus(QString);
 
-private slots:
-    void moveSliderToButton(bool adjustSlider);
-    void deselectRadioButtonFromSlider();
+protected:
+    const cv::Mat *masterImage_m;
+    cv::Mat *previewImage_m;
+    QMutex *workerMutex_m;
+    QThread worker_m;
+    TemperatureWorker *temperatureWorker_m;
+
+protected slots:
+    void manageWorker(bool life);
 
 private:
     Ui::TemperatureMenu *ui;
     QButtonGroup *buttonGroup_m;
+    SignalSuppressor workSignalSuppressor;
+
+private slots:
+    void moveSliderToButton(bool adjustSlider);
+    void deselectRadioButtonFromSlider();
 };
 
 #endif // TEMPERATUREMENU_H

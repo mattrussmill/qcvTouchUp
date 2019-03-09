@@ -45,7 +45,10 @@
 #define TRANSFORMMENU_H
 
 #include <QScrollArea>
-#include <QVector>
+#include <QThread>
+#include "signalsuppressor.h"
+#include <opencv2/core.hpp>
+class QString;
 class QButtonGroup;
 class QRect;
 
