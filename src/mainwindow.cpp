@@ -81,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 //    connect(imageWorker_m, SIGNAL(resultHistoUpdate()), this, SLOT(updateHistogram()));
 //    connect(imageWorker_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
-    //connect necessary worker thread - adjustmenu / ui slots
+    //connect necessary adjustmenu / ui slots
     connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
     connect(ui->pushButtonApply, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
     connect(adjustMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
@@ -90,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), adjustMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
-    //connect necessary worker thread - filtermenu / ui slots
+    //connect necessary filtermenu / ui slots
     connect(ui->pushButtonCancel, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
     connect(ui->pushButtonApply, SIGNAL(released()), filterMenu_m, SLOT(initializeSliders()));
     connect(filterMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
@@ -99,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), filterMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), filterMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
-    //connect necessary worker thread - temperaturemenu / ui slots
+    //connect necessary temperaturemenu / ui slots
     connect(ui->pushButtonCancel, SIGNAL(released()), temperatureMenu_m, SLOT(initializeSliders()));
     connect(ui->pushButtonApply, SIGNAL(released()), temperatureMenu_m, SLOT(initializeSliders()));
     connect(temperatureMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));

@@ -68,7 +68,6 @@ FilterMenu::FilterMenu(QMutex *mutex, QWidget *parent) :
     ui(new Ui::FilterMenu)
 {
     ui->setupUi(this);
-    ui->setupUi(this);
     masterImage_m = nullptr;
     previewImage_m = nullptr;
     workerMutex_m = mutex;
@@ -140,7 +139,7 @@ FilterMenu::~FilterMenu()
     {
         worker_m.terminate();
         worker_m.wait();
-        delete filterWorker_m; //safe? Different way to handle this?
+        delete filterWorker_m;
         filterWorker_m = nullptr;
     }
     delete ui;
@@ -245,7 +244,7 @@ void FilterMenu::collectBlurParameters()
     menuValues_m[KernelWeight] = ui->horizontalSlider_SmoothWeight->value();
     menuValues_m[KernelOperation] = SmoothFilter;
 
-    emit workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
 }
 
 //Populates the menuValues_m parameter and passes it to a worker slot for the Sharpen operation.
@@ -258,7 +257,7 @@ void FilterMenu::collectSharpenParameters()
     menuValues_m[KernelWeight] = ui->horizontalSlider_SharpenWeight->value();
     menuValues_m[KernelOperation] = SharpenFilter;
 
-    emit workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
 }
 
 //Populates the menuValues_m parameter and passes it to a worker slot for the Edge Detect operation.
@@ -272,7 +271,7 @@ void FilterMenu::collectEdgeDetectParameters()
     menuValues_m[KernelWeight] = ui->horizontalSlider_EdgeWeight->value() * 2 + 1;
     menuValues_m[KernelOperation] = EdgeFilter;
 
-    emit workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
+    workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&menuValues_m), sizeof(int) * 3));
 }
 
 //Sets the sample image based on the menu item selected.

@@ -45,7 +45,8 @@ SOURCES += \
     colorselectionwidget.cpp \
     adjustworker.cpp \
     filterworker.cpp \
-    temperatureworker.cpp
+    temperatureworker.cpp \
+    transformworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -66,7 +67,8 @@ HEADERS += \
     colorselectionwidget.h \
     adjustworker.h \
     filterworker.h \
-    temperatureworker.h
+    temperatureworker.h \
+    transformworker.h
 
 FORMS += \
         mainwindow.ui \

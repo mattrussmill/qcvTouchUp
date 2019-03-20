@@ -51,6 +51,7 @@
 class QString;
 class QButtonGroup;
 class QRect;
+class TransformWorker;
 
 namespace Ui {
 class TransformMenu;
@@ -61,7 +62,7 @@ class TransformMenu : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit TransformMenu(QWidget *parent = 0);
+    explicit TransformMenu(QMutex *mutex, QWidget *parent = 0);
     ~TransformMenu();
     enum ParameterIndex
     {
@@ -71,20 +72,35 @@ public:
     QRect getSizeOfScale() const;
 
 public slots:
-    void initializeMenu();
+    void initializeSliders();
+    void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
+    void setMenuTracking(bool enable);
     void setImageResolution(QRect imageSize);
     void setImageROI(QRect ROI);
     void setVisible(bool visible) override;
+    void showEvent(QShowEvent *event) override;
 
 signals:
+    void updateDisplayedImage();
+    void distributeImageBufferAddresses(const cv::Mat*, cv::Mat*);
+    void updateStatus(QString);
     void enableCropImage(bool); //mainwindow sends ROI to here, when performImageCrop is emitted, then sends the ROI value to worker when apply is selected.
     void performImageCrop(QRect ROI); //if same size as image nothing happens. -> after apply is hit this is released
     void giveImageROI(QRect ROI);
     void setGetCoordinateMode(uint);
     void cancelRoiSelection();
-    void performImageRotate(int);
     void setAutoCropOnRotate(bool);
     void performImageScale(QRect size);
+
+protected:
+    const cv::Mat *masterImage_m;
+    cv::Mat *previewImage_m;
+    QMutex *workerMutex_m;
+    QThread worker_m;
+    TransformWorker *transformWorker_m;
+
+protected slots:
+    void manageWorker(bool life);
 
 private:
     bool boundCheck(const QRect &ROI);
@@ -93,6 +109,7 @@ private:
     QRect imageSize_m;
     QRect croppedROI_m;
     QVector<int> menuValues_m;
+    SignalSuppressor workSignalSuppressor;
 
 private slots:
     void setSelectInImage(bool checked);

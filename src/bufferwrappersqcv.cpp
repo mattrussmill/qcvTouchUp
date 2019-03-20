@@ -49,7 +49,7 @@
 #include <QPixmap>
 #include <QString>
 #include <QDebug>
-#include <opencv2/core/core.hpp>
+#include <opencv2/core.hpp>
 
 namespace qcv
 {

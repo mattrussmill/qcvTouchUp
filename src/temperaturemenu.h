@@ -67,7 +67,7 @@ public:
     ~TemperatureMenu();
 
 public slots:
-    void initializeMenu();
+    void initializeSliders();
     void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
     void setMenuTracking(bool enable);
     void setVisible(bool visible) override;
