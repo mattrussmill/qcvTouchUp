@@ -46,6 +46,7 @@
 
 #include <QScrollArea>
 #include <QThread>
+#include <QVector>
 #include "signalsuppressor.h"
 #include <opencv2/core.hpp>
 class QString;

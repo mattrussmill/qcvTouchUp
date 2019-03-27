@@ -99,7 +99,6 @@ void FilterWorker::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *pr
     qDebug() << "Filter Worker Images:" << masterImage_m << previewImage_m;
 }
 
-///////////////////////////////--- Filter Menu Computations ---///////////////////////////////
 /* Sets the kernel radius for a filter to a maximum of 0.015 times the smallest image dimension.
  * The kernel size is then scaled between 1 and 100% of its maximum size through weightPercent.
  * The result of this function must also always be odd. */

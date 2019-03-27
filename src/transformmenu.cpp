@@ -67,7 +67,7 @@ TransformMenu::TransformMenu(QMutex *mutex, QWidget *parent) :
     masterImage_m = nullptr;
     previewImage_m = nullptr;
     workerMutex_m = mutex;
-    filterWorker_m = nullptr;
+    transformWorker_m = nullptr;
 
     MouseWheelEaterEventFilter *wheelFilter = new MouseWheelEaterEventFilter(this);
     FocusInDetectorEventFilter *cropFocusFilter = new FocusInDetectorEventFilter(this);
@@ -99,7 +99,7 @@ TransformMenu::TransformMenu(QMutex *mutex, QWidget *parent) :
     connect(rotateFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_RotateEnable, SLOT(setChecked(bool)));
     connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), ui->horizontalSlider_Rotate, SLOT(setValue(int)));
     connect(ui->horizontalSlider_Rotate, SIGNAL(valueChanged(int)), ui->spinBox_RotateDegrees, SLOT(setValue(int)));
-    connect(ui->spinBox_RotateDegrees, QSlider::valueChanged, &workSignalSuppressor, SignalSuppressor::receiveNewData);
+    //connect(ui->spinBox_RotateDegrees, QSlider::valueChanged, &workSignalSuppressor, SignalSuppressor::receiveNewData);
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SIGNAL(setAutoCropOnRotate(bool)));
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SLOT(resendImageRotateSignal()));
     connect(ui->radioButton_RotateEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
@@ -121,7 +121,7 @@ TransformMenu::TransformMenu(QMutex *mutex, QWidget *parent) :
     connect(ui->radioButton_ScaleEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
     imageSize_m = QRect(-1, -1, -1, -1);
-    initializeMenu();
+    initializeSliders();
 
     //NOTE: rotate and warp will need silentEnable like in Filter
 }
@@ -133,8 +133,8 @@ TransformMenu::~TransformMenu()
     {
         worker_m.terminate();
         worker_m.wait();
-        delete filterWorker_m;
-        filterWorker_m = nullptr;
+        delete transformWorker_m;
+        transformWorker_m = nullptr;
     }
     delete ui;
 }
@@ -237,7 +237,7 @@ void TransformMenu::initializeSliders()
 void TransformMenu::setImageResolution(QRect imageSize)
 {
     imageSize_m = imageSize;
-    initializeMenu();
+    initializeSliders();
 }
 
 //boundCheck checks that the ROI passed to it is within the image. True if yes, false if out of bounds
@@ -311,7 +311,7 @@ void TransformMenu::setVisible(bool visible)
 }
 
 //overloads show event to initialize the visible menu widgets before being seen
-void FilterMenu::showEvent(QShowEvent *event)
+void TransformMenu::showEvent(QShowEvent *event)
 {
     initializeSliders();
     QWidget::showEvent(event);
@@ -429,7 +429,7 @@ void TransformMenu::changeSampleImage(bool detected)
  * that the worker thread (with event loop) is only running if it is required (in
  * this case if the menu is visible). This thread manages the creation, destruction,
  * connection, and disconnection of the thread and its signals / slots.*/
-void FilterMenu::manageWorker(bool life)
+void TransformMenu::manageWorker(bool life)
 {
     if(life)
     {
@@ -450,11 +450,15 @@ void FilterMenu::manageWorker(bool life)
             transformWorker_m = new TransformWorker(masterImage_m, previewImage_m, workerMutex_m);
             transformWorker_m->moveToThread(&worker_m);
             //signal slot connections (might be able to do them in constructor?)
-            connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), filterWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-            connect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), filterWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
+            connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), transformWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+            connect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
             //other worker signals slots
-            connect(filterWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
-            connect(filterWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
+            connect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            connect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
+            connect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
+            connect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
+            connect(this, SIGNAL(performImageRotate(int)), transformWorker_m, SLOT(doRotateComputation(int)));
+            connect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
             worker_m.start();
         }
     }
@@ -470,8 +474,12 @@ void FilterMenu::manageWorker(bool life)
             //other worker signals slots
             disconnect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
             disconnect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
-            filterWorker_m->deleteLater();
-            filterWorker_m = nullptr;
+            disconnect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
+            disconnect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
+            disconnect(this, SIGNAL(performImageRotate(int)), transformWorker_m, SLOT(doRotateComputation(int)));
+            disconnect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
+            transformWorker_m->deleteLater();
+            transformWorker_m = nullptr;
             worker_m.quit();
         }
     }

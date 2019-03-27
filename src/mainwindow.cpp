@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui->toolMenu->addWidget(filterMenu_m);
     temperatureMenu_m = new TemperatureMenu(&mutex_m, this);
     ui->toolMenu->addWidget(temperatureMenu_m);
-    transformMenu_m = new TransformMenu(this);
+    transformMenu_m = new TransformMenu(&mutex_m, this);
     ui->toolMenu->addWidget(transformMenu_m);
     colorSliceMenu_m = new ColorSliceMenu(this);
     ui->toolMenu->addWidget(colorSliceMenu_m);
@@ -109,15 +109,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), temperatureMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
     //connect necessary worker thread - transformmenu / ui slots
-//    connect(ui->imageWidget, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
-//    connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->imageWidget, SLOT(setRectRegionSelected(QRect)));
-//    connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->imageWidget, SLOT(setRetrieveCoordinateMode(uint)));
-//    connect(transformMenu_m, SIGNAL(cancelRoiSelection()), imageWorker_m, SLOT(doDisplayMasterBuffer()));
-//    connect(transformMenu_m, SIGNAL(performImageCrop(QRect)), imageWorker_m, SLOT(doCropComputation(QRect)));
-//    connect(transformMenu_m, SIGNAL(setAutoCropOnRotate(bool)), imageWorker_m, SLOT(setAutoCropForRotate(bool)));
-//    connect(transformMenu_m, SIGNAL(performImageRotate(int)), imageWorker_m, SLOT(doRotateComputation(int)));
-//    connect(transformMenu_m, SIGNAL(performImageScale(QRect)), imageWorker_m, SLOT(doScaleComputation(QRect)));
-//    connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeMenu()));
+    connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeSliders()));
+    connect(ui->pushButtonApply, SIGNAL(released()), transformMenu_m, SLOT(initializeSliders()));
+    connect(ui->imageWidget, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
+    connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->imageWidget, SLOT(setRectRegionSelected(QRect)));
+    connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->imageWidget, SLOT(setRetrieveCoordinateMode(uint)));
+    connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(initializeSliders()));
+    connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
     //Check if OpenCL acceleration is available. If it is available, enable menu item tracking for all child menues, else disable
     cv::ocl::Context ctx = cv::ocl::Context::getDefault();
