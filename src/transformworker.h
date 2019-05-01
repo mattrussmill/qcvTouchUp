@@ -29,7 +29,6 @@ public slots:
 
 private:
     QMutex *mutex_m;
-    int data_m;
     bool autoCropforRotate_m;
     const cv::Mat *masterImage_m;
     cv::Mat *previewImage_m;

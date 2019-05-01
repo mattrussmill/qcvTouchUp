@@ -41,8 +41,8 @@ SOURCES += \
     transformmenu.cpp \
     signalsuppressor.cpp \
     focusindetectoreventfilter.cpp \
-    colorslicemenu.cpp \
-    colorselectionwidget.cpp \
+    #colorslicemenu.cpp \
+    #colorselectionwidget.cpp \
     adjustworker.cpp \
     filterworker.cpp \
     temperatureworker.cpp \
@@ -63,8 +63,8 @@ HEADERS += \
     transformmenu.h \
     signalsuppressor.h \
     focusindetectoreventfilter.h \
-    colorslicemenu.h \
-    colorselectionwidget.h \
+    #colorslicemenu.h \
+    #colorselectionwidget.h \
     adjustworker.h \
     filterworker.h \
     temperatureworker.h \
@@ -76,9 +76,9 @@ FORMS += \
     adjustmenu.ui \
     filtermenu.ui \
     temperaturemenu.ui \
-    transformmenu.ui \
-    colorslicemenu.ui \
-    colorselectionwidget.ui
+    transformmenu.ui
+    #colorslicemenu.ui \
+    #colorselectionwidget.ui
 
 RESOURCES += \
     resources.qrc

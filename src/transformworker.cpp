@@ -3,6 +3,7 @@
 #include <QString>
 #include <QRect>
 #include <opencv2/imgproc.hpp>
+#include "signalsuppressor.h"
 #include <QDebug>
 
 TransformWorker::TransformWorker(const cv::Mat *masterImage, cv::Mat *previewImage, QMutex *mutex, QObject *parent) : QObject(parent)
@@ -37,13 +38,10 @@ void TransformWorker::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat 
 
 /* This member (slot) recieves the data from the controlling class (slow thread). The data
  * is sent as a pointer to the class itself who's member contains the data. To see how this
- * works see signalsuppressor.h/cpp. The format is tied to the associated menu object. */ //@@@@@@@@@@@@@@
+ * works see signalsuppressor.h/cpp. The format is tied to the associated menu object. */
 void TransformWorker::receiveSuppressedSignal(SignalSuppressor *dataContainer)
 {
-//    data_m = dataContainer->getNewData().toByteArray();
-//    float *parameters = reinterpret_cast<float*>(data_m.data());
-//    performImageAdjustments(parameters);
-//    emit updateDisplayedImage();
+    doRotateComputation(dataContainer->getNewData().toInt());
 }
 
 /* This slot performs a cropping computation on the image. It is passed a ROI, which is assumed
@@ -84,6 +82,8 @@ void TransformWorker::doRotateComputation(int degree)
         qDebug() << "Cannot perform Rotate, image not attached";
         return;
     }
+
+    //@@@@@@@@@@@@@@@@@@@ TRY UMAT SPEEDUP @@@@@@@@@@@@@@@@@
 
     //center of rotation, rotation matrix, and containing size for rotation
     degree *= -1;
@@ -213,7 +213,7 @@ void TransformWorker::doRotateComputation(int degree)
         //Hagrid tells you you're a wizard and you draw/crop this rectangle (good place to visualize rect region if debugging)
         cv::Rect cropRegion(x, y, width, height);
         //cv::rectangle(*dstRGBImage_m, cropRegion, cv::Scalar( 255, 0, 0 ), 3);
-        *previewImage_m = cv::Mat(*previewImage_m, cropRegion);
+        cv::Mat(*previewImage_m, cropRegion).copyTo(*previewImage_m);
     }
 
     //after computation is complete, push image and histogram to GUI if changes were made

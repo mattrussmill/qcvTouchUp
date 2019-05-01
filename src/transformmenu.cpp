@@ -99,7 +99,7 @@ TransformMenu::TransformMenu(QMutex *mutex, QWidget *parent) :
     connect(rotateFocusFilter, SIGNAL(focusDetected(bool)), ui->radioButton_RotateEnable, SLOT(setChecked(bool)));
     connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), ui->horizontalSlider_Rotate, SLOT(setValue(int)));
     connect(ui->horizontalSlider_Rotate, SIGNAL(valueChanged(int)), ui->spinBox_RotateDegrees, SLOT(setValue(int)));
-    //connect(ui->spinBox_RotateDegrees, QSlider::valueChanged, &workSignalSuppressor, SignalSuppressor::receiveNewData);
+    connect(ui->spinBox_RotateDegrees, SIGNAL(valueChanged(int)), this, SLOT(resendImageRotateSignal()));
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SIGNAL(setAutoCropOnRotate(bool)));
     connect(ui->checkBox_rotateAutoCrop, SIGNAL(toggled(bool)), this, SLOT(resendImageRotateSignal()));
     connect(ui->radioButton_RotateEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));

@@ -245,10 +245,10 @@ Item {
             menuid: 3
         }
 
-        ListElement {
+       /* ListElement {
             menuname: "Slice"
             menuid: 4
-        }
+        }*/
 
     } //ListModel
 } //rootMenu

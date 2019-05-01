@@ -50,8 +50,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui->toolMenu->addWidget(temperatureMenu_m);
     transformMenu_m = new TransformMenu(&mutex_m, this);
     ui->toolMenu->addWidget(transformMenu_m);
-    colorSliceMenu_m = new ColorSliceMenu(this);
-    ui->toolMenu->addWidget(colorSliceMenu_m);
+    //colorSliceMenu_m = new ColorSliceMenu(this);
+    //ui->toolMenu->addWidget(colorSliceMenu_m);
 
 
     //connect necessary internal mainwindow/ui slots
@@ -112,8 +112,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeSliders()));
     connect(ui->pushButtonApply, SIGNAL(released()), transformMenu_m, SLOT(initializeSliders()));
     connect(ui->imageWidget, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
+    connect(transformMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
+    connect(transformMenu_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
     connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->imageWidget, SLOT(setRectRegionSelected(QRect)));
     connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->imageWidget, SLOT(setRetrieveCoordinateMode(uint)));
+    connect(this, SIGNAL(setDefaultTracking(bool)), transformMenu_m, SLOT(setMenuTracking(bool)));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
@@ -159,7 +162,7 @@ void MainWindow::updateImageInformation(const QImage *image)
         ui->labelSize->setText("Size:");
         ui->labelType->setText("Type:");
         transformMenu_m->setImageResolution(QRect(-1 , -1, -1, -1));
-        colorSliceMenu_m->setImageReference(nullptr);
+        //colorSliceMenu_m->setImageReference(nullptr);
     }
     else
     {
@@ -167,7 +170,7 @@ void MainWindow::updateImageInformation(const QImage *image)
         ui->labelSize->setText("Size: " + QString::number(image->width())+"x"+QString::number(image->height()));
         ui->labelType->setText("Type: " + qcv::getMatType(qcv::qImageToCvMat(*image)));
         transformMenu_m->setImageResolution(image->rect());
-        colorSliceMenu_m->setImageReference(image);
+        //colorSliceMenu_m->setImageReference(image);
     }
 }
 
