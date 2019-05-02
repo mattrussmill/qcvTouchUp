@@ -33,6 +33,7 @@ private:
     const cv::Mat *masterImage_m;
     cv::Mat *previewImage_m;
     cv::UMat implicitOclImage_m;
+    cv::UMat previewImplicitOclImage_m;
 
 };
 

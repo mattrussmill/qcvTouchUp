@@ -3,6 +3,7 @@
 #include <QString>
 #include <QRect>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/core/ocl.hpp>
 #include "signalsuppressor.h"
 #include <QDebug>
 
@@ -10,6 +11,20 @@ TransformWorker::TransformWorker(const cv::Mat *masterImage, cv::Mat *previewIma
 {
     emit updateStatus("Transform Menu initializing...");
     autoCropforRotate_m = false;
+
+    //OpenCL initialization step to build the OpenCL calls in GPU before the worker is called with an attached image
+    cv::ocl::Context ctx = cv::ocl::Context::getDefault();
+    if (ctx.ptr())
+    {
+        cv::Mat tmpMat(100, 100, CV_8UC3);
+        cv::randu(tmpMat, cv::Scalar(0, 0, 0), cv::Scalar(255, 255, 255));
+
+        mutex_m = nullptr;
+        masterImage_m = &tmpMat;
+        previewImage_m = &tmpMat;
+
+        doRotateComputation(45);
+    }
 
     mutex_m = mutex;
     masterImage_m = masterImage;
@@ -42,6 +57,7 @@ void TransformWorker::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat 
 void TransformWorker::receiveSuppressedSignal(SignalSuppressor *dataContainer)
 {
     doRotateComputation(dataContainer->getNewData().toInt());
+    emit updateDisplayedImage();
 }
 
 /* This slot performs a cropping computation on the image. It is passed a ROI, which is assumed
@@ -83,7 +99,8 @@ void TransformWorker::doRotateComputation(int degree)
         return;
     }
 
-    //@@@@@@@@@@@@@@@@@@@ TRY UMAT SPEEDUP @@@@@@@@@@@@@@@@@
+    //clone necessary because internal checks will prevent GUI image from cycling.
+    masterImage_m->copyTo(implicitOclImage_m);
 
     //center of rotation, rotation matrix, and containing size for rotation
     degree *= -1;
@@ -97,8 +114,8 @@ void TransformWorker::doRotateComputation(int degree)
     rotationMatrix.at<double>(1, 2) += boundingRegion.height / 2.0 - masterImage_m->rows / 2.0;
 
     //perform transform
-    *previewImage_m = cv::Mat(boundingRegion.size(), masterImage_m->type());
-    cv::warpAffine(*masterImage_m, *previewImage_m, rotationMatrix, boundingRegion.size());
+    cv::UMat(boundingRegion.size(), masterImage_m->type()).copyTo(previewImplicitOclImage_m);
+    cv::warpAffine(implicitOclImage_m, previewImplicitOclImage_m, rotationMatrix, boundingRegion.size());
 
     /* crop image so that no black edges due to rotation are showing if not square
      * NOTE: maybe in a later update use the opposite line equations here to calculate the optimal position
@@ -212,13 +229,14 @@ void TransformWorker::doRotateComputation(int degree)
 
         //Hagrid tells you you're a wizard and you draw/crop this rectangle (good place to visualize rect region if debugging)
         cv::Rect cropRegion(x, y, width, height);
-        //cv::rectangle(*dstRGBImage_m, cropRegion, cv::Scalar( 255, 0, 0 ), 3);
-        cv::Mat(*previewImage_m, cropRegion).copyTo(*previewImage_m);
+        //cv::rectangle(previewImplicitOclImage_m, cropRegion, cv::Scalar( 255, 0, 0 ), 3);
+        cv::UMat(previewImplicitOclImage_m, cropRegion).copyTo(previewImplicitOclImage_m);
     }
 
-    //after computation is complete, push image and histogram to GUI if changes were made
+    //after computation is complete, push image
+    previewImplicitOclImage_m.copyTo(*previewImage_m);
+    //qDebug() << &previewImplicitOclImage_m << previewImage_m;
     if(mutex_m) mutex_m->unlock();
-    emit updateDisplayedImage();
     emit updateStatus("");
 }
 
