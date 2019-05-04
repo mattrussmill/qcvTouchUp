@@ -248,6 +248,7 @@ bool MainWindow::loadImageIntoMemory(QString imagePath)
         ui->imageWidget->setImage(&imageWrapper_m); //mutex operation
         userImagePath_m = imagePath;
         emit distributeImageBufferAddresses(&masterRGBImage_m, &previewRGBImage_m);
+        updateImageInformation(&imageWrapper_m);
     }
 
     statusBar()->showMessage("");
@@ -288,6 +289,7 @@ void MainWindow::applyPreviewToMaster()
     masterRGBImage_m = previewRGBImage_m.clone();
     imageWrapper_m = qcv::cvMatToQImage(masterRGBImage_m);
     mutex_m.unlock();
+    updateImageInformation(&imageWrapper_m);
     ui->imageWidget->setImage(&imageWrapper_m);
 }
 
