@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>menu.qml</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file>icons/adjustMenu/gray.png</file>
+        <file>icons/adjustMenu/rgb.png</file>
+        <file>icons/filterMenu/blur.png</file>
+        <file>icons/filterMenu/edge.png</file>
+        <file>icons/filterMenu/sharp.png</file>
+        <file>icons/temperatureMenu/cold.png</file>
+        <file>icons/temperatureMenu/warm.png</file>
+        <file>icons/transformMenu/crop.png</file>
+        <file>icons/transformMenu/rotate.png</file>
+        <file>icons/transformMenu/scale.png</file>
+        <file>icons/masterIcons/rgb.png</file>
+    </qresource>
+</RCC>
