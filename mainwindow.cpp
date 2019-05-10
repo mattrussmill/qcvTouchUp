@@ -9,7 +9,6 @@
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
 #include "histogramwindow.h"
-#include "imageworker.h"
 #include <QWidget>
 #include <QApplication>
 #include <QFileDialog>
@@ -72,14 +71,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->imageWidget, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));
     connect(ui->imageWidget, SIGNAL(droppedImagePath(QString)), this, SLOT(loadImageIntoMemory(QString)));
     connect(ui->imageWidget, SIGNAL(droppedImageError()), this, SLOT(imageOpenOperationFailed()));
-
-    //connect necessary worker thread - mainwindow/ui slots
-//    connect(&workerThread, SIGNAL(started()), this, SLOT(initializeWorkerThreadData()));
-//    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), this, SLOT(updateImageInformation(const QImage*)));
-//    connect(imageWorker_m, SIGNAL(resultImageSet(const QImage*)), ui->imageWidget, SLOT(setImage(const QImage*)));
-//    connect(imageWorker_m, SIGNAL(resultImageUpdate(const QImage*)), ui->imageWidget, SLOT(updateDisplayedImage(const QImage*)));
-//    connect(imageWorker_m, SIGNAL(resultHistoUpdate()), this, SLOT(updateHistogram()));
-//    connect(imageWorker_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
 
     //connect necessary adjustmenu / ui slots
     connect(ui->pushButtonCancel, SIGNAL(released()), adjustMenu_m, SLOT(initializeSliders()));
@@ -179,7 +170,7 @@ void MainWindow::updateImageInformation(const QImage *image)
 void MainWindow::initializeWorkerThreadData()
 {
     //signals the worker to set its histogram dst data for the displayed image to the buffer managed by the ui.
-    imageWorker_m->doSetHistogramDstAddress(const_cast<uint**>(ui->histo->data()));
+    //imageWorker_m->doSetHistogramDstAddress(const_cast<uint**>(ui->histo->data()));
 }
 
 /* Allows the worker thread to override the initialized value of the mainwindow histogram widget and update
@@ -286,7 +277,8 @@ void MainWindow::applyPreviewToMaster()
 {
     while(!mutex_m.tryLock())
         QApplication::processEvents(QEventLoop::AllEvents, 100);
-    masterRGBImage_m = previewRGBImage_m.clone();
+    masterRGBImage_m.release();
+    previewRGBImage_m.copyTo(masterRGBImage_m);
     imageWrapper_m = qcv::cvMatToQImage(masterRGBImage_m);
     mutex_m.unlock();
     updateImageInformation(&imageWrapper_m);

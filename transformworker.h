@@ -20,7 +20,8 @@ signals:
     void updateStatus(QString);
 
 public slots:
-    void receiveSuppressedSignal(SignalSuppressor *dataContainer);
+    void receiveRotateSuppressedSignal(SignalSuppressor *dataContainer);
+    void receiveScaleSuppressedSignal(SignalSuppressor *dataContainer);
     void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
     void doCropComputation(QRect);
     void setAutoCropForRotate(bool);

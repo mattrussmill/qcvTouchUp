@@ -54,7 +54,7 @@ void TransformWorker::receiveImageAddresses(const cv::Mat *masterImage, cv::Mat 
 /* This member (slot) recieves the data from the controlling class (slow thread). The data
  * is sent as a pointer to the class itself who's member contains the data. To see how this
  * works see signalsuppressor.h/cpp. The format is tied to the associated menu object. */
-void TransformWorker::receiveSuppressedSignal(SignalSuppressor *dataContainer)
+void TransformWorker::receiveRotateSuppressedSignal(SignalSuppressor *dataContainer)
 {
     doRotateComputation(dataContainer->getNewData().toInt());
     emit updateDisplayedImage();
@@ -246,7 +246,16 @@ void TransformWorker::setAutoCropForRotate(bool value)
     autoCropforRotate_m = value;
 }
 
-//performs a resize operation using 4x4 interpolation
+/* This member (slot) recieves the data from the controlling class (slow thread). The data
+ * is sent as a pointer to the class itself who's member contains the data. To see how this
+ * works see signalsuppressor.h/cpp. The format is tied to the associated menu object. */
+void TransformWorker::receiveScaleSuppressedSignal(SignalSuppressor *dataContainer)
+{
+    doScaleComputation(dataContainer->getNewData().toRect());
+    emit updateDisplayedImage();
+}
+
+//performs a resize operation using bilinear interpolation
 void TransformWorker::doScaleComputation(QRect newSize)
 {
     emit updateStatus("Working...");
@@ -257,8 +266,7 @@ void TransformWorker::doScaleComputation(QRect newSize)
         qDebug() << "Cannot perform Rotate, image not attached";
         return;
     }
-    cv::resize(*masterImage_m, *previewImage_m, cv::Size(newSize.width(), newSize.height()), 0, 0, cv::INTER_CUBIC);
+    cv::resize(*masterImage_m, *previewImage_m, cv::Size(newSize.width(), newSize.height()), 0, 0, cv::INTER_LINEAR);
     if(mutex_m) mutex_m->unlock();
-    emit updateDisplayedImage();
     emit updateStatus("");
 }

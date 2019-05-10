@@ -95,6 +95,7 @@ private:
 
 private slots:
     void moveSliderToButton(bool adjustSlider);
+    void sendTemperatureValue(int value);
     void deselectRadioButtonFromSlider();
 };
 

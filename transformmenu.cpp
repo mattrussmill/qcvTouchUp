@@ -337,8 +337,7 @@ void TransformMenu::setSelectInImage(bool checked)
 //sends a signal to perform the image rotate operation. Intended to send value again to kick off operation @ toggle event
 void TransformMenu::resendImageRotateSignal()
 {
-    //emit performImageRotate(int); //only operation to use this object in this menu so far
-    workSignalSuppressor.receiveNewData(ui->spinBox_RotateDegrees->value());
+    workRotateSignalSuppressor.receiveNewData(ui->spinBox_RotateDegrees->value());
 }
 
 /* setImageInternalSizeHeight sets the member storing the desired Scaled Image Size according to the new value in
@@ -346,21 +345,17 @@ void TransformMenu::resendImageRotateSignal()
  * aspect ratio of the image. The labels indicating the % the image is scaled are also updated. */
 void TransformMenu::setImageInternalSizeHeight(int height)
 {
-    croppedROI_m.setHeight(height);
+    int width = ui->spinBox_ScaleWidth->value();
     if(ui->checkBox_ScaleLinked->isChecked())
     {
         double ratio = height / static_cast<double>(imageSize_m.height());
-        croppedROI_m.setWidth(round(imageSize_m.width() * ratio));
+        width = round(imageSize_m.width() * ratio);
         ui->spinBox_ScaleWidth->blockSignals(true);
-        ui->spinBox_ScaleWidth->setValue(croppedROI_m.width());
+        ui->spinBox_ScaleWidth->setValue(width);
         ui->spinBox_ScaleWidth->blockSignals(false);
     }
-    else
-    {
-        croppedROI_m.setWidth(ui->spinBox_ScaleWidth->value());
-    }
-    ui->label_RatioWidth->setText(QString::number(croppedROI_m.width() / static_cast<double>(imageSize_m.width()) * 100, 'f', 2) + '%');
-    ui->label_RatioHeight->setText(QString::number(croppedROI_m.height() / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
+    ui->label_RatioWidth->setText(QString::number(width / static_cast<double>(imageSize_m.width()) * 100, 'f', 2) + '%');
+    ui->label_RatioHeight->setText(QString::number(height / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
 }
 
 /* setImageInternalSizeWidth sets the member storing the desired Scaled Image Size according to the new value in
@@ -368,21 +363,17 @@ void TransformMenu::setImageInternalSizeHeight(int height)
  * aspect ratio of the image. The labels indicating the % the image is scaled are also updated. */
 void TransformMenu::setImageInternalSizeWidth(int width)
 {
-    croppedROI_m.setWidth(width);
+    int height = ui->spinBox_ScaleHeight->value();
     if(ui->checkBox_ScaleLinked->isChecked())
     {
         double ratio = width / static_cast<double>(imageSize_m.width());
-        croppedROI_m.setHeight(round(imageSize_m.height() * ratio));
+        height = round(imageSize_m.height() * ratio);
         ui->spinBox_ScaleHeight->blockSignals(true);
-        ui->spinBox_ScaleHeight->setValue(croppedROI_m.height());
+        ui->spinBox_ScaleHeight->setValue(height);
         ui->spinBox_ScaleHeight->blockSignals(false);
     }
-    else
-    {
-        croppedROI_m.setHeight(ui->spinBox_ScaleHeight->value());
-    }
-    ui->label_RatioWidth->setText(QString::number(croppedROI_m.width() / static_cast<double>(imageSize_m.width()) * 100, 'f', 2) + '%');
-    ui->label_RatioHeight->setText(QString::number(croppedROI_m.height() / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
+    ui->label_RatioWidth->setText(QString::number(width / static_cast<double>(imageSize_m.width()) * 100, 'f', 2) + '%');
+    ui->label_RatioHeight->setText(QString::number(height / static_cast<double>(imageSize_m.height()) * 100, 'f', 2) + '%');
 }
 
 /* Emits the values stored in the spinboxes associated with scaling/resizing the image. This should be
@@ -402,12 +393,14 @@ QRect TransformMenu::getSizeOfScale() const
     return croppedROI_m;
 }
 
-/* emits the performImageScale signal. This should only be called from this object when previewing the image. A different
+/* Preloads the Scale signal suppressor. This should only be called from this object when previewing the image. A different
  * trigger will signal the worker thread to perform the final image transformation so it is not doing extra work each
  * time a value is adjusted*/
 void TransformMenu::performImageScalePreview()
 {
-    emit performImageScale(croppedROI_m);
+    workScaleSignalSuppressor.receiveNewData(QRect(0,0, ui->spinBox_ScaleWidth->value(), ui->spinBox_ScaleHeight->value()));
+
+    //emit performImageScale(QRect(0,0, ui->spinBox_ScaleWidth->value(), ui->spinBox_ScaleHeight->value()));
 }
 
 //Sets the sample image based on the menu item selected.
@@ -451,14 +444,15 @@ void TransformMenu::manageWorker(bool life)
             transformWorker_m->moveToThread(&worker_m);
             //signal slot connections (might be able to do them in constructor?)
             connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), transformWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-            connect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
+            connect(&workRotateSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveRotateSuppressedSignal(SignalSuppressor*)));
+            connect(&workScaleSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveScaleSuppressedSignal(SignalSuppressor*)));
             //other worker signals slots
             connect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
             connect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
             connect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
             connect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
             connect(this, SIGNAL(performImageRotate(int)), transformWorker_m, SLOT(doRotateComputation(int)));
-            connect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
+            //connect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
             worker_m.start();
         }
     }
@@ -470,14 +464,15 @@ void TransformMenu::manageWorker(bool life)
             /* All signals to and from the object are automatically disconnected (string based, not functor),
              * and any pending posted events for the object are removed from the event queue. This is done incase functor signal/slots used later*/
             disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), transformWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-            disconnect((&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*))));
+            disconnect(&workRotateSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveRotateSuppressedSignal(SignalSuppressor*)));
+            disconnect(&workScaleSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveScaleSuppressedSignal(SignalSuppressor*)));
             //other worker signals slots
             disconnect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
             disconnect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
             disconnect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
             disconnect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
             disconnect(this, SIGNAL(performImageRotate(int)), transformWorker_m, SLOT(doRotateComputation(int)));
-            disconnect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
+            //disconnect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
             transformWorker_m->deleteLater();
             transformWorker_m = nullptr;
             worker_m.quit();

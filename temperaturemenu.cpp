@@ -89,7 +89,7 @@ TemperatureMenu::TemperatureMenu(QMutex *mutex, QWidget *parent) :
     connect(ui->radioButton_10000K, SIGNAL(clicked(bool)), this, SLOT(moveSliderToButton(bool)));
 
     connect(ui->horizontalSlider_Temperature, SIGNAL(sliderReleased()), this, SLOT(deselectRadioButtonFromSlider()));
-    connect(ui->horizontalSlider_Temperature, QSlider::valueChanged, &workSignalSuppressor, SignalSuppressor::receiveNewData);
+    connect(ui->horizontalSlider_Temperature, SIGNAL(valueChanged(int)), this, SLOT(sendTemperatureValue(int)));
 
     initializeSliders();
 }
@@ -179,6 +179,12 @@ void TemperatureMenu::showEvent(QShowEvent *event)
     QWidget::showEvent(event);
 }
 
+//sends temperature value through signal suppressor
+void TemperatureMenu::sendTemperatureValue(int value)
+{
+    workSignalSuppressor.receiveNewData(value);
+}
+
 /* This method determines when the worker thread should be created or destroyed so
  * that the worker thread (with event loop) is only running if it is required (in
  * this case if the menu is visible). This thread manages the creation, destruction,
@@ -219,7 +225,7 @@ void TemperatureMenu::manageWorker(bool life)
             /* All signals to and from the object are automatically disconnected (string based, not functor),
              * and any pending posted events for the object are removed from the event queue. This is done incase functor signal/slots used later*/
             disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), temperatureWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-            disconnect((&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), temperatureWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*))));
+            disconnect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), temperatureWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
             disconnect(temperatureWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
             disconnect(temperatureWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
             temperatureWorker_m->deleteLater();

@@ -342,7 +342,7 @@ void FilterMenu::manageWorker(bool life)
             /* All signals to and from the object are automatically disconnected (string based, not functor),
              * and any pending posted events for the object are removed from the event queue. This is done incase functor signal/slots used later*/
             disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), filterWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-            disconnect((&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), filterWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*))));
+            disconnect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), filterWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
             disconnect(filterWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
             disconnect(filterWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
             filterWorker_m->deleteLater();

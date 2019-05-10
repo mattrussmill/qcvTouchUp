@@ -32,7 +32,6 @@ SOURCES += \
     quickmenu.cpp \
     histogramwidget.cpp \
     histogramwindow.cpp \
-    imageworker.cpp \
     adjustmenu.cpp \
     mousewheeleatereventfilter.cpp \
     bufferwrappersqcv.cpp \
@@ -54,7 +53,6 @@ HEADERS += \
     quickmenu.h \
     histogramwidget.h \
     histogramwindow.h \
-    imageworker.h \
     adjustmenu.h \
     mousewheeleatereventfilter.h \
     bufferwrappersqcv.h \

@@ -141,7 +141,7 @@ void ImageWidget::setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp)
     scrollArea_m->setHorizontalScrollBarPolicy(sbp);
 }
 
-/* Slot overload of setImage attaches a QImage to be displayed through ImageWidget by pointing to
+/* SetImage attaches a QImage to be displayed through ImageWidget by pointing to
  * the memory location of the QImage. ImageWidget does not manage the attached QImage object.
  * Then setImage sets the image size to fill the ImageWidget container without distortion,
  * initializes the painting member variables (only for cropping at this point), and emits a
@@ -164,7 +164,7 @@ void ImageWidget::setImage(const QImage *image)
     attachedImage_m = image;
     imageLabel_m->setPixmap(QPixmap::fromImage(*image));
     if(mutex_m) mutex_m->unlock();
-    qDebug() << *imageLabel_m->pixmap();
+    qDebug() << *imageLabel_m->pixmap() << image->bytesPerLine();
     zoomFit();
     imageLabel_m->setVisible(true);
     initializePaintMembers();

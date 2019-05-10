@@ -110,7 +110,8 @@ private:
     QRect imageSize_m;
     QRect croppedROI_m;
     QVector<int> menuValues_m;
-    SignalSuppressor workSignalSuppressor;
+    SignalSuppressor workRotateSignalSuppressor;
+    SignalSuppressor workScaleSignalSuppressor;
 
 private slots:
     void setSelectInImage(bool checked);

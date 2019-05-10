@@ -8,7 +8,6 @@
 #include <QDir>
 class QImage;
 class QString;
-class ImageWorker;
 class AdjustMenu;
 class FilterMenu;
 class TemperatureMenu;
@@ -62,8 +61,6 @@ private:
     TemperatureMenu *temperatureMenu_m;
     TransformMenu *transformMenu_m;
     ColorSliceMenu *colorSliceMenu_m;
-
-    ImageWorker *imageWorker_m;
 };
 
 #endif // MAINWINDOW_H

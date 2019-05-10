@@ -343,7 +343,7 @@ void AdjustMenu::manageWorker(bool life)
             /* All signals to and from the object are automatically disconnected (string based, not functor),
              * and any pending posted events for the object are removed from the event queue. This is done incase functor signal/slots used later*/
             disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), adjustWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-            disconnect((&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), adjustWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*))));
+            disconnect(&workSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), adjustWorker_m, SLOT(receiveSuppressedSignal(SignalSuppressor*)));
             disconnect(adjustWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
             disconnect(adjustWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
             adjustWorker_m->deleteLater();
