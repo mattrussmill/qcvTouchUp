@@ -247,7 +247,7 @@ bool TransformMenu::boundCheck(const QRect &ROI)
     ROI.getCoords(&x1, &y1, &x2, &y2);
     if(x1 >= x2 || y1 >= y2)
         return false;
-    else if(x1 < 0 || y1 < 0 || x2 > imageSize_m.width() || y2 > imageSize_m.height())
+    else if(x1 < 0 || y1 < 0 || x2 >= imageSize_m.width() || y2 >= imageSize_m.height())
         return false;
     return true;
 }
@@ -282,12 +282,13 @@ void TransformMenu::setImageInternalROI()
     {
         //extract values from match
         QRect ROI(QPoint(rectTopLeft.captured(1).toInt(), rectTopLeft.captured(2).toInt()),
-                  QPoint(rectBottomRight.captured(1).toInt(), rectBottomRight.captured(2).toInt()));
+                  QPoint(rectBottomRight.captured(1).toInt() - 1, rectBottomRight.captured(2).toInt() - 1));
 
         if(boundCheck(ROI) && boundCheck(ROI))
         {
             ui->label_CropInstruction->setText("Select ROI");
             croppedROI_m = ROI;
+            qDebug() << ROI;
             emit giveImageROI(ROI);
             emit performImageCrop(ROI);
         }
@@ -452,7 +453,6 @@ void TransformMenu::manageWorker(bool life)
             connect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
             connect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
             connect(this, SIGNAL(performImageRotate(int)), transformWorker_m, SLOT(doRotateComputation(int)));
-            //connect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
             worker_m.start();
         }
     }
@@ -472,7 +472,6 @@ void TransformMenu::manageWorker(bool life)
             disconnect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
             disconnect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
             disconnect(this, SIGNAL(performImageRotate(int)), transformWorker_m, SLOT(doRotateComputation(int)));
-            //disconnect(this, SIGNAL(performImageScale(QRect)), transformWorker_m, SLOT(doScaleComputation(QRect)));
             transformWorker_m->deleteLater();
             transformWorker_m = nullptr;
             worker_m.quit();

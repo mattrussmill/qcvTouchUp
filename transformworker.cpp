@@ -266,7 +266,7 @@ void TransformWorker::doScaleComputation(QRect newSize)
         qDebug() << "Cannot perform Rotate, image not attached";
         return;
     }
-    cv::resize(*masterImage_m, *previewImage_m, cv::Size(newSize.width(), newSize.height()), 0, 0, cv::INTER_LINEAR);
+    cv::resize(*masterImage_m, *previewImage_m, cv::Size(newSize.width() - 1, newSize.height() - 1), 0, 0, cv::INTER_LINEAR);
     if(mutex_m) mutex_m->unlock();
     emit updateStatus("");
 }
