@@ -192,8 +192,8 @@ void TransformMenu::initializeSliders()
     {
         //crop
         ui->lineEdit_CropRoiStart->setText("(0, 0)");
-        ui->lineEdit_CropRoiEnd->setText("("+ QString::number(imageSize_m.width()) +", "
-                                         + QString::number(imageSize_m.height()) +")");
+        ui->lineEdit_CropRoiEnd->setText("("+ QString::number(imageSize_m.bottomRight().x()) +", "
+                                         + QString::number(imageSize_m.bottomRight().y()) +")");
 
         //scale
         ui->spinBox_ScaleHeight->setValue(imageSize_m.height());
@@ -234,7 +234,7 @@ void TransformMenu::initializeSliders()
 }
 
 // setImageResolution sets the default image resolution for initializing menu items
-void TransformMenu::setImageResolution(QRect imageSize)
+void TransformMenu::setImageResolution(const QRect &imageSize)
 {
     imageSize_m = imageSize;
     initializeSliders();
@@ -247,15 +247,23 @@ bool TransformMenu::boundCheck(const QRect &ROI)
     ROI.getCoords(&x1, &y1, &x2, &y2);
     if(x1 >= x2 || y1 >= y2)
         return false;
-    else if(x1 < 0 || y1 < 0 || x2 >= imageSize_m.width() || y2 >= imageSize_m.height())
+    else if(x1 < 0 || y1 < 0 || x2 > imageSize_m.bottomRight().x() || y2 > imageSize_m.bottomRight().y())
         return false;
     return true;
 }
 
 /* setImageROI is a public slot that when signaled, sets the menu line edits and stored ROI values
- * from an external source. It is assumed the ROI is correct on arrival and no further checks are made*/
+ * from an external source.*/
 void TransformMenu::setImageROI(QRect ROI)
 {
+    //if out of bounds, fix bounds
+    if(ROI.topLeft().y() < 0) ROI.setTopLeft(QPoint(ROI.topLeft().x(), 0));
+    if(ROI.topLeft().x() < 0) ROI.setTopLeft(QPoint(0, ROI.topLeft().y()));
+    if(ROI.bottomRight().y() > imageSize_m.bottomRight().y()) ROI.setBottomRight(
+                QPoint(ROI.bottomRight().x(), imageSize_m.bottomRight().y()));
+    if(ROI.bottomRight().x() > imageSize_m.bottomRight().x()) ROI.setBottomRight(
+                QPoint(imageSize_m.bottomRight().x(), ROI.bottomRight().y()));
+
     ui->lineEdit_CropRoiStart->setText("("+ QString::number(ROI.topLeft().x()) +", "
                                        + QString::number(ROI.topLeft().y()) +")");
 
@@ -264,6 +272,7 @@ void TransformMenu::setImageROI(QRect ROI)
                                      + QString::number(ROI.bottomRight().y()) +")");
 
     ui->label_CropInstruction->setText("Select ROI");
+
     croppedROI_m = ROI;
     emit performImageCrop(ROI);
 }
@@ -282,7 +291,7 @@ void TransformMenu::setImageInternalROI()
     {
         //extract values from match
         QRect ROI(QPoint(rectTopLeft.captured(1).toInt(), rectTopLeft.captured(2).toInt()),
-                  QPoint(rectBottomRight.captured(1).toInt() - 1, rectBottomRight.captured(2).toInt() - 1));
+                  QPoint(rectBottomRight.captured(1).toInt(), rectBottomRight.captured(2).toInt()));
 
         if(boundCheck(ROI) && boundCheck(ROI))
         {

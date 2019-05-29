@@ -76,7 +76,7 @@ public slots:
     void initializeSliders();
     void receiveImageAddresses(const cv::Mat *masterImage, cv::Mat *previewImage);
     void setMenuTracking(bool enable);
-    void setImageResolution(QRect imageSize);
+    void setImageResolution(const QRect &imageSize);
     void setImageROI(QRect ROI);
     void setVisible(bool visible) override;
     void showEvent(QShowEvent *event) override;

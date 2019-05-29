@@ -21,6 +21,7 @@
 #include <QImage>
 #include <QMutex>
 #include <QRect>
+#include <QAction>
 #include <QStackedWidget>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -60,12 +61,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomActual()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(getImagePath()));
     connect(ui->actionHistogram, SIGNAL(triggered()), this, SLOT(loadHistogramTool()));
+    //connect(ui->action)
 
     //right side tool menu - mainwindow/ui slots
     connect(ui->quickMenu, SIGNAL(menuItemClicked(int)), ui->toolMenu, SLOT(setCurrentIndex(int)));
     connect(ui->toolMenu, SIGNAL(currentChanged(int)), this, SLOT(cancelPreview()));
     connect(ui->pushButtonCancel, SIGNAL(released()), this, SLOT(cancelPreview()));
     connect(ui->pushButtonApply, SIGNAL(released()), this, SLOT(applyPreviewToMaster()));
+    connect(ui->actionAdjust, &QAction::triggered, [=](){ui->toolMenu->setCurrentIndex(0);}); //lambda
+    connect(ui->actionFilter, &QAction::triggered, [=](){ui->toolMenu->setCurrentIndex(1);}); //lambda
+    connect(ui->actionTemperature, &QAction::triggered, [=](){ui->toolMenu->setCurrentIndex(2);}); //lambda
+    connect(ui->actionTransform, &QAction::triggered, [=](){ui->toolMenu->setCurrentIndex(3);}); //lambda
 
     //image widget / area - mainwindow/ui slots
     connect(ui->imageWidget, SIGNAL(imageNull()), this, SLOT(imageOpenOperationFailed()));

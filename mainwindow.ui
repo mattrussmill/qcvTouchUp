@@ -323,11 +323,10 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionZoom_In"/>
-    <addaction name="actionZoom_Out"/>
-    <addaction name="actionZoom_Fit"/>
-    <addaction name="actionZoom_Actual"/>
-    <addaction name="separator"/>
+    <addaction name="actionAdjust"/>
+    <addaction name="actionFilter"/>
+    <addaction name="actionTemperature"/>
+    <addaction name="actionTransform"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -342,6 +341,11 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionZoom_Fit"/>
+    <addaction name="actionZoom_In"/>
+    <addaction name="actionZoom_Out"/>
+    <addaction name="actionZoom_Actual"/>
+    <addaction name="separator"/>
     <addaction name="actionHistogram"/>
    </widget>
    <addaction name="menuFile"/>
@@ -430,6 +434,26 @@
   <action name="actionOpenCV">
    <property name="text">
     <string>OpenCV...</string>
+   </property>
+  </action>
+  <action name="actionAdjust">
+   <property name="text">
+    <string>Adjust...</string>
+   </property>
+  </action>
+  <action name="actionFilter">
+   <property name="text">
+    <string>Filter...</string>
+   </property>
+  </action>
+  <action name="actionTemperature">
+   <property name="text">
+    <string>Temperature...</string>
+   </property>
+  </action>
+  <action name="actionTransform">
+   <property name="text">
+    <string>Transform...</string>
    </property>
   </action>
  </widget>
