@@ -1,14 +1,14 @@
 /***********************************************************************
-* FILENAME :    histogramwindow.h
+* FILENAME :    histogramdata.h
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing
-*       photographs, purposed and packaged for use in a desktop application 
+*       photographs, purposed and packaged for use in a desktop application
 *       user environment. Copyright (C) 2018,  Matthew R. Miller
 *
 *       This program is free software: you can redistribute it and/or modify
-*       it under the terms of the GNU General Public License as published by 
-*       the Free Software Foundation (version 3 of the License) and the 
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
 *       3-clause BSD License as agreed upon through the use of the Qt toolkit
 *       and OpenCV libraries in qcvTouchUp development, respectively. Copies
 *       of the appropriate license files for qcvTouchup, and its source code,
@@ -20,47 +20,43 @@
 *       GNU General Public License for more details.
 *
 *       You should have received a copy of the GNU General Public License and
-*       3-clause BSD License along with this program.  If not, please see 
+*       3-clause BSD License along with this program.  If not, please see
 *       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
-*    
+*
 *       If you wish to contact the developer about this project, please do so
 *       through their account at <https://github.com/mattrussmill>
 *
 * DESCRIPTION :
-*       This widget plots a graph of HistogramWidget in a dialog box.
+*       This object contains the implicitly shared buffer which houses the
+*       histogram data for an image.
 *
 * NOTES :
-*       Associated with histogramwindow.ui
+*       This should only hold/maintain the implicitly shared data structure.
 *
-* AUTHOR :  Matthew R. Miller       START DATE :    Feburary 7, 2018
+* AUTHOR :  Matthew R. Miller       START DATE :    June 6, 2019
 *
 * CHANGES : N/A - N/A
 *
-* VERSION       DATE            WHO                     DETAIL
-* 0.1           02/07/2018      Matthew R. Miller       Initial Rev
+* VERSION       DATE                    WHO                     DETAIL
+* 0.1           June 12, 2019       Matthew R. Miller       Initial Rev
 *
 ************************************************************************/
-#ifndef HISTOGRAMWINDOW_H
-#define HISTOGRAMWINDOW_H
 
-#include <QDialog>
+#ifndef HISTOGRAMDATA_H
+#define HISTOGRAMDATA_H
 
-namespace Ui {
-class HistogramWindow;
-}
+#include <QSharedData>
+#include <QVector>
 
-class HistogramWindow : public QDialog
+class HistogramData : public QSharedData
 {
-    Q_OBJECT
 
 public:
-    HistogramWindow(QWidget *parent = nullptr);
-    HistogramWindow(QImage &image, QWidget *parent = nullptr);
-    ~HistogramWindow();
-    void setHistogramData(QImage &image);
+    HistogramData();
+    HistogramData(const HistogramData &object);
+    ~HistogramData();
 
-private:
-    Ui::HistogramWindow *ui;
+    QVector<uint32_t> histogram;
 };
 
-#endif // HISTOGRAMWINDOW_H
+#endif // HISTOGRAMDATA_H

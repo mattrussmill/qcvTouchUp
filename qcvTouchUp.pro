@@ -26,6 +26,8 @@ DEFINES += QT_OPENCV
 
 # These files are the QT source code and resources for qcvTouchUp
 SOURCES += \
+    histogramdata.cpp \
+    histogramobject.cpp \
         main.cpp \
         mainwindow.cpp \
     imagewidget.cpp \
@@ -48,6 +50,8 @@ SOURCES += \
     transformworker.cpp
 
 HEADERS += \
+    histogramdata.h \
+    histogramobject.h \
         mainwindow.h \
     imagewidget.h \
     quickmenu.h \

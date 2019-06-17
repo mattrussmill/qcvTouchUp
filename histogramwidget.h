@@ -69,11 +69,8 @@ public:
     void setChannelColor(QColor color, HistogramChannel channel);
     void setBackgroundColor(QColor color);
     void clear();
-    static void clear(uint **histogram, int numberOfChannels);
-    static void copy(const uint **source, uint **destination, int numberOfChannels = 3);
     void setLineWidth(float lineWidth = 2.5);
     void setClickable(bool click);
-    void setInitialized(bool initialize);
     bool isInitialized() const;
     bool isClickable() const;
     uint getLargestPeak() const;

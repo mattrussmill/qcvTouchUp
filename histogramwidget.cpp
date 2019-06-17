@@ -111,36 +111,11 @@ void HistogramWidget::clear()
     this->update();
 }
 
-/* An overload of clear() that clears the buffer directly passed to it by writing zeros.
- * The buffer is not checked for the correct size, use caution. */
-void HistogramWidget::clear(uint **histogram, int numberOfChannels)
-{
-    if (!histogram || numberOfChannels < 1) return;
-    for(int i = 0; i < numberOfChannels; i++)
-        memset(histogram[i], 0, HISTO_SIZE * sizeof(uint));
-}
-
-/* Copies one histogram buffer into another, including all channels. Function does not check
- * for the correct buffer size of either histogra buffer, use caution */
-void HistogramWidget::copy(const uint **source, uint **destination, int numberOfChannels)
-{
-    if (!destination || numberOfChannels < 1) return;
-    for(int i = 0; i < numberOfChannels; i++)
-        memcpy(destination[i], source[i], HISTO_SIZE * sizeof(uint));
-}
-
 // Sets the pen with of the histogram plot
 void HistogramWidget::setLineWidth(float lineWidth)
 {
     if(lineWidth > 0)
         penWidth_m = lineWidth;
-}
-
-/* Overrides the initialized state of the widget. This is useful if the internal buffer
- * is being externally managed. Remember this is reset to false on a clear event*/
-void HistogramWidget::setInitialized(bool initialize)
-{
-    initialized_m = initialize;
 }
 
 // Sets the widget to respond to moust clicks or not
@@ -304,7 +279,6 @@ void HistogramWidget::setHistogramData(const QImage &image)
                 histogram_m[Red][tmp.red()]++;
                 histogram_m[Green][tmp.green()]++;
                 histogram_m[Blue][tmp.blue()]++;
-
             }
             QApplication::processEvents();
         }
