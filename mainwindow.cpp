@@ -183,8 +183,8 @@ void MainWindow::initializeWorkerThreadData()
  * what is displayed, forcing a repaint of the widget contents*/
 void MainWindow::updateHistogram()
 {
-    ui->histo->setInitialized(true);
-    ui->histo->update();
+    //ui->histo->setInitialized(true);
+   //ui->histo->update();
 }
 
 /* Creates a dialog box listing supported file types by OpenCV and a file dialog window. If the open dialog
