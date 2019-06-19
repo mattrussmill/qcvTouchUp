@@ -44,19 +44,20 @@
 #include <QImage>
 #include "histogramdata.h"
 #include <QDebug>
+#include <algorithm>
 
 /* default constructor, creates Histogram Data */
-HistogramObject::HistogramObject() : data_m(new HistogramData) {}
+HistogramObject::HistogramObject(QObject *parent) : QObject(parent), data_m(new HistogramData) {}
 
 /* constructor fills newly created histogram data from image and emits the signal declaring successful. */
-HistogramObject::HistogramObject(const QImage &image) : data_m(new HistogramData)
+HistogramObject::HistogramObject(const QImage &image, QObject *parent) : QObject(parent), data_m(new HistogramData)
 {
     if (update(image))
         emit updated();
 }
 
 /* constructor that passes the shared data ptr to the shared data object */
-HistogramObject::HistogramObject(const HistogramObject &hobj) : data_m(hobj.data_m) {}
+HistogramObject::HistogramObject(const HistogramObject &hobj, QObject *parent) : QObject(parent), data_m(hobj.data_m) {}
 
 /* default destructor */
 HistogramObject::~HistogramObject() {}
@@ -90,6 +91,14 @@ int HistogramObject::getNumChannels()
     return data_m->histogram.size() % 256;
 }
 
+// returns the largest value stored in the histogram
+uint32_t HistogramObject::getLargest()
+{
+    return *std::max_element(data_m->histogram.constBegin(), data_m->histogram.constEnd());
+}
+
+
+//generates the histogram of the passed image based on the image format
 bool HistogramObject::update(const QImage &image)
 {
     int size;

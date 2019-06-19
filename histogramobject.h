@@ -54,14 +54,15 @@ class HistogramObject : public QObject
     Q_OBJECT
 
 public:
-    HistogramObject();
-    HistogramObject(const QImage &image);
-    HistogramObject(const HistogramObject &hobj);
+    HistogramObject(QObject *parent = nullptr);
+    HistogramObject(const QImage &image, QObject *parent = nullptr);
+    HistogramObject(const HistogramObject &hobj, QObject *parent = nullptr);
     ~HistogramObject();
     HistogramObject clone();
     uint32_t operator[](int index);
     int getIndex(int channel, int pixelIntensity);
     int getNumChannels();
+    uint32_t getLargest();
 
 public slots:
     bool update(const QImage &image);

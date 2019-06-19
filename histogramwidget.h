@@ -53,6 +53,7 @@
 
 #include <QWidget>
 #include <QVector>
+#include "histogramobject.h"
 class QImage;
 class QColor;
 
@@ -66,25 +67,16 @@ public:
     enum HistogramChannel{Red = 0, Green = 1, Blue = 2};
     explicit HistogramWidget(QWidget *parent = nullptr);
     ~HistogramWidget();
-    void setChannelColor(QColor color, HistogramChannel channel);
+    void setChannelColor(QColor color, uint channel);
     void setBackgroundColor(QColor color);
     void clear();
     void setLineWidth(float lineWidth = 2.5);
     void setClickable(bool click);
-    bool isInitialized() const;
-    bool isClickable() const;
-    uint getLargestPeak() const;
-    int getNumberOfChannels() const;
-    uint** data() const;
-    void setNumberOfChannels(int numberOfChannels);
-    static void generateHistogram(QImage &image, uint** histogram, int numberOfChannels = 3);
-
-
-signals:
-    void finished();
+    bool isInitialized();
+    bool isClickable();
+    int getNumberOfChannels();
 
 public slots:
-    void setHistogramData(const uint **data, int numberOfChannels);
     void setHistogramData(const QImage &image);
 
 
@@ -93,14 +85,11 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
 
 private:
+    HistogramObject histogram_m;
     void calculatePoints();
-    uint **histogram_m;
-    QVector<QVector<QLineF>> points_m;
     QVector<QColor> colors_m = {QColor(Qt::red), QColor(Qt::green), QColor(Qt::blue)};
     QColor backgroundColor_m;
-    uint largestPeak_m;
     int clickState_m = 0;
-    int channels_m = 3;
     float penWidth_m = 2.5;
     bool initialized_m = false;
     bool clickable_m = false;
