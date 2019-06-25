@@ -75,28 +75,6 @@
          <number>2</number>
         </property>
         <item>
-         <widget class="HistogramWidget" name="histo" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>275</width>
-            <height>100</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>275</width>
-            <height>100</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QuickMenu" name="quickMenu" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -345,8 +323,6 @@
     <addaction name="actionZoom_In"/>
     <addaction name="actionZoom_Out"/>
     <addaction name="actionZoom_Actual"/>
-    <addaction name="separator"/>
-    <addaction name="actionHistogram"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -469,12 +445,6 @@
    <class>QuickMenu</class>
    <extends>QWidget</extends>
    <header location="global">quickmenu.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>HistogramWidget</class>
-   <extends>QWidget</extends>
-   <header>histogramwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -39,9 +39,7 @@ private slots:
     void imageOpenOperationFailed();
     void updateImageInformation(const QImage *image);
     void initializeWorkerThreadData();
-    void updateHistogram();
     void getImagePath();
-    void loadHistogramTool();
     void cancelPreview();
     void applyPreviewToMaster();
     void displayPreview();

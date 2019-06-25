@@ -8,7 +8,6 @@
 #include "colorslicemenu.h"
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
-#include "histogramwindow.h"
 #include <QWidget>
 #include <QApplication>
 #include <QFileDialog>
@@ -179,14 +178,6 @@ void MainWindow::initializeWorkerThreadData()
     //imageWorker_m->doSetHistogramDstAddress(const_cast<uint**>(ui->histo->data()));
 }
 
-/* Allows the worker thread to override the initialized value of the mainwindow histogram widget and update
- * what is displayed, forcing a repaint of the widget contents*/
-void MainWindow::updateHistogram()
-{
-    //ui->histo->setInitialized(true);
-   //ui->histo->update();
-}
-
 /* Creates a dialog box listing supported file types by OpenCV and a file dialog window. If the open dialog
  * box is closed, the function exits. If the dialog box has a path that is not NULL the absolute path is
  * passed to the image loading function to open the image.*/
@@ -251,18 +242,6 @@ bool MainWindow::loadImageIntoMemory(QString imagePath)
     statusBar()->showMessage("");
     ui->imageWidget->setFocus();
     return returnSuccess;
-}
-
-// Displays a histogram window with x and y axis plot when triggered.
-void MainWindow::loadHistogramTool()
-{
-    statusBar()->showMessage("Histogram...");
-    mutex_m.lock();
-    QImage *currentImage = const_cast<QImage*>(ui->imageWidget->displayedImage());
-    HistogramWindow *histogramWindow = new HistogramWindow(*currentImage, this);
-    mutex_m.unlock();
-    histogramWindow->exec();
-    statusBar()->showMessage("");
 }
 
 /* This slot cancels the image operations by wrapping the Mat in a Qimage and setting the imagewidget
