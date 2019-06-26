@@ -92,6 +92,7 @@ signals:
     void cancelRoiSelection();
     void setAutoCropOnRotate(bool);
     void performImageScale(QRect size);
+    void displayMaster();
 
 protected:
     const cv::Mat *masterImage_m;

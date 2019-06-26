@@ -34,6 +34,7 @@ SOURCES += \
     mousewheeleatereventfilter.cpp \
     bufferwrappersqcv.cpp \
     filtermenu.cpp \
+    savedialog.cpp \
     temperaturemenu.cpp \
     transformmenu.cpp \
     signalsuppressor.cpp \
@@ -53,6 +54,7 @@ HEADERS += \
     mousewheeleatereventfilter.h \
     bufferwrappersqcv.h \
     filtermenu.h \
+    savedialog.h \
     temperaturemenu.h \
     transformmenu.h \
     signalsuppressor.h \
@@ -66,7 +68,6 @@ HEADERS += \
 
 FORMS += \
         mainwindow.ui \
-    histogramwindow.ui \
     adjustmenu.ui \
     filtermenu.ui \
     temperaturemenu.ui \

@@ -5,7 +5,7 @@
 #include "filtermenu.h"
 #include "temperaturemenu.h"
 #include "transformmenu.h"
-#include "colorslicemenu.h"
+//#include "colorslicemenu.h"
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
 #include <QWidget>
@@ -13,15 +13,10 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QFileInfo>
-#include <QThread>
 #include <QDebug>
 #include <QDir>
 #include <QString>
 #include <QImage>
-#include <QMutex>
-#include <QRect>
-#include <QAction>
-#include <QStackedWidget>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/ocl.hpp>
@@ -112,6 +107,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(transformMenu_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
     connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->imageWidget, SLOT(setRectRegionSelected(QRect)));
     connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->imageWidget, SLOT(setRetrieveCoordinateMode(uint)));
+    connect(transformMenu_m, SIGNAL(displayMaster()), this, SLOT(cancelPreview()));
     connect(this, SIGNAL(setDefaultTracking(bool)), transformMenu_m, SLOT(setMenuTracking(bool)));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
@@ -131,10 +127,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow()
 {
-    //end worker thread once event loop finishes
-    workerThread.quit();
-    workerThread.wait();
-
     //delete heap data not a child of mainwindow
     delete ui;
 }

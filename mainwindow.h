@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <opencv2/core.hpp>
-#include <QThread>
 #include <QMutex>
 #include <QDir>
 class QImage;
@@ -12,7 +11,7 @@ class AdjustMenu;
 class FilterMenu;
 class TemperatureMenu;
 class TransformMenu;
-class ColorSliceMenu;
+//class ColorSliceMenu;
 
 namespace Ui {
 class MainWindow;
@@ -21,7 +20,6 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    QThread workerThread; //get rid of this
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -58,7 +56,7 @@ private:
     FilterMenu *filterMenu_m;
     TemperatureMenu *temperatureMenu_m;
     TransformMenu *transformMenu_m;
-    ColorSliceMenu *colorSliceMenu_m;
+    //ColorSliceMenu *colorSliceMenu_m;
 };
 
 #endif // MAINWINDOW_H

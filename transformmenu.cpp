@@ -413,9 +413,10 @@ void TransformMenu::performImageScalePreview()
     //emit performImageScale(QRect(0,0, ui->spinBox_ScaleWidth->value(), ui->spinBox_ScaleHeight->value()));
 }
 
-//Sets the sample image based on the menu item selected.
+//Sets the sample image based on the menu item selected, and signals the displaying object to reset the image shown.
 void TransformMenu::changeSampleImage(bool detected)
 {
+    //check so only enabled button is called
     if(detected)
     {
         if(ui->radioButton_CropEnable->isChecked())
@@ -424,8 +425,8 @@ void TransformMenu::changeSampleImage(bool detected)
             ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/transformMenu/scale.png")));
         else if(ui->radioButton_RotateEnable->isChecked())
             ui->label_SampleImage->setPixmap(QPixmap::fromImage(QImage(":/img/icons/transformMenu/rotate.png")));
+        emit displayMaster();
     }
-
 }
 
 /* This method determines when the worker thread should be created or destroyed so
