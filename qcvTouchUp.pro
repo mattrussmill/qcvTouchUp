@@ -27,6 +27,9 @@ DEFINES += QT_OPENCV
 # These files are the QT source code and resources for qcvTouchUp
 SOURCES += \
     imagesavedialog.cpp \
+    imagesavejpegmenu.cpp \
+    imagesavepngmenu.cpp \
+    imagesavewebpmenu.cpp \
         main.cpp \
         mainwindow.cpp \
     imagewidget.cpp \
@@ -48,6 +51,9 @@ SOURCES += \
 
 HEADERS += \
     imagesavedialog.h \
+    imagesavejpegmenu.h \
+    imagesavepngmenu.h \
+    imagesavewebpmenu.h \
         mainwindow.h \
     imagewidget.h \
     quickmenu.h \
@@ -67,6 +73,9 @@ HEADERS += \
     transformworker.h
 
 FORMS += \
+    imagesavejpegmenu.ui \
+    imagesavepngmenu.ui \
+    imagesavewebpmenu.ui \
         mainwindow.ui \
     adjustmenu.ui \
     filtermenu.ui \
