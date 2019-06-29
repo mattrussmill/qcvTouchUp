@@ -8,6 +8,7 @@
 //#include "colorslicemenu.h"
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
+#include "imagesavedialog.h"
 #include <QWidget>
 #include <QApplication>
 #include <QFileDialog>
@@ -21,7 +22,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/ocl.hpp>
 
-
+#include <QHBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -54,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->actionZoom_Fit, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomFit()));
     connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomActual()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(getImagePath()));
-    connect(ui->actionHistogram, SIGNAL(triggered()), this, SLOT(loadHistogramTool()));
+    connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(saveImageAs()));
     //connect(ui->action)
 
     //right side tool menu - mainwindow/ui slots
@@ -176,11 +177,16 @@ void MainWindow::initializeWorkerThreadData()
 void MainWindow::getImagePath()
 {
     QDir imagePath;
-    imagePath.setPath(QFileDialog::getOpenFileName(this, "Select an Image", userImagePath_m.absolutePath(), //use a tmp image path first
-                          "All Files (*);;Bitmap (*.bmp *.dib);;JPEG(*.jpeg *.jpg *.jpe);;"
-                          "JPEG 2000 (*.jp2);;OpenEXR (*.exr);;PIF (*.pbm *.pgm *.pnm *.ppm *.pxm);;"
-                          "PNG (*.png);;Radiance HDR (*.hdr *.pic);;Sun Raster (*.sr *.ras);;"
-                          "TIFF (*.tiff *.tif);;WebP (*.webp)"));
+    QFileDialog openFileDialog(this, "Select an Image", userImagePath_m.absolutePath(),
+                               "All Files (*);;Bitmap (*.bmp *.dib);;JPEG(*.jpeg *.jpg *.jpe);;"
+                               "JPEG 2000 (*.jp2);;OpenEXR (*.exr);;PIF (*.pbm *.pgm *.pnm *.ppm *.pxm);;"
+                               "PNG (*.png);;Radiance HDR (*.hdr *.pic);;Sun Raster (*.sr *.ras);;"
+                               "TIFF (*.tiff *.tif);;WebP (*.webp)");
+    openFileDialog.setOption(QFileDialog::DontUseNativeDialog);
+    openFileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    openFileDialog.exec();
+
+    imagePath = openFileDialog.directory(); //this needs fixed now @@@@@
 
     if(imagePath.absolutePath().isNull()) return;
     loadImageIntoMemory(imagePath.absolutePath());
@@ -270,4 +276,26 @@ void MainWindow::displayPreview()
     imageWrapper_m = qcv::cvMatToQImage(previewRGBImage_m);
     mutex_m.unlock();
     ui->imageWidget->setImage(&imageWrapper_m);
+}
+
+//@@
+void MainWindow::saveImageAs()
+{
+    qDebug() << userImagePath_m.absolutePath();
+    if(masterRGBImage_m.empty())
+    {
+        //no image open dialog
+    }
+    else {
+
+        while(!mutex_m.tryLock())
+            QApplication::processEvents(QEventLoop::AllEvents, 100);
+
+        statusBar()->showMessage("Saving...");
+        imageWrapper_m = qcv::cvMatToQImage(previewRGBImage_m);
+        ImageSaveDialog saveDialog(imageWrapper_m, this, "Save As", userImagePath_m.absolutePath());
+        saveDialog.exec();
+        mutex_m.unlock();
+        statusBar()->showMessage("");
+    }
 }

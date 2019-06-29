@@ -41,6 +41,7 @@ private slots:
     void cancelPreview();
     void applyPreviewToMaster();
     void displayPreview();
+    void saveImageAs();
     bool loadImageIntoMemory(QString imagePath);
 
 private:
