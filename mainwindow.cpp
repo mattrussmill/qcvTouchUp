@@ -282,20 +282,14 @@ void MainWindow::displayPreview()
 void MainWindow::saveImageAs()
 {
     qDebug() << userImagePath_m.absolutePath();
-    if(masterRGBImage_m.empty())
-    {
-        //no image open dialog
-    }
-    else {
 
-        while(!mutex_m.tryLock())
-            QApplication::processEvents(QEventLoop::AllEvents, 100);
+    while(!mutex_m.tryLock())
+        QApplication::processEvents(QEventLoop::AllEvents, 100);
 
-        statusBar()->showMessage("Saving...");
-        imageWrapper_m = qcv::cvMatToQImage(previewRGBImage_m);
-        ImageSaveDialog saveDialog(imageWrapper_m, this, "Save As", userImagePath_m.absolutePath());
-        saveDialog.exec();
-        mutex_m.unlock();
-        statusBar()->showMessage("");
-    }
+    statusBar()->showMessage("Saving...");
+    imageWrapper_m = qcv::cvMatToQImage(previewRGBImage_m);
+    ImageSaveDialog saveDialog(imageWrapper_m, this, "Save As", userImagePath_m.absolutePath());
+    saveDialog.exec();
+    mutex_m.unlock();
+    statusBar()->showMessage("");
 }

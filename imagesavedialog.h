@@ -2,7 +2,8 @@
 #define IMAGESAVEDIALOG_H
 
 #include <QFileDialog>
-class QStackedLayout;
+class QStackedWidget;
+class QPushButton;
 class ImageSaveJpegMenu;
 class ImageSavePngMenu;
 class ImageSaveWebpMenu;
@@ -21,13 +22,18 @@ protected:
     void saveBitmap(QImage &image);
     void savePNG(QImage &image);
 
+private slots:
+    void advancedOptionsToggled();
+
 private:
     enum ImageType{JPEG, PNG, WEBP};
     void appendImageOptionsWidget();
-    QStackedLayout *saveOptionsLayout_m;
-    ImageSaveJpegMenu *jpegMenu_m;
-    ImageSavePngMenu *pngMenu_m;
-    ImageSaveWebpMenu *webpMenu_m;
+    void appendAdvancedOptionsButton();
+    QPushButton *buttonAdvancedOptions_m = nullptr;
+    QStackedWidget *saveOptionsWidget_m = nullptr;
+    ImageSaveJpegMenu *jpegMenu_m = nullptr;
+    ImageSavePngMenu *pngMenu_m = nullptr;
+    ImageSaveWebpMenu *webpMenu_m = nullptr;
 
 };
 

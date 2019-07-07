@@ -292,7 +292,6 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
-    <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="separator"/>
     <addaction name="actionClear"/>
