@@ -107,7 +107,11 @@ void ImageSaveDialog::appendImageOptionsWidget()
     {
         saveOptionsWidget_m = new QStackedWidget(this); //do not put in initialization list
         jpegMenu_m = new ImageSaveJpegMenu(this);
+        pngMenu_m = new ImageSavePngMenu(this);
+        webpMenu_m = new ImageSaveWebpMenu(this);
         saveOptionsWidget_m->addWidget(jpegMenu_m);
+        saveOptionsWidget_m->addWidget(pngMenu_m);
+        saveOptionsWidget_m->addWidget(webpMenu_m);
         int rows = mainLayout->rowCount();
         qDebug() << "save dialog g-layout rows: " << rows;
         mainLayout->addWidget(saveOptionsWidget_m, rows, 0, 1, -1);
