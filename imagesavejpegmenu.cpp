@@ -47,6 +47,7 @@
 #include "ui_imagesavejpegmenu.h"
 #include "mousewheeleatereventfilter.h"
 
+//constructor installs event filter to disable scroll wheel, sets initial states, and connects signals / slots
 ImageSaveJpegMenu::ImageSaveJpegMenu(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ImageSaveJpegMenu)
@@ -86,6 +87,7 @@ ImageSaveJpegMenu::ImageSaveJpegMenu(QWidget *parent) :
     connect(ui->checkBox_EnableLuma, SIGNAL(toggled(bool)), ui->spinBox_Luma, SLOT(setEnabled(bool)));
 }
 
+//default destructor
 ImageSaveJpegMenu::~ImageSaveJpegMenu()
 {
     delete ui;
