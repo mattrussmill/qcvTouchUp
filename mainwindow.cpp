@@ -287,8 +287,14 @@ void MainWindow::saveImageAs()
         QApplication::processEvents(QEventLoop::AllEvents, 100);
 
     statusBar()->showMessage("Saving...");
-    imageWrapper_m = qcv::cvMatToQImage(previewRGBImage_m);
-    ImageSaveDialog saveDialog(imageWrapper_m, this, "Save As", userImagePath_m.absolutePath());
+
+    //first change back to OpenCV color space, save in preview, and display master (user must hit apply before saving)
+    imageWrapper_m = qcv::cvMatToQImage(masterRGBImage_m);
+    updateImageInformation(&imageWrapper_m);
+    cv::cvtColor(masterRGBImage_m, previewRGBImage_m, cv::COLOR_RGB2BGR);
+
+    //launch the save dialog with the correct BGR image format in the preview
+    ImageSaveDialog saveDialog(previewRGBImage_m, this, "Save As", userImagePath_m.absolutePath());
     saveDialog.exec();
     mutex_m.unlock();
     statusBar()->showMessage("");

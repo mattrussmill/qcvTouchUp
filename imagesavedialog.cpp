@@ -5,26 +5,20 @@
 #include <QStackedWidget>
 #include <QGridLayout>
 #include <QPushButton>
+#include <QVector>
+#include <QString>
+#include <QMessageBox>
 #include <QDebug>
-#include <opencv2/imgcodecs.hpp>
 
-ImageSaveDialog::ImageSaveDialog(QImage &image, QWidget *parent)
-    : QFileDialog(parent)
-{
-    setOption(QFileDialog::DontUseNativeDialog);
-    setAcceptMode(QFileDialog::AcceptSave);
-    setNameFilter("JPEG(*.jpeg *.jpg *.jpe);;PNG (*.png);;WebP (*.webp);;All Files (*)");
-    appendAdvancedOptionsButton();
-
-}
-
-ImageSaveDialog::ImageSaveDialog(QImage &image, QWidget *parent, const QString &caption, const QString &directory)
-    : QFileDialog (parent, caption, directory, "JPEG(*.jpeg *.jpg *.jpe);;PNG (*.png);;WebP (*.webp);;All Files (*)")
+ImageSaveDialog::ImageSaveDialog(cv::Mat &image, QWidget *parent, const QString &caption, const QString &directory)
+    : QFileDialog (parent, caption, directory, "JPEG(*.jpeg *.jpg *.jpe);;PNG (*.png);;WebP (*.webp);;All Files (*)"),
+      image_m(&image)
 {
     //must set to not use native dialog so that we can access the dialog's layout
     setOption(QFileDialog::DontUseNativeDialog);
     setAcceptMode(QFileDialog::AcceptSave);
     appendAdvancedOptionsButton();
+    connect(this, SIGNAL(accepted()), this, SLOT(saveAccepted()));
 }
 
 ImageSaveDialog::~ImageSaveDialog()
@@ -32,20 +26,59 @@ ImageSaveDialog::~ImageSaveDialog()
 
 }
 
-void ImageSaveDialog::saveJPEG(QImage &image)
+void ImageSaveDialog::saveJPEG(QString &filePath)
 {
     //https://docs.opencv.org/3.1.0/d4/da8/group__imgcodecs.html
     //qiality // set default 95
 }
 
-void ImageSaveDialog::savePNG(QImage &image)
+void ImageSaveDialog::savePNG(QString &filePath)
 {
     //compression level // set default 3
 }
 
-void ImageSaveDialog::saveBitmap(QImage &image)
+/* method saves the file as a webp image according to OpenCV 3.3.2, using the
+ * parameters from webpMenu - default if not specified.*/
+void ImageSaveDialog::saveWebP(QString &filePath)
 {
+    /* if menu was not able to be appended to the dialog (and thus not added)
+     * create it to acquire its default values */
+    if(!webpMenu_m)
+    {
+        webpMenu_m = new ImageSaveWebpMenu(this);
+        webpMenu_m->setVisible(false);
+    }
+    QVector<int> saveParameters;
+    saveParameters.append(cv::IMWRITE_WEBP_QUALITY);
+    saveParameters.append(webpMenu_m->getQuality());
 
+    //catch exeception and display so doesnt crash - add regex later
+    try {
+        cv::imwrite(filePath.toStdString(), *image_m, saveParameters.toStdVector());
+    } catch (cv::Exception e) {
+        QMessageBox::warning(this, "Error", QString::fromStdString(e.msg));
+    }
+}
+
+/* the saveAccepted slot retreives the specified file path to save the file from the QFileDialog
+ * based on the index from the specified name filter and calls the appropriate save method based
+ * on the desired format. */
+void ImageSaveDialog::saveAccepted()
+{
+    QString filePath = selectedFiles().at(0);
+    switch(nameFilters().indexOf(selectedNameFilter()))
+    {
+        case PNG:
+            savePNG(filePath);
+            break;
+        case WEBP:
+            saveWebP(filePath);
+            break;
+        default:
+            saveJPEG(filePath);
+            break;
+    }
+    qDebug() << filePath;
 }
 
 /* If the advanced options do not exist, create them. If they do exist,
