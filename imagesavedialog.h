@@ -30,6 +30,7 @@ protected:
 
 private slots:
     void advancedOptionsToggled();
+    void displayFilteredSaveOptions();
 
 private:
     enum ImageType{JPEG = 0, PNG = 1, WEBP = 2};

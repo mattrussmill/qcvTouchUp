@@ -8,6 +8,7 @@
 #include <QVector>
 #include <QString>
 #include <QMessageBox>
+#include <QRegularExpression>
 #include <QDebug>
 
 ImageSaveDialog::ImageSaveDialog(cv::Mat &image, QWidget *parent, const QString &caption, const QString &directory)
@@ -26,15 +27,64 @@ ImageSaveDialog::~ImageSaveDialog()
 
 }
 
+/* method saves the file as a jpg image according to OpenCV 3.3.2, using the
+ * parameters from webpMenu - default if not specified.*/
 void ImageSaveDialog::saveJPEG(QString &filePath)
 {
-    //https://docs.opencv.org/3.1.0/d4/da8/group__imgcodecs.html
-    //qiality // set default 95
+    /* if menu was not able to be appended to the dialog (and thus not added)
+     * create it to acquire its default values */
+    if(!jpegMenu_m)
+    {
+        jpegMenu_m = new ImageSaveJpegMenu(this);
+        jpegMenu_m->setVisible(false);
+    }
+    QVector<int> saveParameters;
+    saveParameters.append(cv::IMWRITE_JPEG_QUALITY);
+    saveParameters.append(jpegMenu_m->getQuality());
+    saveParameters.append(cv::IMWRITE_JPEG_PROGRESSIVE);
+    saveParameters.append(jpegMenu_m->getProgressiveScan());
+    saveParameters.append(cv::IMWRITE_JPEG_OPTIMIZE);
+    saveParameters.append(jpegMenu_m->getBaselineOptimized());
+    saveParameters.append(cv::IMWRITE_JPEG_RST_INTERVAL);
+    saveParameters.append(jpegMenu_m->getRestartInterval());
+    saveParameters.append(cv::IMWRITE_JPEG_LUMA_QUALITY);
+    saveParameters.append(jpegMenu_m->getLumaQuality());
+    saveParameters.append(cv::IMWRITE_JPEG_CHROMA_QUALITY);
+    saveParameters.append(jpegMenu_m->getChromaQuality());
+
+    //catch exeception and display so doesnt crash - add regex later
+    try {
+        cv::imwrite(filePath.toStdString(), *image_m, saveParameters.toStdVector());
+    } catch (cv::Exception e) {
+        QMessageBox::warning(this, "Error", QString::fromStdString(e.msg));
+    }
 }
 
+/* method saves the file as a png image according to OpenCV 3.3.2, using the
+ * parameters from webpMenu - default if not specified.*/
 void ImageSaveDialog::savePNG(QString &filePath)
 {
-    //compression level // set default 3
+    /* if menu was not able to be appended to the dialog (and thus not added)
+     * create it to acquire its default values */
+    if(!pngMenu_m)
+    {
+        pngMenu_m = new ImageSavePngMenu(this);
+        pngMenu_m->setVisible(false);
+    }
+    QVector<int> saveParameters;
+    saveParameters.append(cv::IMWRITE_PNG_COMPRESSION);
+    saveParameters.append(pngMenu_m->getCompression());
+    saveParameters.append(cv::IMWRITE_PNG_STRATEGY);
+    saveParameters.append(pngMenu_m->getStrategy());
+    saveParameters.append(cv::IMWRITE_PNG_BILEVEL);
+    saveParameters.append(pngMenu_m->getBinaryLevel());
+
+    //catch exeception and display so doesnt crash - add regex later
+    try {
+        cv::imwrite(filePath.toStdString(), *image_m, saveParameters.toStdVector());
+    } catch (cv::Exception e) {
+        QMessageBox::warning(this, "Error", QString::fromStdString(e.msg));
+    }
 }
 
 /* method saves the file as a webp image according to OpenCV 3.3.2, using the
@@ -62,19 +112,33 @@ void ImageSaveDialog::saveWebP(QString &filePath)
 
 /* the saveAccepted slot retreives the specified file path to save the file from the QFileDialog
  * based on the index from the specified name filter and calls the appropriate save method based
- * on the desired format. */
+ * on the desired format. Before calling the save function, appends file extension if nonexistant */
 void ImageSaveDialog::saveAccepted()
 {
     QString filePath = selectedFiles().at(0);
+
+    //if the file extension is incorrect, append a correct one.
+    QRegularExpression re;
+    re.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
+
     switch(nameFilters().indexOf(selectedNameFilter()))
     {
         case PNG:
             savePNG(filePath);
+            re.setPattern("^.*(.png)$");
+            if(!re.match(&filePath).hasMatch())
+                filePath += ".png";
             break;
         case WEBP:
+            re.setPattern("^.*(.webp)$");
+            if(!re.match(&filePath).hasMatch())
+                filePath += ".webp";
             saveWebP(filePath);
             break;
         default:
+            re.setPattern("^.*(.jpg|.jpeg)$");
+            if(!re.match(&filePath).hasMatch())
+                filePath += ".jpg";
             saveJPEG(filePath);
             break;
     }
@@ -82,7 +146,7 @@ void ImageSaveDialog::saveAccepted()
 }
 
 /* If the advanced options do not exist, create them. If they do exist,
- * toggle their visibility*/
+ * toggle their visibility. */
 void ImageSaveDialog::advancedOptionsToggled()
 {
     if(!saveOptionsWidget_m)
@@ -100,6 +164,15 @@ void ImageSaveDialog::advancedOptionsToggled()
         saveOptionsWidget_m->setVisible(false);
         buttonAdvancedOptions_m->setText("Advanced...");
     }
+    displayFilteredSaveOptions();
+}
+
+/* private slot sets the index of the stackedWidget to display the appropriately selected
+ * image save options when the advanced options are displayed based on the dialog filter.*/
+void ImageSaveDialog::displayFilteredSaveOptions()
+{
+    if(saveOptionsWidget_m)
+        saveOptionsWidget_m->setCurrentIndex(nameFilters().indexOf(selectedNameFilter()));
 }
 
 /* this method is used by the constructor and appends the "Advanced..." dialog
@@ -148,5 +221,8 @@ void ImageSaveDialog::appendImageOptionsWidget()
         int rows = mainLayout->rowCount();
         qDebug() << "save dialog g-layout rows: " << rows;
         mainLayout->addWidget(saveOptionsWidget_m, rows, 0, 1, -1);
+
+        //connect the filter selected to the display save options based on the file filter
+        connect(this, SIGNAL(filterSelected(const QString&)), this, SLOT(displayFilteredSaveOptions()));
     }
 }
