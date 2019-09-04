@@ -62,6 +62,10 @@
 #include <QDebug>
 //#include <QElapsedTimer>
 
+#define HUE_DEPTH_SEPARATION 30
+#define INTENSITY_DEPTH_SEPARATION 128
+#define SATURATION_DEPTH_SEPARATION INTENSITY_DEPTH_SEPARATION
+
 /* Constructor initializes the appropriate member variables for the worker object. If
  * an OpenCL device is detected as available on the system, a pre-initialization step is
  * performed to increase initial performance. */
@@ -254,17 +258,53 @@ void AdjustWorker::performImageAdjustments(float * parameter)
         if(parameter[AdjustMenu::Depth] < 255)
         {
             //create and normalize LUT for 0 to 180 for Hue; replace pixel intensities based on their LUT value
-            float scaleFactor = (parameter[AdjustMenu::Depth] * (180 / 255)) / 180;
+            float scaleFactor = 1.0f - (parameter[AdjustMenu::Depth] * (180.0f / 255.0f)) / 180.0f;
+            int mod;
             for(int i = 0; i < 180; i++)
-                lookUpTable_m.data[i] = round(round(i * scaleFactor) / scaleFactor);
+            {
+                /*if color is closer to the lower hue separation level than the higher hue separation level in radians
+                  (scaled by half for OpenCV - 180 not 360), scale towards the lower level, else scale towards the higher level */
+                mod = (i + 1) % HUE_DEPTH_SEPARATION;
+                if( mod <= HUE_DEPTH_SEPARATION / 2)
+                {
+                    lookUpTable_m.data[i] = static_cast<uchar>(static_cast<float>(i + 1) - roundf(mod * scaleFactor));
+                    //qDebug() << "Data %30 =< 15 : " << lookUpTable_m.data[i];
+                }
+                else
+                {
+                    lookUpTable_m.data[i] = static_cast<uchar>(static_cast<float>(i + 1) + roundf(((HUE_DEPTH_SEPARATION - mod) * scaleFactor) ));
+                    //qDebug() << "Data %30 > 15 : " << lookUpTable_m.data[i];
+                }
+            }
             cv::LUT(splitChannelsTmp_m.at(0), lookUpTable_m, splitChannelsTmp_m[0]);
 
-            //create and normalize LUT from 0 to largest intensity value, then scale from 0 to 255
-            scaleFactor = parameter[AdjustMenu::Depth] / 255;
+
+
+
+            //create and normalize LUT from 0 to largest intensity / saturation values, then scale from 0 to 255
+            float tmp;
+            scaleFactor = 1.0f - (parameter[AdjustMenu::Depth] / 255.0f);
             for(int i = 0; i < 256; i++)
-                lookUpTable_m.data[i] = round(round(i * scaleFactor) / scaleFactor);
-            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable_m, splitChannelsTmp_m[1]);
-            cv::LUT(splitChannelsTmp_m.at(2), lookUpTable_m, splitChannelsTmp_m[2]);
+            {
+                /*if color is closer to the lower hue separation level than the higher saturation separation level in 255 scaled value;
+                  scale towards the lower level, else scale towards the higher level */
+                mod = (i + 1) % INTENSITY_DEPTH_SEPARATION;
+                if( mod <= INTENSITY_DEPTH_SEPARATION / 2)
+                {
+                    tmp = static_cast<float>(i + 1) - roundf(mod * scaleFactor);
+                    if(tmp > 255)
+                        tmp = 255.0f;
+                    lookUpTable_m.data[i] = static_cast<uchar>(tmp);
+                    //qDebug() << "Data %128 =< 64 : " << lookUpTable_m.data[i];
+                }
+                else
+                {
+                    lookUpTable_m.data[i] = static_cast<uchar>(static_cast<float>(i + 1) + floorf(((INTENSITY_DEPTH_SEPARATION - mod) * scaleFactor) ));
+                    //qDebug() << "Data %128 > 64 : " << lookUpTable_m.data[i];
+                }
+            }
+            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable_m, splitChannelsTmp_m[1]); //sat
+            //cv::LUT(splitChannelsTmp_m.at(2), lookUpTable_m, splitChannelsTmp_m[2]); //int
         }
 
         cv::merge(splitChannelsTmp_m, implicitOclImage_m);
