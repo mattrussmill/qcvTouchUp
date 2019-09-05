@@ -213,12 +213,10 @@ void AdjustMenu::changeBrightnessValue(int value)
     workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 
-/* Slot adjusts the number of intensity values per channel allotted in the image. The value is adjusted on
- * an exponential curve to favor values, and have higher resolution, as the number of allotted intensity values
- * approaches 1 for the image. To the user, change is less noticeable the closer it is to 255.*/
+/* Slot adjusts the number of intensity values per channel allotted in the image from 0 to 255.*/
 void AdjustMenu::changeDepthValue(int value)
 {
-    sliderValues_m[Depth] = pow(value, value / 255.0); // difference more noticeable to the eye closer to 1
+    sliderValues_m[Depth] = value;
     workSignalSuppressor.receiveNewData(QByteArray(reinterpret_cast<char*>(&sliderValues_m), sizeof(float) * 10));
 }
 

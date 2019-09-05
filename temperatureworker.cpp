@@ -120,6 +120,7 @@ void TemperatureWorker::performLampTemperatureShift(int parameter)
     {
         if(mutex_m) mutex_m->unlock();
         qDebug() << "Cannot perform Adjustments, image not attached";
+        emit updateStatus("");
         return;
     }
 

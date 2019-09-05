@@ -18,6 +18,7 @@
 #include <QDir>
 #include <QString>
 #include <QImage>
+#include <QFileInfo>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/ocl.hpp>
@@ -137,6 +138,7 @@ void MainWindow::imageOpenOperationFailed()
 {
     ui->imageWidget->clearImage();
     masterRGBImage_m.release();
+    previewRGBImage_m.release();
     updateImageInformation(nullptr);
     QMessageBox::warning(this, "Error", "Unable to access desired image.");
 }
@@ -163,14 +165,6 @@ void MainWindow::updateImageInformation(const QImage *image)
     }
 }
 
-/* When the worker thread emits its started() signal, the GUI event loop sends the worker thread necessary
- * initialization informatoin (such as shared heap data) that is necessary to maintain correct operation */
-void MainWindow::initializeWorkerThreadData()
-{
-    //signals the worker to set its histogram dst data for the displayed image to the buffer managed by the ui.
-    //imageWorker_m->doSetHistogramDstAddress(const_cast<uint**>(ui->histo->data()));
-}
-
 /* Creates a dialog box listing supported file types by OpenCV and a file dialog window. If the open dialog
  * box is closed, the function exits. If the dialog box has a path that is not NULL the absolute path is
  * passed to the image loading function to open the image.*/
@@ -187,9 +181,17 @@ void MainWindow::getImagePath()
     openFileDialog.exec();
 
     imagePath = openFileDialog.directory(); //this needs fixed now @@@@@
+    //need to use SIGNAL? - check save dialog solution.
+    qDebug() << "IMAGEPATH: " << imagePath;
 
     if(imagePath.absolutePath().isNull()) return;
     loadImageIntoMemory(imagePath.absolutePath());
+
+    //check file path for file
+//    QFileInfo file(openFileDialog.directory().absolutePath());
+//    qDebug() << file.absolutePath();
+//    if(!(file.exists() && file.isFile())) return;
+//    loadImageIntoMemory(file.absolutePath());
 }
 
 /* Takes an image path and attempts to open it. First the image buffer and path are released so that
@@ -278,7 +280,9 @@ void MainWindow::displayPreview()
     ui->imageWidget->setImage(&imageWrapper_m);
 }
 
-//@@
+/* saveImageAs first acquires the mutex, then converts the image from the RGB format used to display
+ * the imagein Qt to BGR which is the OpenCV format. Then the method launches the save dialog to
+ * perform the save operation */
 void MainWindow::saveImageAs()
 {
     qDebug() << userImagePath_m.absolutePath();

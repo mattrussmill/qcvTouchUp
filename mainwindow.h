@@ -36,7 +36,6 @@ protected:
 private slots:
     void imageOpenOperationFailed();
     void updateImageInformation(const QImage *image);
-    void initializeWorkerThreadData();
     void getImagePath();
     void cancelPreview();
     void applyPreviewToMaster();

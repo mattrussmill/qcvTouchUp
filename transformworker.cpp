@@ -72,6 +72,7 @@ void TransformWorker::doCropComputation(QRect roi)
     {
         if(mutex_m) mutex_m->unlock();
         qDebug() << "Cannot perform Crop, image not attached";
+        emit updateStatus("");
         return;
     }
 
