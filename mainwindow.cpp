@@ -18,7 +18,6 @@
 #include <QDir>
 #include <QString>
 #include <QImage>
-#include <QFileInfo>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/core/ocl.hpp>
@@ -166,8 +165,8 @@ void MainWindow::updateImageInformation(const QImage *image)
 }
 
 /* Creates a dialog box listing supported file types by OpenCV and a file dialog window. If the open dialog
- * box is closed, the function exits. If the dialog box has a path that is not NULL the absolute path is
- * passed to the image loading function to open the image.*/
+ * box is closed, the function exits. If a file is selected, the absolute path is passed to the image loading
+ * function to open the image.*/
 void MainWindow::getImagePath()
 {
     QDir imagePath;
@@ -176,23 +175,17 @@ void MainWindow::getImagePath()
                                "JPEG 2000 (*.jp2);;OpenEXR (*.exr);;PIF (*.pbm *.pgm *.pnm *.ppm *.pxm);;"
                                "PNG (*.png);;Radiance HDR (*.hdr *.pic);;Sun Raster (*.sr *.ras);;"
                                "TIFF (*.tiff *.tif);;WebP (*.webp)");
+    connect(&openFileDialog, SIGNAL(accepted()), this, SLOT(loadImageIntoMemory()));
     openFileDialog.setOption(QFileDialog::DontUseNativeDialog);
     openFileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-    openFileDialog.exec();
 
-    imagePath = openFileDialog.directory(); //this needs fixed now @@@@@
-    //need to use SIGNAL? - check save dialog solution.
-    qDebug() << "IMAGEPATH: " << imagePath;
-
-    if(imagePath.absolutePath().isNull()) return;
-    loadImageIntoMemory(imagePath.absolutePath());
-
-    //check file path for file
-//    QFileInfo file(openFileDialog.directory().absolutePath());
-//    qDebug() << file.absolutePath();
-//    if(!(file.exists() && file.isFile())) return;
-//    loadImageIntoMemory(file.absolutePath());
+    if(openFileDialog.exec() == QDialog::Accepted)
+    {
+        qDebug() << "open image path: " << openFileDialog.selectedFiles().at(0);
+        loadImageIntoMemory(openFileDialog.selectedFiles().at(0));
+    }
 }
+
 
 /* Takes an image path and attempts to open it. First the image buffer and path are released so that
  * that if the image fails to be loaded into a cv::Mat it can be detected. If the image is loaded
