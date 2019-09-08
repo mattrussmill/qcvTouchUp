@@ -311,8 +311,6 @@
     </property>
     <addaction name="actionAbout"/>
     <addaction name="separator"/>
-    <addaction name="actionOpenCV"/>
-    <addaction name="actionQt"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -322,6 +320,8 @@
     <addaction name="actionZoom_In"/>
     <addaction name="actionZoom_Out"/>
     <addaction name="actionZoom_Actual"/>
+    <addaction name="separator"/>
+    <addaction name="actionTracking"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -429,6 +429,11 @@
   <action name="actionTransform">
    <property name="text">
     <string>Transform...</string>
+   </property>
+  </action>
+  <action name="actionTracking">
+   <property name="text">
+    <string>Tracking</string>
    </property>
   </action>
  </widget>

@@ -130,7 +130,7 @@ private:
     void displayBrushOnPixmap();
     void initializePaintMembers();
     void zoomAgain();
-    QPoint getPointInImage();
+    QPoint getPointInImage(QMouseEvent *event);
     QRect getAdjustedRegion();
     QAction *zoomInAction_m;
     QAction *zoomOutAction_m;

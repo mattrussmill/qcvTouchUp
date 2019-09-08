@@ -384,7 +384,7 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
         {
             if(retrieveCoordinateMode_m == RectROI)
             {
-                region_m.setBottomRight(getPointInImage());
+                region_m.setBottomRight(getPointInImage(event));
                 region_m = getAdjustedRegion();
                 selectRegionOnPixmap();
                 emit imageRectRegionSelected(region_m);
@@ -399,7 +399,7 @@ void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
             }
             else
             {
-                emit imagePointSelected(getPointInImage());
+                emit imagePointSelected(getPointInImage(event));
             }
         }
     }
@@ -419,7 +419,7 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
         {
             if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
             {
-                dragStart_m = getPointInImage();
+                dragStart_m = getPointInImage(event);
 
                 //if point not within region_m, select and draw the ROI in RectROI mode.
                 //else keep the starting point and move to DragROI mode shifting region_m
@@ -440,7 +440,7 @@ void ImageWidget::mousePressEvent(QMouseEvent *event)
             }
             else
             {
-                emit imagePointSelected(getPointInImage());
+                emit imagePointSelected(getPointInImage(event));
             }
         }
     }
@@ -460,13 +460,13 @@ void ImageWidget::mouseMoveEvent(QMouseEvent *event)
         {
             if(retrieveCoordinateMode_m == RectROI)
             {
-                region_m.setBottomRight(getPointInImage());
+                region_m.setBottomRight(getPointInImage(event));
                 selectRegionOnPixmap();
             }
             //this state's boundaries are checked in mouse press event, cant enter directly
             else if(retrieveCoordinateMode_m == DragROI)
             {
-                QPoint endPoint = getPointInImage();
+                QPoint endPoint = getPointInImage(event);
                 QPoint dragDistance = dragStart_m - endPoint;
                 dragStart_m = endPoint;
                 region_m.setTopLeft(region_m.topLeft() - dragDistance);
@@ -475,7 +475,7 @@ void ImageWidget::mouseMoveEvent(QMouseEvent *event)
             }
             else
             {
-                emit imagePointSelected(getPointInImage());
+                emit imagePointSelected(getPointInImage(event));
             }
         }
     }
@@ -581,46 +581,20 @@ void ImageWidget::dropEvent(QDropEvent *event)
     }
 }
 
-/* If imageLabel is the same size or smaller, shift the origin of the ImageWidget to the origin of the
- * imageLabel. Else shift the origin based on the scrollBar positions using the image scrollArea as
- * the ROI window. Adjusts for scrollBar space as well. QLabel could have been overloaded to avoid this
- * hell of compensating for image position within the scroll area.*/
-QPoint ImageWidget::getPointInImage()
+/* If an image is attached, translates the widget coordinates from the ImageWidget to the
+ * imageLabel_m and scales the point to the appropriate position based on the image zoom.*/
+QPoint ImageWidget::getPointInImage(QMouseEvent *event)
 {
     if(imageAttached())
     {
-        QPoint mousePosition = mapFromGlobal(QCursor::pos());
+        QPoint mousePosition = imageLabel_m->mapFromParent(event->pos());
 
         //x coordinate adjustment
         float scalar =  attachedImage_m->width() / static_cast<float>(imageLabel_m->width());
-        if(imageLabel_m->width() <= this->width())
-        {
-            mousePosition += QPoint((imageLabel_m->width() - scrollArea_m->width()) / 2, 0);
-        }
-        else
-        {
-            float scrollBarPosition = scrollArea_m->horizontalScrollBar()->value()
-                    / static_cast<float>(scrollArea_m->horizontalScrollBar()->maximum());
-
-            mousePosition += QPoint(scrollBarPosition * (imageLabel_m->width() - scrollArea_m->width()
-                                                         + scrollArea_m->verticalScrollBar()->width() + 1), 0);
-        }
         mousePosition.setX(mousePosition.x() * scalar);
 
         //y coordinate adjustment
         scalar =  attachedImage_m->height() / static_cast<float>(imageLabel_m->height());
-        if(imageLabel_m->height() <= this->height())
-        {
-            mousePosition += QPoint(0, (imageLabel_m->height() - scrollArea_m->height()) / 2);
-        }
-        else
-        {
-            float scrollBarPosition = scrollArea_m->verticalScrollBar()->value()
-                    / static_cast<float>(scrollArea_m->verticalScrollBar()->maximum());
-
-            mousePosition += QPoint(0, scrollBarPosition * (imageLabel_m->height() - scrollArea_m->height()
-                                                            + scrollArea_m->horizontalScrollBar()->height() + 1));
-        }
         mousePosition.setY(mousePosition.y() * scalar);
 
         //qDebug() << mousePosition;
@@ -714,24 +688,24 @@ QRect ImageWidget::getAdjustedRegion()
     return QRect(QPoint(topLeftX, topLeftY), QPoint(bottomRightX, bottomRightY));
 }
 
-void ImageWidget::displayBrushOnPixmap()
-{
-    //while waiting for mutex, process main event loop to keep gui responsive
-    if(mutex_m)
-    {
-        while(!mutex_m->tryLock())
-            QApplication::processEvents(QEventLoop::AllEvents, 100);
-    }
-    painterBuffer_m = QPixmap::fromImage(*attachedImage_m);
-    if(mutex_m) mutex_m->unlock();
+//void ImageWidget::displayBrushOnPixmap()
+//{
+//    //while waiting for mutex, process main event loop to keep gui responsive
+//    if(mutex_m)
+//    {
+//        while(!mutex_m->tryLock())
+//            QApplication::processEvents(QEventLoop::AllEvents, 100);
+//    }
+//    painterBuffer_m = QPixmap::fromImage(*attachedImage_m);
+//    if(mutex_m) mutex_m->unlock();
 
-    QPainter painter(&painterBuffer_m);
-    painter.setBrush(QColor(50, 50, 50));
-    painter.setPen(QColor(50, 50, 50));
-    painter.setCompositionMode(QPainter::CompositionMode_Darken);
+//    QPainter painter(&painterBuffer_m);
+//    painter.setBrush(QColor(50, 50, 50));
+//    painter.setPen(QColor(50, 50, 50));
+//    painter.setCompositionMode(QPainter::CompositionMode_Darken);
 
-    //bound this somehow?
-    painter.drawEllipse(getPointInImage(), brushRadius_m, brushRadius_m);
+//    //bound this somehow?
+//    painter.drawEllipse(getPointInImage(), brushRadius_m, brushRadius_m);
 
-}
+//}
 

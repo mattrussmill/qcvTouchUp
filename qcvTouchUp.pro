@@ -39,6 +39,7 @@ SOURCES += \
     bufferwrappersqcv.cpp \
     filtermenu.cpp \
     temperaturemenu.cpp \
+    transformimagewidgetcropeventfilter.cpp \
     transformmenu.cpp \
     signalsuppressor.cpp \
     focusindetectoreventfilter.cpp \
@@ -62,6 +63,7 @@ HEADERS += \
     bufferwrappersqcv.h \
     filtermenu.h \
     temperaturemenu.h \
+    transformimagewidgetcropeventfilter.h \
     transformmenu.h \
     signalsuppressor.h \
     focusindetectoreventfilter.h \
