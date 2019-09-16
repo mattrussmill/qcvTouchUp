@@ -520,13 +520,12 @@ void ImageWidget::wheelEvent(QWheelEvent *event)
  * if ImageWidget is expanded upon in another object.*/
 void ImageWidget::contextMenuEvent(QContextMenuEvent *event)
 {
-    QMenu *zoomMenu = new QMenu(this);
-    zoomMenu->addAction(zoomInAction_m);
-    zoomMenu->addAction(zoomOutAction_m);
-    zoomMenu->addAction(zoomFitAction_m);
-    zoomMenu->addAction(zoomActualAction_m);
-    zoomMenu->exec(event->globalPos());
-    delete zoomMenu;
+    QMenu zoomMenu(this);
+    zoomMenu.addAction(zoomInAction_m);
+    zoomMenu.addAction(zoomOutAction_m);
+    zoomMenu.addAction(zoomFitAction_m);
+    zoomMenu.addAction(zoomActualAction_m);
+    zoomMenu.exec(event->globalPos());
 }
 
 /* An override of dragEnterEvent. When an object is dragged over top of this widget, the event
