@@ -45,6 +45,7 @@
 * 0.2           06/23/2018      Matthew R. Miller       Drag and Drop Open
 * 0.3           10/26/2018      Matthew R. Miller       Pixel Selection Added
 * 0.4           12/17/2018      Matthew R. Miller       ROI Selection Added
+* 0.5           10/21/2019      Matthew R. Miller       ROI Selection Moved Outside
 ************************************************************************/
 
 #include "imagewidget.h"
@@ -55,17 +56,13 @@
 #include <QPalette>
 #include <QApplication>
 #include <QDebug>
-#include <QLabel>
+#include "imagelabel.h"
 #include <QScrollArea>
 #include <QMenu>
-#include <QPoint>
 #include <QMutex>
 #include <QUrl>
 #include <QMimeData>
 #include <QScrollBar>
-#include <QRect>
-#include <QPaintEvent>
-#include <QPainter>
 #include <QPixmap>
 #include <algorithm>
 
@@ -78,7 +75,7 @@
  * Once the QScrollArea is embedded into the ImageWidget class, context menu actions
  * are set and appropriate signals are routed to perform those actions when triggered.*/
 ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
-    imageLabel_m(new QLabel(this)), scrollArea_m(new QScrollArea(this))
+    imageLabel_m(new ImageLabel(this)), scrollArea_m(new QScrollArea(this))
 {
     imageLabel_m->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     imageLabel_m->setScaledContents(true);
@@ -113,7 +110,6 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     connect(zoomFitAction_m, SIGNAL(triggered()), this, SLOT(zoomFit()));
     connect(zoomActualAction_m, SIGNAL(triggered()), this, SLOT(zoomActual()));
 
-    initializePaintMembers();
     setAcceptDrops(true);
 }
 
@@ -167,7 +163,6 @@ void ImageWidget::setImage(const QImage *image)
     qDebug() << *imageLabel_m->pixmap() << image->bytesPerLine();
     zoomFit();
     imageLabel_m->setVisible(true);
-    initializePaintMembers();
     emit imageSet();
 }
 
@@ -181,35 +176,8 @@ void ImageWidget::setFillWidget(bool fill)
     fillScrollArea_m = fill;
 }
 
-/* Member function setSelectPixelMode allows an external object to set the selectPixelMode_m member
- * variable which dictates how pixel locations are returned based on mouse action over an image.
- * The CoordinateMode enum represents the available modes and executed in the mouseEvent. */
-void ImageWidget::setRetrieveCoordinateMode(uint mode)
-{
-    retrieveCoordinateMode_m = mode;
-    if(mode == RectROI)
-        initializePaintMembers();
-}
-
-/* A slot that when called, if region of interest mode is enabled, will pre-set the region in the image
- * and draw it on the Pixmap. Else it does nothing.*/
-void ImageWidget::setRectRegionSelected(QRect roi)
-{
-    if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
-    {
-        region_m = roi;
-        selectRegionOnPixmap();
-    }
-}
-
-//Returns the current pixel selection status for cursor / displayed image interaction
-uint ImageWidget::getRetrieveCoordinateMode() const
-{
-    return retrieveCoordinateMode_m;
-}
-
 //Returns the current scale ratio between the displayed and attached image
-double ImageWidget::currentScale() const
+float ImageWidget::currentScale() const
 {
     return scalar_m;
 }
@@ -343,7 +311,7 @@ void ImageWidget::zoomAgain()
 
 /* When called, the Pixmap is refreshed (reloaded) with the attached QImage but not resized.
  * Because of the possibility this function will operate on an image outside of the class,
- * a mutex locks the operation if it is available and reinitializes the paint member variables*/
+ * a mutex locks the operation if it is available*/
 void ImageWidget::updateDisplayedImage()
 {
     if(!imageAttached()) return;
@@ -357,7 +325,6 @@ void ImageWidget::updateDisplayedImage()
     imageLabel_m->setPixmap(QPixmap::fromImage(*attachedImage_m));
     if(mutex_m) mutex_m->unlock();
     qDebug() << *imageLabel_m->pixmap();
-    initializePaintMembers();
 }
 
 /* An override of resizeEvent. When ImageWidget is resized if 'fillScrollArea' property is true
@@ -367,118 +334,13 @@ void ImageWidget::updateDisplayedImage()
 void ImageWidget::resizeEvent(QResizeEvent *event)
 {
     if(imageAttached())
-        if(fillScrollArea_m) zoomFit();
+    {
+        if(fillScrollArea_m)
+        {
+            zoomFit();
+        }
+    }
     QWidget::resizeEvent(event);
-}
-
-/* An override of mouseReleaseEvent. If an image is attached and the left button is released
- * overtop of the ImageWidget while an image is present and the appropriate selectPixelMode_m
- * selected, the coordinates under the mouse are emitted as a QPoint relative to the
- * attachedImage_m's origin. If RectROI is selected, the region is finished being set, cropped
- * and drawn before being emitted, else if DragROI the region is only cropped to fit and emitted. */
-void ImageWidget::mouseReleaseEvent(QMouseEvent *event)
-{
-    if(imageAttached())
-    {
-        if(event->button() == Qt::LeftButton && retrieveCoordinateMode_m & 0x3E)
-        {
-            if(retrieveCoordinateMode_m == RectROI)
-            {
-                region_m.setBottomRight(getPointInImage(event));
-                region_m = getAdjustedRegion();
-                selectRegionOnPixmap();
-                emit imageRectRegionSelected(region_m);
-                retrieveCoordinateMode_m = DragROI;
-                //qDebug() << region_m;
-            }
-            else if(retrieveCoordinateMode_m == DragROI)
-            {
-                setCursor(Qt::ArrowCursor);
-                emit imageRectRegionSelected(getAdjustedRegion());
-                //qDebug() << getAdjustedRegion();
-            }
-            else
-            {
-                emit imagePointSelected(getPointInImage(event));
-            }
-        }
-    }
-}
-
-/* An override of mousePressEvent. If an image is attached and the left button is pressed
- * overtop of the ImageWidget while an image is present and the appropriate selectPixelMode_m
- * selected, the coordinates under the mouse are emitted as a QPoint relative to the
- * attachedImage_m's origin. If RectROI or DragROI is selected as the retrieveCoordinateMode_m
- * the bounds are checked of the ROI selected. If the mouseclick is outside of thouse bounds
- * a region will be drawn and enter RectROI with the starting ROI coordinates, else enter DragROI*/
-void ImageWidget::mousePressEvent(QMouseEvent *event)
-{
-    if(imageAttached())
-    {
-        if(event->button() == Qt::LeftButton && retrieveCoordinateMode_m & 0x3D)
-        {
-            if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
-            {
-                dragStart_m = getPointInImage(event);
-
-                //if point not within region_m, select and draw the ROI in RectROI mode.
-                //else keep the starting point and move to DragROI mode shifting region_m
-                if(dragStart_m.x() < region_m.topLeft().x()
-                        || dragStart_m.y() < region_m.y()
-                        || dragStart_m.x() > region_m.bottomRight().x()
-                        || dragStart_m.y() > region_m.bottomRight().y())
-                {
-                    region_m.setTopLeft(dragStart_m);
-                    region_m.setBottomRight(dragStart_m);
-                    retrieveCoordinateMode_m = RectROI;
-                }
-                else
-                {
-                    setCursor(Qt::SizeAllCursor);
-                    retrieveCoordinateMode_m = DragROI;
-                }
-            }
-            else
-            {
-                emit imagePointSelected(getPointInImage(event));
-            }
-        }
-    }
-}
-
-/* An override of mouseMoveEvent. If an image is attached and the mouse moves while the left
- * button is pressed overtop of the ImageWidget while an image present and the appropriate
- * selectPixelMode_m selected, the coordinates under the mouse are emitted as a QPoint relative
- * to the attachedImage_m's origin. If RectROI is the current coordinate mode, the bottom right
- * of the ROI is reassigned and the region drawn on the Pixmap. If DragROI, the region is shifted
- * by the drag distance and then redrawn on the pixmap*/
-void ImageWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if(imageAttached())
-    {
-        if(!event->pos().isNull() && retrieveCoordinateMode_m & 0x38)
-        {
-            if(retrieveCoordinateMode_m == RectROI)
-            {
-                region_m.setBottomRight(getPointInImage(event));
-                selectRegionOnPixmap();
-            }
-            //this state's boundaries are checked in mouse press event, cant enter directly
-            else if(retrieveCoordinateMode_m == DragROI)
-            {
-                QPoint endPoint = getPointInImage(event);
-                QPoint dragDistance = dragStart_m - endPoint;
-                dragStart_m = endPoint;
-                region_m.setTopLeft(region_m.topLeft() - dragDistance);
-                region_m.setBottomRight(region_m.bottomRight() - dragDistance);
-                selectRegionOnPixmap();
-            }
-            else
-            {
-                emit imagePointSelected(getPointInImage(event));
-            }
-        }
-    }
 }
 
 /* An override of wheelEvent (mouse). First the function queries the Keyboard modifiers and
@@ -579,132 +441,3 @@ void ImageWidget::dropEvent(QDropEvent *event)
         emit droppedImageError();
     }
 }
-
-/* If an image is attached, translates the widget coordinates from the ImageWidget to the
- * imageLabel_m and scales the point to the appropriate position based on the image zoom.*/
-QPoint ImageWidget::getPointInImage(QMouseEvent *event)
-{
-    if(imageAttached())
-    {
-        QPoint mousePosition = imageLabel_m->mapFromParent(event->pos());
-
-        //x coordinate adjustment
-        float scalar =  attachedImage_m->width() / static_cast<float>(imageLabel_m->width());
-        mousePosition.setX(mousePosition.x() * scalar);
-
-        //y coordinate adjustment
-        scalar =  attachedImage_m->height() / static_cast<float>(imageLabel_m->height());
-        mousePosition.setY(mousePosition.y() * scalar);
-
-        //qDebug() << mousePosition;
-        return mousePosition;
-    }
-    return QPoint();
-}
-
-/* selectRegionOnPixmap fills a painterBuffer (Pixmap) and paints 4 trapazoids around a ROI (region_m)
- * selected by the user through mouse events. The drawing is handled here in a buffering object so that
- * the images themselves are not disturbed. Trapazoids are painted to darken the regions outside of the
- * selection as using QRegion would require listing an additional license if distrobuting on a linux machine.
- * ImageLabel_m is signaled to redraw after every paint occurs. */
-void ImageWidget::selectRegionOnPixmap()
-{
-    //while waiting for mutex, process main event loop to keep gui responsive
-    if(mutex_m)
-    {
-        while(!mutex_m->tryLock())
-            QApplication::processEvents(QEventLoop::AllEvents, 100);
-    }
-    painterBuffer_m = QPixmap::fromImage(*attachedImage_m);
-    if(mutex_m) mutex_m->unlock();
-
-    QRect region = getAdjustedRegion();
-    QPainter painter(&painterBuffer_m);
-    painter.setBrush(QColor(50, 50, 50));
-    painter.setPen(QColor(50, 50, 50));
-    painter.setCompositionMode(QPainter::CompositionMode_Darken);
-
-    //draw region - 4 trapazoids - avoid additionan licence using QRegions
-    //top
-    QPoint polygon[4] = {
-        painterBuffer_m.rect().topLeft(),
-        region.topLeft(),
-        region.topRight(),
-        painterBuffer_m.rect().topRight()
-    };
-    painter.drawPolygon(polygon, 4);
-
-    //bottom
-    polygon[0] = painterBuffer_m.rect().bottomLeft();
-    polygon[1] = region.bottomLeft();
-    polygon[2] = region.bottomRight();
-    polygon[3] = painterBuffer_m.rect().bottomRight();
-    painter.drawPolygon(polygon, 4);
-
-    //left
-    polygon[0] = painterBuffer_m.rect().topLeft();
-    polygon[1] = region.topLeft();
-    polygon[2] = region.bottomLeft();
-    polygon[3] = painterBuffer_m.rect().bottomLeft();
-    painter.drawPolygon(polygon, 4);
-
-    //right
-    polygon[0] = painterBuffer_m.rect().topRight();
-    polygon[1] = region.topRight();
-    polygon[2] = region.bottomRight();
-    polygon[3] = painterBuffer_m.rect().bottomRight();
-    painter.drawPolygon(polygon, 4);
-
-    imageLabel_m->setPixmap(painterBuffer_m);
-    imageLabel_m->update();
-}
-
-//initializes the member variables used for painting on the pixmap
-void ImageWidget::initializePaintMembers()
-{
-    dragStart_m = QPoint(-1, -1);
-    region_m = QRect(dragStart_m, dragStart_m);
-    brushRadius_m = 0;
-}
-
-/* getAdjustedRegion uses the selected region_m member variable and cleans it up so that
- * it fits within the attachedImage_m's dimensions. It also reverts the region_m's top left
- * and bottom right corners if they become inverted due to mouse location during selection
- * so that the QPainter can draw the ROI if the ROI is selected from top left to bottom right
- * or vice versa.*/
-QRect ImageWidget::getAdjustedRegion()
-{
-    int topLeftX, topLeftY, bottomRightX, bottomRightY;
-    region_m.getCoords(&topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-
-    if(topLeftX > bottomRightX) std::swap(topLeftX, bottomRightX);
-    if(topLeftY > bottomRightY) std::swap(topLeftY, bottomRightY);
-    if(topLeftX < 0) topLeftX = 0;
-    if(topLeftY < 0) topLeftY = 0;
-    if(bottomRightX >= attachedImage_m->width()) bottomRightX = attachedImage_m->width();
-    if(bottomRightY >= attachedImage_m->height()) bottomRightY = attachedImage_m->height();
-
-    return QRect(QPoint(topLeftX, topLeftY), QPoint(bottomRightX, bottomRightY));
-}
-
-//void ImageWidget::displayBrushOnPixmap()
-//{
-//    //while waiting for mutex, process main event loop to keep gui responsive
-//    if(mutex_m)
-//    {
-//        while(!mutex_m->tryLock())
-//            QApplication::processEvents(QEventLoop::AllEvents, 100);
-//    }
-//    painterBuffer_m = QPixmap::fromImage(*attachedImage_m);
-//    if(mutex_m) mutex_m->unlock();
-
-//    QPainter painter(&painterBuffer_m);
-//    painter.setBrush(QColor(50, 50, 50));
-//    painter.setPen(QColor(50, 50, 50));
-//    painter.setCompositionMode(QPainter::CompositionMode_Darken);
-
-//    //bound this somehow?
-//    painter.drawEllipse(getPointInImage(), brushRadius_m, brushRadius_m);
-
-//}
-

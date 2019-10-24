@@ -53,14 +53,11 @@
 
 #include <QWidget>
 #include <opencv2/core/core.hpp>
-class QLabel;
+class ImageLabel;
 class QScrollArea;
 class QImage;
 class QMenu;
-class QPoint;
 class QMutex;
-class QRect;
-class QPaintEvent;
 class QPixmap;
 
 class ImageWidget : public QWidget
@@ -69,35 +66,23 @@ class ImageWidget : public QWidget
 
 public:
     ImageWidget(QWidget *parent = nullptr);
-    enum CoordinateMode
-    {
-        NoClick        = 0x0,
-        SingleClick    = 0x1,
-        SingleUnclick  = 0x2,
-        ClickUnclick   = 0x4,
-        ClickDrag      = 0x8,
-        RectROI        = 0x10,
-        DragROI        = 0x20,
-        BrushImage     = 0x40
-    };
     Qt::ScrollBarPolicy verticalScrollBarPolicy() const;
     Qt::ScrollBarPolicy horizontalScrollBarPolicy() const;
     void setVerticalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy sbp = Qt::ScrollBarAsNeeded);
     void setFillWidget(bool fill = true);
     uint getRetrieveCoordinateMode() const; //change to RetrieveCoordinateMode
-    double currentScale() const;
+    float currentScale() const;
     bool imageAttached() const;
     bool fillWidgetStatus() const;
     const QImage* displayedImage();
+    ImageLabel *imageLabel_m;
     void setMutex(QMutex &m);
 
 signals:
     void imageSet();
     void imageCleared();
     void imageNull();
-    void imagePointSelected(QPoint selectedPoint);
-    void imageRectRegionSelected(QRect roi);
     void fillWidgetChanged(bool fillScrollArea);
     void droppedImagePath(QString imagePath);
     void droppedImageError();
@@ -110,14 +95,9 @@ public slots:
     void zoomFit();
     void zoomActual();
     void updateDisplayedImage();
-    void setRetrieveCoordinateMode(uint mode);
-    void setRectRegionSelected(QRect roi);
 
 protected:
     virtual void resizeEvent(QResizeEvent *event) override;
-    virtual void mouseReleaseEvent(QMouseEvent *event) override;
-    virtual void mousePressEvent(QMouseEvent *event) override;
-    virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void wheelEvent(QWheelEvent *event) override;
     virtual void contextMenuEvent(QContextMenuEvent *event) override;
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
@@ -126,24 +106,13 @@ protected:
     QMutex *mutex_m = nullptr;
 
 private:
-    void selectRegionOnPixmap();
-    void displayBrushOnPixmap();
-    void initializePaintMembers();
     void zoomAgain();
-    QPoint getPointInImage(QMouseEvent *event);
-    QRect getAdjustedRegion();
     QAction *zoomInAction_m;
     QAction *zoomOutAction_m;
     QAction *zoomFitAction_m;
     QAction *zoomActualAction_m;
-    QLabel *imageLabel_m;
-    QPixmap painterBuffer_m;
     QScrollArea *scrollArea_m;
-    QRect region_m;
-    QPoint dragStart_m;
-    uchar brushRadius_m;
     const QImage *attachedImage_m = nullptr;
-    uint retrieveCoordinateMode_m = NoClick;
     float scalar_m;
     bool fillScrollArea_m = true;
 };

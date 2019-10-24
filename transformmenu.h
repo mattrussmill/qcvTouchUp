@@ -90,6 +90,7 @@ signals:
     void giveImageROI(QRect ROI);
     void setGetCoordinateMode(uint);
     void cancelRoiSelection();
+    //void performImageRotate(int);
     void setAutoCropOnRotate(bool);
     void performImageScale(QRect size);
     void displayMaster();

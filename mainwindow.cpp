@@ -9,6 +9,7 @@
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
 #include "imagesavedialog.h"
+#include "imagelabel.h"
 #include <QWidget>
 #include <QApplication>
 #include <QFileDialog>
@@ -100,18 +101,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), temperatureMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), temperatureMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
 
-    //connect necessary worker thread - transformmenu / ui slots
+    //connect necessary transformmenu / ui slots
     connect(ui->pushButtonCancel, SIGNAL(released()), transformMenu_m, SLOT(initializeSliders()));
     connect(ui->pushButtonApply, SIGNAL(released()), transformMenu_m, SLOT(initializeSliders()));
-    connect(ui->imageWidget, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
     connect(transformMenu_m, SIGNAL(updateDisplayedImage()), this, SLOT(displayPreview()));
     connect(transformMenu_m, SIGNAL(updateStatus(QString)), ui->statusBar, SLOT(showMessage(QString)));
-    connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->imageWidget, SLOT(setRectRegionSelected(QRect)));
-    connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->imageWidget, SLOT(setRetrieveCoordinateMode(uint)));
     connect(transformMenu_m, SIGNAL(displayMaster()), this, SLOT(cancelPreview()));
     connect(this, SIGNAL(setDefaultTracking(bool)), transformMenu_m, SLOT(setMenuTracking(bool)));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(initializeSliders()));
     connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*, cv::Mat*)), transformMenu_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+    connect(ui->imageWidget->imageLabel_m, SIGNAL(imageRectRegionSelected(QRect)), transformMenu_m, SLOT(setImageROI(QRect)));
+    connect(transformMenu_m, SIGNAL(giveImageROI(QRect)), ui->imageWidget->imageLabel_m, SLOT(setRectRegionSelected(QRect)));
+    connect(transformMenu_m, SIGNAL(setGetCoordinateMode(uint)), ui->imageWidget->imageLabel_m, SLOT(setRetrieveCoordinateMode(uint)));
 
     //Check if OpenCL acceleration is available. If it is available, enable menu item tracking for all child menues, else disable
     cv::ocl::Context ctx = cv::ocl::Context::getDefault();
@@ -126,9 +127,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     }
 }
 
+//delete heap data not a child of mainwindow
 MainWindow::~MainWindow()
 {
-    //delete heap data not a child of mainwindow
     delete ui;
 }
 
