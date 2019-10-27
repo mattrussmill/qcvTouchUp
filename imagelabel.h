@@ -1,3 +1,46 @@
+/***********************************************************************
+* FILENAME :    imagelabel.h
+*
+* LICENSE:
+*       qcvTouchUp provides an image processing toolset for editing
+*       photographs, purposed and packaged for use in a desktop application
+*       user environment. Copyright (C) 2018,  Matthew R. Miller
+*
+*       This program is free software: you can redistribute it and/or modify
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
+*       3-clause BSD License as agreed upon through the use of the Qt toolkit
+*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
+*       of the appropriate license files for qcvTouchup, and its source code,
+*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*
+*       This program is distributed in the hope that it will be useful,
+*       but WITHOUT ANY WARRANTY; without even the implied warranty of
+*       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*       GNU General Public License for more details.
+*
+*       You should have received a copy of the GNU General Public License and
+*       3-clause BSD License along with this program.  If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
+*
+*       If you wish to contact the developer about this project, please do so
+*       through their account at <https://github.com/mattrussmill>
+*
+* DESCRIPTION :
+*       This class extends the QLabel class to display the crop region
+*       visualizations necessary to use the TransformMenu object effectively.
+*
+* NOTES :
+*
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    March 03/04/2019
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           10/20/2019      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
 #ifndef IMAGELABEL_H
 #define IMAGELABEL_H
 
@@ -36,21 +79,19 @@ protected:
     virtual void mousePressEvent(QMouseEvent *event) override;
     virtual void mouseMoveEvent(QMouseEvent *event) override;
     virtual void paintEvent(QPaintEvent *event) override;
-    virtual void resizeEvent(QResizeEvent *event) override;
 
 private:
     QPoint getPointInImage(QMouseEvent *event);
-    QRect getAdjustedRegion();
+    QRect getAdjustedImageRegion();
+    QRect getAdjustedWidgetRegion();
     void leftMousePressEvent(QMouseEvent *event);
     void leftMouseMoveEvent(QMouseEvent *event);
     void leftMouseReleaseEvent(QMouseEvent *event);
-    void selectRegionOnPixmap();
-
-
     void setPointFromImage(); //getPointInImage from ImageWidget
-    QPoint pointInImage_m; //store pointInImage here to not reallocate every time
-    QPoint dragStart_m;
-    QRect region_m;
+    QPoint imageDragStart_m;
+    QPoint widgetDragStart_m;
+    QRect imageRegion_m;
+    QRect widgetRegion_m;
     uchar brushRadius_m;
     float scaleWidth_m = 0;
     float scaleHeight_m = 0;

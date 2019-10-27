@@ -1,3 +1,51 @@
+/***********************************************************************
+* FILENAME :    transformworker.cpp
+*
+* LICENSE:
+*       qcvTouchUp provides an image processing toolset for editing
+*       photographs, purposed and packaged for use in a desktop application
+*       user environment. Copyright (C) 2018,  Matthew R. Miller
+*
+*       This program is free software: you can redistribute it and/or modify
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
+*       3-clause BSD License as agreed upon through the use of the Qt toolkit
+*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
+*       of the appropriate license files for qcvTouchup, and its source code,
+*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*
+*       This program is distributed in the hope that it will be useful,
+*       but WITHOUT ANY WARRANTY; without even the implied warranty of
+*       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*       GNU General Public License for more details.
+*
+*       You should have received a copy of the GNU General Public License and
+*       3-clause BSD License along with this program.  If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
+*
+*       If you wish to contact the developer about this project, please do so
+*       through their account at <https://github.com/mattrussmill>
+*
+* DESCRIPTION :
+*       This is the worker thread object tied to the transformmenu.cpp object.
+*       The worker performs the operations for performing matrix transformations.
+*
+* NOTES :
+*       This worker thread uses OpenCV OpenCL accelerated function calls implicitly
+*       when OpenCL hardware is available through OpenCV's UMat object calls. In the
+*       constructor there is an OpenCL initialization step where the OpenCL commands
+*       are given before the functionality is actually used through calling the
+*       appropriate method prematurely. See Issue #41 for more detail.
+*
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    March 03/04/2019
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           03/04/2019      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
 #include "transformworker.h"
 #include <QMutex>
 #include <QString>
@@ -77,7 +125,14 @@ void TransformWorker::doCropComputation(QRect roi)
     }
 
     cv::Rect region(roi.topLeft().x(), roi.topLeft().y(), roi.width(), roi.height());
-    *previewImage_m = cv::Mat(*masterImage_m, region);
+
+    //catch exeception and display so doesnt crash
+    try {
+        *previewImage_m = cv::Mat(*masterImage_m, region);
+    } catch (cv::Exception e) {
+        emit handleExceptionMessage(QString::fromStdString(e.msg));
+    }
+
     //after computation is complete, push image and histogram to GUI if changes were made
     if(mutex_m) mutex_m->unlock();
     emit updateStatus("");
@@ -114,9 +169,13 @@ void TransformWorker::doRotateComputation(int degree)
     rotationMatrix.at<double>(0, 2) += boundingRegion.width / 2.0 - masterImage_m->cols / 2.0;
     rotationMatrix.at<double>(1, 2) += boundingRegion.height / 2.0 - masterImage_m->rows / 2.0;
 
-    //perform transform
-    cv::UMat(boundingRegion.size(), masterImage_m->type()).copyTo(previewImplicitOclImage_m);
-    cv::warpAffine(implicitOclImage_m, previewImplicitOclImage_m, rotationMatrix, boundingRegion.size());
+    //catch exeception and display so doesnt crash
+    try {
+        cv::UMat(boundingRegion.size(), masterImage_m->type()).copyTo(previewImplicitOclImage_m);
+        cv::warpAffine(implicitOclImage_m, previewImplicitOclImage_m, rotationMatrix, boundingRegion.size());
+    } catch (cv::Exception e) {
+        emit handleExceptionMessage(QString::fromStdString(e.msg));
+    }
 
     /* crop image so that no black edges due to rotation are showing if not square
      * NOTE: maybe in a later update use the opposite line equations here to calculate the optimal position
@@ -228,8 +287,11 @@ void TransformWorker::doRotateComputation(int degree)
             height = (interceptOppositeOfTopCorner.y + interceptOppositeOfLeftCorner.y) / 2.0 - y;
         }
 
-        //Hagrid tells you you're a wizard and you draw/crop this rectangle (good place to visualize rect region if debugging)
+
+        //draw/crop this rectangle (good place to visualize rect region if debugging)
         cv::Rect cropRegion(x, y, width, height);
+
+
         //cv::rectangle(previewImplicitOclImage_m, cropRegion, cv::Scalar( 255, 0, 0 ), 3);
         cv::UMat(previewImplicitOclImage_m, cropRegion).copyTo(previewImplicitOclImage_m);
     }
@@ -267,7 +329,14 @@ void TransformWorker::doScaleComputation(QRect newSize)
         qDebug() << "Cannot perform Rotate, image not attached";
         return;
     }
-    cv::resize(*masterImage_m, *previewImage_m, cv::Size(newSize.width() - 1, newSize.height() - 1), 0, 0, cv::INTER_LINEAR);
+
+    //catch exeception and display so doesnt crash
+    try {
+        cv::resize(*masterImage_m, *previewImage_m, cv::Size(newSize.width() - 1, newSize.height() - 1), 0, 0, cv::INTER_LINEAR);
+    } catch (cv::Exception e) {
+        emit handleExceptionMessage(QString::fromStdString(e.msg));
+    }
+
     if(mutex_m) mutex_m->unlock();
     emit updateStatus("");
 }

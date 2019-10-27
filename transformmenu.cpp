@@ -54,6 +54,7 @@
 #include <QRegularExpressionMatch>
 #include <QRect>
 #include <QPoint>
+#include <QMessageBox>
 #include <QString>
 
 #include <QDebug>
@@ -123,8 +124,6 @@ TransformMenu::TransformMenu(QMutex *mutex, QWidget *parent) :
 
     imageSize_m = QRect(-1, -1, -1, -1);
     initializeSliders();
-
-
 
     //NOTE: rotate and warp will need silentEnable like in Filter
 }
@@ -432,6 +431,12 @@ void TransformMenu::changeSampleImage(bool detected)
     }
 }
 
+//displays a warning dialog box with the appropriate message if an exception is caught within opencv operations
+void TransformMenu::exceptionDialog(QString message)
+{
+    QMessageBox::warning(this, "Error", message);
+}
+
 /* This method determines when the worker thread should be created or destroyed so
  * that the worker thread (with event loop) is only running if it is required (in
  * this case if the menu is visible). This thread manages the creation, destruction,
@@ -454,18 +459,19 @@ void TransformMenu::manageWorker(bool life)
                 QApplication::restoreOverrideCursor();
             }
 
-//            transformWorker_m = new TransformWorker(masterImage_m, previewImage_m, workerMutex_m);
-//            transformWorker_m->moveToThread(&worker_m);
-//            //signal slot connections (might be able to do them in constructor?)
-//            connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), transformWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-//            connect(&workRotateSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveRotateSuppressedSignal(SignalSuppressor*)));
-//            connect(&workScaleSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveScaleSuppressedSignal(SignalSuppressor*)));
-//            //other worker signals slots
-//            connect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
-//            connect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
-//            connect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
-//            connect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
-//            worker_m.start();
+            transformWorker_m = new TransformWorker(masterImage_m, previewImage_m, workerMutex_m);
+            transformWorker_m->moveToThread(&worker_m);
+            //signal slot connections (might be able to do them in constructor?)
+            connect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), transformWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+            connect(&workRotateSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveRotateSuppressedSignal(SignalSuppressor*)));
+            connect(&workScaleSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveScaleSuppressedSignal(SignalSuppressor*)));
+            //other worker signals slots
+            connect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            connect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
+            connect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
+            connect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
+            connect(transformWorker_m, SIGNAL(handleExceptionMessage(QString)), this, SLOT(exceptionDialog(QString)));
+            worker_m.start();
         }
     }
     else
@@ -475,17 +481,18 @@ void TransformMenu::manageWorker(bool life)
         {
             /* All signals to and from the object are automatically disconnected (string based, not functor),
              * and any pending posted events for the object are removed from the event queue. This is done incase functor signal/slots used later*/
-//            disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), transformWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
-//            disconnect(&workRotateSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveRotateSuppressedSignal(SignalSuppressor*)));
-//            disconnect(&workScaleSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveScaleSuppressedSignal(SignalSuppressor*)));
-//            //other worker signals slots
-//            disconnect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
-//            disconnect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
-//            disconnect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
-//            disconnect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
-//            transformWorker_m->deleteLater();
-//            transformWorker_m = nullptr;
-//            worker_m.quit();
+            disconnect(this, SIGNAL(distributeImageBufferAddresses(const cv::Mat*,cv::Mat*)), transformWorker_m, SLOT(receiveImageAddresses(const cv::Mat*, cv::Mat*)));
+            disconnect(&workRotateSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveRotateSuppressedSignal(SignalSuppressor*)));
+            disconnect(&workScaleSignalSuppressor, SIGNAL(suppressedSignal(SignalSuppressor*)), transformWorker_m, SLOT(receiveScaleSuppressedSignal(SignalSuppressor*)));
+            //other worker signals slots
+            disconnect(transformWorker_m, SIGNAL(updateDisplayedImage()), this, SIGNAL(updateDisplayedImage()));
+            disconnect(transformWorker_m, SIGNAL(updateStatus(QString)), this, SIGNAL(updateStatus(QString)));
+            disconnect(this, SIGNAL(performImageCrop(QRect)), transformWorker_m, SLOT(doCropComputation(QRect)));
+            disconnect(this, SIGNAL(setAutoCropOnRotate(bool)), transformWorker_m, SLOT(setAutoCropForRotate(bool)));
+            disconnect(transformWorker_m, SIGNAL(handleExceptionMessage(QString)), this, SLOT(exceptionDialog(QString)));
+            transformWorker_m->deleteLater();
+            transformWorker_m = nullptr;
+            worker_m.quit();
         }
     }
 }

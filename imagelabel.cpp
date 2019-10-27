@@ -1,8 +1,52 @@
+/***********************************************************************
+* FILENAME :    imagelabel.h
+*
+* LICENSE:
+*       qcvTouchUp provides an image processing toolset for editing
+*       photographs, purposed and packaged for use in a desktop application
+*       user environment. Copyright (C) 2018,  Matthew R. Miller
+*
+*       This program is free software: you can redistribute it and/or modify
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License) and the
+*       3-clause BSD License as agreed upon through the use of the Qt toolkit
+*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
+*       of the appropriate license files for qcvTouchup, and its source code,
+*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*
+*       This program is distributed in the hope that it will be useful,
+*       but WITHOUT ANY WARRANTY; without even the implied warranty of
+*       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*       GNU General Public License for more details.
+*
+*       You should have received a copy of the GNU General Public License and
+*       3-clause BSD License along with this program.  If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
+*
+*       If you wish to contact the developer about this project, please do so
+*       through their account at <https://github.com/mattrussmill>
+*
+* DESCRIPTION :
+*       This class extends the QLabel class to display the crop region
+*       visualizations necessary to use the TransformMenu object effectively.
+*
+* NOTES :
+*
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    March 03/04/2019
+*
+* CHANGES : N/A - N/A
+*
+* VERSION       DATE            WHO                     DETAIL
+* 0.1           10/20/2019      Matthew R. Miller       Initial Rev
+*
+************************************************************************/
 #include "imagelabel.h"
 #include <QMouseEvent>
 #include <QPainter>
 #include <QDebug>
 
+//constructor
 ImageLabel::ImageLabel(QWidget *parent) : QLabel(parent)
 {
     initializePaintMembers();
@@ -15,24 +59,32 @@ ImageLabel::ImageLabel(QWidget *parent) : QLabel(parent)
  * and drawn before being emitted, else if DragROI the region is only cropped to fit and emitted. */
 void ImageLabel::mouseReleaseEvent(QMouseEvent *event)
 {
+    QLabel::mouseReleaseEvent(event);
+
     if(this->pixmap() != nullptr)
     {
         if(event->button() == Qt::LeftButton && retrieveCoordinateMode_m & 0x3E)
         {
             if(retrieveCoordinateMode_m == RectROI)
             {
-                region_m.setBottomRight(getPointInImage(event));
-                region_m = getAdjustedRegion();
+                //set scaled to image
+                imageRegion_m.setBottomRight(getPointInImage(event));
+                imageRegion_m = getAdjustedImageRegion();
+
+                //set to widget
+                widgetRegion_m.setBottomRight(event->pos());
+                widgetRegion_m = getAdjustedWidgetRegion();
+
                 this->update();
-                emit imageRectRegionSelected(region_m);
+                emit imageRectRegionSelected(imageRegion_m);
                 retrieveCoordinateMode_m = DragROI;
-                //qDebug() << region_m;
+                qDebug() << imageRegion_m;
             }
             else if(retrieveCoordinateMode_m == DragROI)
             {
                 this->setCursor(Qt::ArrowCursor);
-                emit imageRectRegionSelected(getAdjustedRegion());
-                //qDebug() << getAdjustedRegion();
+                emit imageRectRegionSelected(getAdjustedImageRegion());
+                qDebug() << getAdjustedImageRegion();
             }
             else
             {
@@ -51,7 +103,7 @@ void ImageLabel::mouseReleaseEvent(QMouseEvent *event)
  * a region will be drawn and enter RectROI with the starting ROI coordinates, else enter DragROI*/
 void ImageLabel::mousePressEvent(QMouseEvent *event)
 {
-    //QLabel::mousePressEvent(event); @@@@ ?
+    QLabel::mousePressEvent(event);
 
     if(this->pixmap() != nullptr)
     {
@@ -59,17 +111,24 @@ void ImageLabel::mousePressEvent(QMouseEvent *event)
         {
             if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
             {
-                dragStart_m = getPointInImage(event);
+                imageDragStart_m = getPointInImage(event);
+                widgetDragStart_m = event->pos();
 
-                //if point not within region_m, select and draw the ROI in RectROI mode.
-                //else keep the starting point and move to DragROI mode shifting region_m
-                if(dragStart_m.x() < region_m.topLeft().x()
-                        || dragStart_m.y() < region_m.y()
-                        || dragStart_m.x() > region_m.bottomRight().x()
-                        || dragStart_m.y() > region_m.bottomRight().y())
+                //if point not within widgetRegion_m, select and draw the ROI in RectROI mode.
+                //else keep the starting point and move to DragROI mode shifting imageRegion_m
+                if(widgetDragStart_m.x() < widgetRegion_m.topLeft().x()
+                        || widgetDragStart_m.y() < widgetRegion_m.y()
+                        || widgetDragStart_m.x() > widgetRegion_m.bottomRight().x()
+                        || widgetDragStart_m.y() > widgetRegion_m.bottomRight().y())
                 {
-                    region_m.setTopLeft(dragStart_m);
-                    region_m.setBottomRight(dragStart_m);
+                    //set scaled to image
+                    imageRegion_m.setTopLeft(imageDragStart_m);
+                    imageRegion_m.setBottomRight(imageDragStart_m);
+
+                    //set to widget
+                    widgetRegion_m.setTopLeft(widgetDragStart_m);
+                    widgetRegion_m.setBottomRight(widgetDragStart_m);
+
                     retrieveCoordinateMode_m = RectROI;
                 }
                 else
@@ -95,23 +154,39 @@ void ImageLabel::mousePressEvent(QMouseEvent *event)
  * by the drag distance and then redrawn on the pixmap*/
 void ImageLabel::mouseMoveEvent(QMouseEvent *event)
 {
+    QLabel::mouseMoveEvent(event);
+
     if(this->pixmap() != nullptr)
     {
         if(!event->pos().isNull() && retrieveCoordinateMode_m & 0x38)
         {
             if(retrieveCoordinateMode_m == RectROI)
             {
-                region_m.setBottomRight(getPointInImage(event));
+                //set scaled to image
+                imageRegion_m.setBottomRight(getPointInImage(event));
+
+                //set to widget
+                widgetRegion_m.setBottomRight(event->pos());
+
                 this->update();
             }
             //this state's boundaries are checked in mouse press event, cant enter directly
             else if(retrieveCoordinateMode_m == DragROI)
             {
+                //set scaled to image
                 QPoint endPoint = getPointInImage(event);
-                QPoint dragDistance = dragStart_m - endPoint;
-                dragStart_m = endPoint;
-                region_m.setTopLeft(region_m.topLeft() - dragDistance);
-                region_m.setBottomRight(region_m.bottomRight() - dragDistance);
+                QPoint dragDistance = imageDragStart_m - endPoint;
+                imageDragStart_m = endPoint;
+                imageRegion_m.setTopLeft(imageRegion_m.topLeft() - dragDistance);
+                imageRegion_m.setBottomRight(imageRegion_m.bottomRight() - dragDistance);
+
+                //set to widget
+                endPoint = event->pos();
+                dragDistance = widgetDragStart_m - endPoint;
+                widgetDragStart_m = endPoint;
+                widgetRegion_m.setTopLeft(widgetRegion_m.topLeft() - dragDistance);
+                widgetRegion_m.setBottomRight(widgetRegion_m.bottomRight() - dragDistance);
+
                 this->update();
             }
             else
@@ -122,7 +197,7 @@ void ImageLabel::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-/* Override of paintEvent that paints 4 trapazoids around a ROI (region_m), if image is attached,
+/* Override of paintEvent that paints 4 trapazoids around a ROI (imageRegion_m), if image is attached,
  * selected by the user through mouse events. Trapazoids are painted to darken the regions outside of the
  * selection as using QRegion would require listing an additional license if distrobuting on a linux machine.
  * ImageLabel_m is signaled to redraw after every paint occurs. */
@@ -132,13 +207,13 @@ void ImageLabel::paintEvent(QPaintEvent *event)
 
     if(this->pixmap() != nullptr && retrieveCoordinateMode_m != NoClick)
     {
-        QRect region = getAdjustedRegion(); //receiving unscaled region, must scale. use resize event to calculate scale and remove from get point in image
+        QRect region = getAdjustedWidgetRegion();
         QPainter painter(this);
         painter.setBrush(QColor(50, 50, 50));
         painter.setPen(QColor(50, 50, 50));
         painter.setCompositionMode(QPainter::CompositionMode_Darken);
 
-        //draw region - 4 trapazoids
+        //draw region - 4 trapazoids //print out
 
         //top
         QPoint polygon[4] = {
@@ -172,19 +247,6 @@ void ImageLabel::paintEvent(QPaintEvent *event)
     }
 }
 
-//@@ COMMENTS
-void ImageLabel::resizeEvent(QResizeEvent *event)
-{
-    QLabel::resizeEvent(event);
-
-    if(this->pixmap() != nullptr && retrieveCoordinateMode_m != NoClick)
-    {
-       scaleWidth_m = this->pixmap()->width() / static_cast<float>(this->width());
-       scaleHeight_m = this->pixmap()->height() / static_cast<float>(this->height());
-    }
-
-}
-
 /* Translates the widget coordinates from the ImageWidget to the
  * imageLabel_m and scales the point to the appropriate position based on the image zoom.*/
 QPoint ImageLabel::getPointInImage(QMouseEvent *event)
@@ -192,24 +254,26 @@ QPoint ImageLabel::getPointInImage(QMouseEvent *event)
     QPoint mousePosition = event->pos();
 
     //x coordinate adjustment 
-    mousePosition.setX(mousePosition.x() * scaleWidth_m);
+    mousePosition.setX(mousePosition.x() * //scale width
+                       (this->pixmap()->width() / static_cast<float>(this->width())));
 
     //y coordinate adjustment
-    mousePosition.setY(mousePosition.y() * scaleHeight_m);
+    mousePosition.setY(mousePosition.y() * //scale height
+                       (this->pixmap()->height() / static_cast<float>(this->height())));
 
     //qDebug() << mousePosition;
     return mousePosition;
 }
 
-/* getAdjustedRegion uses the selected region_m member variable and cleans it up so that
- * it fits within the attachedImage_m's dimensions. It also reverts the region_m's top left
+/* getAdjustedImageRegion uses the selected imageRegion_m member variable and cleans it up so that
+ * it fits within the attachedImage_m's dimensions. It also reverts the imageRegion_m's top left
  * and bottom right corners if they become inverted due to mouse location during selection
  * so that the QPainter can draw the ROI if the ROI is selected from top left to bottom right
  * or vice versa.*/
-QRect ImageLabel::getAdjustedRegion()
+QRect ImageLabel::getAdjustedImageRegion()
 {
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
-    region_m.getCoords(&topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
+    imageRegion_m.getCoords(&topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
 
     if(topLeftX > bottomRightX) std::swap(topLeftX, bottomRightX);
     if(topLeftY > bottomRightY) std::swap(topLeftY, bottomRightY);
@@ -221,6 +285,30 @@ QRect ImageLabel::getAdjustedRegion()
     //qDebug() << topLeftX << topLeftY << bottomRightX << bottomRightY;
     return QRect(QPoint(topLeftX, topLeftY), QPoint(bottomRightX, bottomRightY));
 }
+
+
+/* getAdjustedWidgetRegion uses the selected widgetRegion_m member variable and cleans it up so that
+ * it fits within the widget's dimensions. It also reverts the imageRegion_m's top left
+ * and bottom right corners if they become inverted due to mouse location during selection
+ * so that the QPainter can draw the ROI if the ROI is selected from top left to bottom right
+ * or vice versa.*/
+QRect ImageLabel::getAdjustedWidgetRegion()
+{
+    int topLeftX, topLeftY, bottomRightX, bottomRightY;
+    widgetRegion_m.getCoords(&topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
+
+    if(topLeftX > bottomRightX) std::swap(topLeftX, bottomRightX);
+    if(topLeftY > bottomRightY) std::swap(topLeftY, bottomRightY);
+    if(topLeftX < 0) topLeftX = 0;
+    if(topLeftY < 0) topLeftY = 0;
+    if(bottomRightX >= this->width()) bottomRightX = this->width();
+    if(bottomRightY >= this->height()) bottomRightY = this->height();
+
+    qDebug() << topLeftX << topLeftY << bottomRightX << bottomRightY;
+    return QRect(QPoint(topLeftX, topLeftY), QPoint(bottomRightX, bottomRightY));
+}
+
+
 
 /* Member function setSelectPixelMode allows an external object to set the selectPixelMode_m member
  * variable which dictates how pixel locations are returned based on mouse action over an image.
@@ -238,7 +326,18 @@ void ImageLabel::setRectRegionSelected(QRect roi)
 {
     if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
     {
-        region_m = roi;
+        //set image region
+        imageRegion_m = roi;
+
+        //scale for widget region
+        //(static_cast<float>(this->width())) / this->pixmap()->width())
+        roi.setTopLeft(QPoint(roi.topLeft().x() * ((static_cast<float>(this->width())) / this->pixmap()->width()),
+                              roi.topLeft().y() * ((static_cast<float>(this->height())) / this->pixmap()->height())));
+
+        roi.setBottomRight(QPoint(roi.bottomRight().x() * ((static_cast<float>(this->width())) / this->pixmap()->width()),
+                                  roi.bottomRight().y() * ((static_cast<float>(this->height())) / this->pixmap()->height())));
+        widgetRegion_m = roi;
+
         this->update();
     }
 }
@@ -252,7 +351,9 @@ uint ImageLabel::getRetrieveCoordinateMode()
 //initializes the member variables used for painting on the pixmap
 void ImageLabel::initializePaintMembers()
 {
-    dragStart_m = QPoint(-1, -1);
-    region_m = QRect(dragStart_m, dragStart_m);
+    imageDragStart_m = QPoint(-1, -1);
+    widgetDragStart_m = imageDragStart_m;
+    imageRegion_m = QRect(imageDragStart_m, imageDragStart_m);
+    widgetRegion_m = QRect(widgetDragStart_m, widgetDragStart_m);
     brushRadius_m = 0;
 }
