@@ -53,7 +53,6 @@
 #include <QMouseEvent>
 #include <QAction>
 #include <QCursor>
-#include <QPalette>
 #include <QApplication>
 #include <QDebug>
 #include "imagelabel.h"
@@ -81,8 +80,7 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     imageLabel_m->setScaledContents(true);
     imageLabel_m->setVisible(false);
 
-    QPalette pal(QColor(0xa0, 0xa0, 0xa0));
-    scrollArea_m->setPalette(pal);
+    scrollArea_m->setObjectName("imageWidgetBackground");
     scrollArea_m->setAlignment(Qt::AlignCenter);
     scrollArea_m->setWidget(imageLabel_m);
     scrollArea_m->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);

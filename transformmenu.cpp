@@ -122,7 +122,7 @@ TransformMenu::TransformMenu(QMutex *mutex, QWidget *parent) :
     connect(ui->spinBox_ScaleWidth, SIGNAL(editingFinished()), this, SLOT(performImageScalePreview()));
     connect(ui->radioButton_ScaleEnable, SIGNAL(toggled(bool)), this, SLOT(changeSampleImage(bool)));
 
-    imageSize_m = QRect(-1, -1, -1, -1);
+    imageSize_m = QRect(-1, -1, -1, -1); //@@ when changing menus when crop, need to not display the crop
     initializeSliders();
 
     //NOTE: rotate and warp will need silentEnable like in Filter

@@ -56,6 +56,7 @@
 #include <QMutex>
 #include <QByteArray>
 #include <QShowEvent>
+#include <QPainter>
 #include <QDebug>
 
 //Constructor initializes all members, installs event filters, and connects necessary signals / slots.

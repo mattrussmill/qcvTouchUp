@@ -198,39 +198,10 @@
            </item>
           </layout>
          </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Expanding</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
         </layout>
        </item>
       </layout>
      </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_Coarse">
@@ -238,118 +209,94 @@
        <string>Presets</string>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="15" column="1">
-        <widget class="QLabel" name="label_6">
+       <item row="12" column="0">
+        <widget class="QRadioButton" name="radioButton_6500K">
          <property name="text">
-          <string>Cool White Flourescent</string>
+          <string>6500K</string>
          </property>
         </widget>
        </item>
-       <item row="14" column="0" colspan="2">
-        <spacer name="verticalSpacer_7">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="17" column="1">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>Horizon Daylight</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="2">
-        <spacer name="verticalSpacer_5">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="22" column="0" colspan="2">
-        <spacer name="verticalSpacer_14">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="18" column="0" colspan="2">
-        <spacer name="verticalSpacer_10">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="21" column="1">
+       <item row="13" column="1">
         <widget class="QLabel" name="label_9">
          <property name="text">
           <string>Computer Monitor</string>
          </property>
         </widget>
        </item>
-       <item row="17" column="0">
-        <widget class="QRadioButton" name="radioButton_5000K">
+       <item row="10" column="0">
+        <widget class="QRadioButton" name="radioButton_4500K">
          <property name="text">
-          <string>5000K</string>
+          <string>4500K</string>
          </property>
         </widget>
        </item>
-       <item row="19" column="1">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>Overcast Daylight</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="1">
+       <item row="9" column="1">
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Tungsten Halogen</string>
          </property>
         </widget>
        </item>
-       <item row="23" column="1">
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>Clear Blue Sky</string>
-         </property>
-        </widget>
-       </item>
        <item row="6" column="1">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Standard Incandescent</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>Soft White Incandescent</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <widget class="QRadioButton" name="radioButton_7200K">
+         <property name="text">
+          <string>7200K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Horizon Daylight</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QRadioButton" name="radioButton_2550K">
+         <property name="text">
+          <string>2550K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QRadioButton" name="radioButton_2400K">
+         <property name="text">
+          <string>2400K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QRadioButton" name="radioButton_2700K">
+         <property name="text">
+          <string>2700K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QRadioButton" name="radioButton_5000K">
+         <property name="text">
+          <string>5000K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QRadioButton" name="radioButton_3200K">
+         <property name="text">
+          <string>3200K</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Cool White Flourescent</string>
          </property>
         </widget>
        </item>
@@ -360,113 +307,33 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="0" colspan="2">
-        <spacer name="verticalSpacer_9">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="8" column="0">
-        <widget class="QRadioButton" name="radioButton_2550K">
+       <item row="12" column="1">
+        <widget class="QLabel" name="label_8">
          <property name="text">
-          <string>2550K</string>
+          <string>Overcast Daylight</string>
          </property>
         </widget>
        </item>
-       <item row="10" column="1">
+       <item row="7" column="1">
         <widget class="QLabel" name="label_14">
          <property name="text">
           <string>Soft White Flourescent</string>
          </property>
         </widget>
        </item>
-       <item row="12" column="0" colspan="2">
-        <spacer name="verticalSpacer_6">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="10" column="0">
-        <widget class="QRadioButton" name="radioButton_2700K">
+       <item row="14" column="1">
+        <widget class="QLabel" name="label_10">
          <property name="text">
-          <string>2700K</string>
+          <string>Clear Blue Sky</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
-        <widget class="QRadioButton" name="radioButton_2400K">
-         <property name="text">
-          <string>2400K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="0">
-        <widget class="QRadioButton" name="radioButton_4500K">
-         <property name="text">
-          <string>4500K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="21" column="0">
-        <widget class="QRadioButton" name="radioButton_7200K">
-         <property name="text">
-          <string>7200K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="23" column="0">
+       <item row="14" column="0">
         <widget class="QRadioButton" name="radioButton_10000K">
          <property name="text">
           <string>10000K</string>
          </property>
         </widget>
-       </item>
-       <item row="19" column="0">
-        <widget class="QRadioButton" name="radioButton_6500K">
-         <property name="text">
-          <string>6500K</string>
-         </property>
-        </widget>
-       </item>
-       <item row="20" column="0" colspan="2">
-        <spacer name="verticalSpacer_12">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="16" column="0" colspan="2">
-        <spacer name="verticalSpacer_8">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item row="4" column="1">
         <widget class="QLabel" name="label_3">
@@ -475,23 +342,10 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="13" column="0">
-        <widget class="QRadioButton" name="radioButton_3200K">
+       <item row="5" column="1">
+        <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>3200K</string>
+          <string>Standard Incandescent</string>
          </property>
         </widget>
        </item>

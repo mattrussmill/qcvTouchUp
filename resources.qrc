@@ -15,4 +15,7 @@
         <file>icons/transformMenu/scale.png</file>
         <file>icons/masterIcons/rgb.png</file>
     </qresource>
+    <qresource prefix="/css">
+        <file>stylesheet.css</file>
+    </qresource>
 </RCC>

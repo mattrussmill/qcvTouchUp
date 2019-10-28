@@ -96,6 +96,7 @@ private:
     float scaleWidth_m = 0;
     float scaleHeight_m = 0;
     uint retrieveCoordinateMode_m = NoClick;
+    bool startPainting;
 };
 
 #endif // IMAGELABEL_H

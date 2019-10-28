@@ -49,6 +49,7 @@
 //constructor
 ImageLabel::ImageLabel(QWidget *parent) : QLabel(parent)
 {
+    setObjectName("imageWidgetBackground");
     initializePaintMembers();
 }
 
@@ -109,6 +110,7 @@ void ImageLabel::mousePressEvent(QMouseEvent *event)
     {
         if(event->button() == Qt::LeftButton && retrieveCoordinateMode_m & 0x3D)
         {
+            startPainting = true;
             if(retrieveCoordinateMode_m == RectROI || retrieveCoordinateMode_m == DragROI)
             {
                 imageDragStart_m = getPointInImage(event);
@@ -205,7 +207,7 @@ void ImageLabel::paintEvent(QPaintEvent *event)
 {
     QLabel::paintEvent(event);
 
-    if(this->pixmap() != nullptr && retrieveCoordinateMode_m != NoClick)
+    if(startPainting && this->pixmap() != nullptr && retrieveCoordinateMode_m != NoClick)
     {
         QRect region = getAdjustedWidgetRegion();
         QPainter painter(this);
@@ -338,6 +340,7 @@ void ImageLabel::setRectRegionSelected(QRect roi)
                                   roi.bottomRight().y() * ((static_cast<float>(this->height())) / this->pixmap()->height())));
         widgetRegion_m = roi;
 
+        startPainting = true;
         this->update();
     }
 }
@@ -351,6 +354,7 @@ uint ImageLabel::getRetrieveCoordinateMode()
 //initializes the member variables used for painting on the pixmap
 void ImageLabel::initializePaintMembers()
 {
+    startPainting = false;
     imageDragStart_m = QPoint(-1, -1);
     widgetDragStart_m = imageDragStart_m;
     imageRegion_m = QRect(imageDragStart_m, imageDragStart_m);

@@ -51,6 +51,13 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    //load stylesheet
+    QFile styleFile(":/css/stylesheet.css");
+    styleFile.open(QFile::ReadOnly);
+    QString style(styleFile.readAll());
+    styleFile.close();
+    a.setStyleSheet(style);
+
     //types registered for queued signal/slot connections
     qRegisterMetaType<QVector<float>>("QVector<float>");
     qRegisterMetaType<QVector<int>>("QVector<int>");
