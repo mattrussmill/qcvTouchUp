@@ -142,10 +142,10 @@
             <number>270</number>
            </property>
            <property name="value">
-            <number>5500</number>
+            <number>5925</number>
            </property>
            <property name="sliderPosition">
-            <number>5500</number>
+            <number>5925</number>
            </property>
            <property name="tracking">
             <bool>false</bool>

@@ -293,8 +293,6 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSave_As"/>
-    <addaction name="separator"/>
-    <addaction name="actionClear"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -432,6 +430,12 @@
    </property>
   </action>
   <action name="actionTracking">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Tracking</string>
    </property>

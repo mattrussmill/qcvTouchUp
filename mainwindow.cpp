@@ -117,12 +117,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     cv::ocl::Context ctx = cv::ocl::Context::getDefault();
     if (!ctx.ptr())
     {
-        qDebug() << "OpenCL is not available";
+        statusBar()->showMessage("OpenCL is not available", 3000);
+        ui->actionTracking->setEnabled(false);
         emit setDefaultTracking(false);
     }
     else
     {
-       emit setDefaultTracking(true);
+        connect(ui->actionTracking, SIGNAL(toggled(bool)), this, SIGNAL(setDefaultTracking(bool)));
+        ui->actionTracking->setChecked(true);
     }
 }
 

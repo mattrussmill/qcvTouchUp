@@ -320,6 +320,9 @@ void TransformMenu::setVisible(bool visible)
 {
     manageWorker(visible);
     QWidget::setVisible(visible);
+
+    if(ui->radioButton_CropEnable->isChecked())
+        emit setGetCoordinateMode(ImageLabel::CoordinateMode::NoClick);
 }
 
 //overloads show event to initialize the visible menu widgets before being seen
