@@ -308,7 +308,6 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">

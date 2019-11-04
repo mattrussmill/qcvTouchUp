@@ -14,6 +14,7 @@
         <file>icons/transformMenu/rotate.png</file>
         <file>icons/transformMenu/scale.png</file>
         <file>icons/masterIcons/rgb.png</file>
+        <file>icons/masterIcons/rgb.ico</file>
     </qresource>
     <qresource prefix="/css">
         <file>stylesheet.css</file>

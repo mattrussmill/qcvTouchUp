@@ -3,26 +3,27 @@
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing
-*       photographs, purposed and packaged for use in a desktop application 
+*       photographs, purposed and packaged for use in a desktop application
 *       user environment. Copyright (C) 2018,  Matthew R. Miller
 *
 *       This program is free software: you can redistribute it and/or modify
-*       it under the terms of the GNU General Public License as published by 
-*       the Free Software Foundation (version 3 of the License) and the 
+*       it under the terms of the GNU General Public License as published by
+*       the Free Software Foundation (version 3 of the License).
+*
+*       The framework and libraries used to create this software are licenced
+*       under the  GNU Lesser General Public License (LGPL) version 3 and the
 *       3-clause BSD License as agreed upon through the use of the Qt toolkit
-*       and OpenCV libraries in qcvTouchUp development, respectively. Copies
-*       of the appropriate license files for qcvTouchup, and its source code,
-*       can be found in LICENSE.Qt.txt and LICENSE.CV.txt.
+*       and OpenCV libraries respectively. Copies of the appropriate licenses
+*       for qcvTouchup, and its source code, can be found in LICENSE.txt,
+*       LICENSE.Qt.txt, and LICENSE.CV.txt. If not, please see
+*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>
+*       for further information on licensing.
 *
 *       This program is distributed in the hope that it will be useful,
 *       but WITHOUT ANY WARRANTY; without even the implied warranty of
 *       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *       GNU General Public License for more details.
 *
-*       You should have received a copy of the GNU General Public License and
-*       3-clause BSD License along with this program.  If not, please see 
-*       <http://www.gnu.org/licenses/> and <https://opencv.org/license.html>.
-*    
 *       If you wish to contact the developer about this project, please do so
 *       through their account at <https://github.com/mattrussmill>
 *

@@ -135,6 +135,9 @@ win32{
                 -lopencv_photo331
         } else:message(x86_64 debug NOT configured!)
     }
+
+    #windows icon
+    RC_ICONS += icons/masterIcons/rgb.ico
 }
 
 #configures the make environment (to be used as a template) for Windows build environment
@@ -151,5 +154,7 @@ linux-g++ {
         -lopencv_imgcodecs \
         -lopencv_imgproc \
         -lopencv_photo
+
+    #icon not configured for linux
 }
 
