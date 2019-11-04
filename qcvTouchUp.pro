@@ -110,16 +110,14 @@ win32{
                 -lopencv_core331d \
                 -lopencv_highgui331d \
                 -lopencv_imgcodecs331d \
-                -lopencv_imgproc331d \
-                -lopencv_photo331d
+                -lopencv_imgproc331d
         }
         CONFIG(release, debug|release){
             LIBS += -L$$(OPENCV3_SDK_DIR)/x86/mingw53/bin \
                 -lopencv_core331 \
                 -lopencv_highgui331 \
                 -lopencv_imgcodecs331 \
-                -lopencv_imgproc331 \
-                -lopencv_photo331
+                -lopencv_imgproc331
         }
     }
 
@@ -131,8 +129,8 @@ win32{
                 -lopencv_core331 \
                 -lopencv_highgui331 \
                 -lopencv_imgcodecs331 \
-                -lopencv_imgproc331 \
-                -lopencv_photo331
+                -lopencv_imgproc331
+                
         } else:message(x86_64 debug NOT configured!)
     }
 
@@ -152,8 +150,7 @@ linux-g++ {
         -lopencv_core \
         -lopencv_highgui \
         -lopencv_imgcodecs \
-        -lopencv_imgproc \
-        -lopencv_photo
+        -lopencv_imgproc
 
     #icon not configured for linux
 }
