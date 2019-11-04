@@ -11,8 +11,10 @@ The development envoronment consists of Qt Creator 4.9.0 using the Qt 5.12.2 fra
 ### OpenCV
 Version 3.3.1 of [OpenCV](https://opencv.org/releases/) is linked to this application at runtime. The pre-built libraries may be used, however compilation instructions for [Windows](https://docs.opencv.org/3.3.1/d3/d52/tutorial_windows_install.html) and [Linux](https://docs.opencv.org/3.3.1/d7/d9f/tutorial_linux_install.html) are available as well as basic instructions on [how to setup Qt and Open CV](https://wiki.qt.io/How_to_setup_Qt_and_openCV_on_Windows). The OpenCV libraries should be compiled with the same compiler used to build the core application. Important flags that should be enabled for compulation include but are not limited to: WITH_QT*, WITH_OPENCL*, *_JPEG, *_TIFF, *_PNG, *_WEBP, *core, *highgui, *imgcodecs, *imgproc, as well as the CPU_BASELINE and CPU_DISPATCH optimizations.
 
-### Release
-Dynamically linked ... adding now
+### Release (Windows)
+
+Run windeployqt qcvTouchUp.exe in the Qt specific terminal
+delete translations folder, it is not needed
       
 ## CONTRIBUTIONS:
 Currently Matthew R. Miller has been the only one to contribute to this project. Please visit the qcvTouchUp Wiki page on github for more information.
