@@ -338,6 +338,7 @@ void MainWindow::saveImageAs()
     //launch the save dialog with the correct BGR image format in the preview
     ImageSaveDialog saveDialog(previewRGBImage_m, this, "Save As", userImagePath_m.absolutePath());
     saveDialog.exec();
+    cv::cvtColor(previewRGBImage_m, previewRGBImage_m, cv::COLOR_BGR2RGB);
     mutex_m.unlock();
     statusBar()->showMessage("");
 }
