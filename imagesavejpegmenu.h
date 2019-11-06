@@ -42,6 +42,7 @@
 *
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           07/07/2019      Matthew R. Miller       Initial Rev
+* 0.2           11/05/2019      Matthew R. Miller       Remove chroma/luma quality
 *
 ************************************************************************/
 #ifndef IMAGESAVEJPEGMENU_H
@@ -62,8 +63,6 @@ public:
     ~ImageSaveJpegMenu();
     int getQuality();
     int getRestartInterval();
-    int getChromaQuality();
-    int getLumaQuality();
     int getProgressiveScan();
     int getBaselineOptimized();
 

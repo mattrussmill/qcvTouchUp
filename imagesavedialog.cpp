@@ -44,6 +44,7 @@
 *
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           08/29/2019      Matthew R. Miller       Initial Rev
+* 0.2           11/05/2019      Matthew R. Miller       Remove chroma/luma quality
 *
 ************************************************************************/
 #include "imagesavedialog.h"
@@ -95,10 +96,6 @@ void ImageSaveDialog::saveJPEG(QString &filePath)
     saveParameters.append(jpegMenu_m->getBaselineOptimized());
     saveParameters.append(cv::IMWRITE_JPEG_RST_INTERVAL);
     saveParameters.append(jpegMenu_m->getRestartInterval());
-    saveParameters.append(cv::IMWRITE_JPEG_LUMA_QUALITY);
-    saveParameters.append(jpegMenu_m->getLumaQuality());
-    saveParameters.append(cv::IMWRITE_JPEG_CHROMA_QUALITY);
-    saveParameters.append(jpegMenu_m->getChromaQuality());
 
     //catch exeception and display so doesnt crash - add regex later
     try {

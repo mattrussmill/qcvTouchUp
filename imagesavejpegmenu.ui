@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>418</width>
-    <height>182</height>
+    <height>126</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -44,10 +44,20 @@
       <string>Save as JPEG</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_Quality">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_RestartInterval">
         <property name="text">
-         <string>Quality</string>
+         <string>Restart Interval</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QSpinBox" name="spinBox_RestartInterval">
+        <property name="buttonSymbols">
+         <enum>QAbstractSpinBox::NoButtons</enum>
+        </property>
+        <property name="maximum">
+         <number>65535</number>
         </property>
        </widget>
       </item>
@@ -63,6 +73,31 @@
          <number>95</number>
         </property>
        </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_Quality">
+        <property name="text">
+         <string>Quality</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0" colspan="3">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QCheckBox" name="checkBox_Optomized">
+          <property name="text">
+           <string>Baseline Optimize</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox_ProgressiveScan">
+          <property name="text">
+           <string>Progressive Scan</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item row="0" column="1">
        <widget class="QSlider" name="horizontalSlider_Quality">
@@ -80,43 +115,6 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="2">
-       <widget class="QSpinBox" name="spinBox_RestartInterval">
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <number>65535</number>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="2">
-       <widget class="QSpinBox" name="spinBox_Luma">
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="2">
-       <widget class="QSpinBox" name="spinBox_Chroma">
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::NoButtons</enum>
-        </property>
-        <property name="maximum">
-         <number>100</number>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_RestartInterval">
-        <property name="text">
-         <string>Restart Interval</string>
-        </property>
-       </widget>
-      </item>
       <item row="4" column="1">
        <widget class="QSlider" name="horizontalSlider_RestartInterval">
         <property name="maximum">
@@ -129,78 +127,6 @@
          <enum>Qt::Horizontal</enum>
         </property>
        </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_Luma">
-        <property name="text">
-         <string>Luma Quality</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1">
-       <widget class="QSlider" name="horizontalSlider_Luma">
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="tracking">
-         <bool>true</bool>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="label_Chroma">
-        <property name="text">
-         <string>Chroma Quality</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="1">
-       <widget class="QSlider" name="horizontalSlider_Chroma">
-        <property name="maximum">
-         <number>100</number>
-        </property>
-        <property name="tracking">
-         <bool>true</bool>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="12" column="0" colspan="3">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QCheckBox" name="checkBox_Optomized">
-          <property name="text">
-           <string>Baseline Opt.</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_ProgressiveScan">
-          <property name="text">
-           <string>Prog. Scan</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_EnableLuma">
-          <property name="text">
-           <string>Luma Quality</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="checkBox_EnableChroma">
-          <property name="text">
-           <string>Chroma Quality</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
      </layout>
     </widget>

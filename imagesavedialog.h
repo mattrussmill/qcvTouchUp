@@ -44,6 +44,7 @@
 *
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           08/29/2019      Matthew R. Miller       Initial Rev
+* 0.2           11/05/2019      Matthew R. Miller       Remove chroma/luma quality
 *
 ************************************************************************/
 #ifndef IMAGESAVEDIALOG_H

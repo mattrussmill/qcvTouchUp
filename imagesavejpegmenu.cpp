@@ -42,6 +42,7 @@
 *
 * VERSION       DATE            WHO                     DETAIL
 * 0.1           07/07/2019      Matthew R. Miller       Initial Rev
+* 0.2           11/05/2019      Matthew R. Miller       Remove chroma/luma quality
 *
 ************************************************************************/
 #include "imagesavejpegmenu.h"
@@ -59,33 +60,14 @@ ImageSaveJpegMenu::ImageSaveJpegMenu(QWidget *parent) :
     MouseWheelEaterEventFilter *filter = new MouseWheelEaterEventFilter(this);
     ui->horizontalSlider_Quality->installEventFilter(filter);
     ui->horizontalSlider_RestartInterval->installEventFilter(filter);
-    ui->horizontalSlider_Chroma->installEventFilter(filter);
-    ui->horizontalSlider_Luma->installEventFilter(filter);
     ui->spinBox_Quality->installEventFilter(filter);
     ui->spinBox_RestartInterval->installEventFilter(filter);
-    ui->spinBox_Chroma->installEventFilter(filter);
-    ui->spinBox_Luma->installEventFilter(filter);
-
-    //initial states
-    ui->horizontalSlider_Chroma->setEnabled(false);
-    ui->spinBox_Chroma->setEnabled(false);
-    ui->horizontalSlider_Luma->setEnabled(false);
-    ui->spinBox_Luma->setEnabled(false);
 
     //connect signals slots
     connect(ui->horizontalSlider_Quality, SIGNAL(valueChanged(int)), ui->spinBox_Quality, SLOT(setValue(int)));
     connect(ui->spinBox_Quality, SIGNAL(valueChanged(int)), ui->horizontalSlider_Quality, SLOT(setValue(int)));
     connect(ui->horizontalSlider_RestartInterval, SIGNAL(valueChanged(int)), ui->spinBox_RestartInterval, SLOT(setValue(int)));
     connect(ui->spinBox_RestartInterval, SIGNAL(valueChanged(int)), ui->horizontalSlider_RestartInterval, SLOT(setValue(int)));
-    connect(ui->horizontalSlider_Chroma, SIGNAL(valueChanged(int)), ui->spinBox_Chroma, SLOT(setValue(int)));
-    connect(ui->spinBox_Chroma, SIGNAL(valueChanged(int)), ui->horizontalSlider_Chroma, SLOT(setValue(int)));
-    connect(ui->horizontalSlider_Luma, SIGNAL(valueChanged(int)), ui->spinBox_Luma, SLOT(setValue(int)));
-    connect(ui->spinBox_Luma, SIGNAL(valueChanged(int)), ui->horizontalSlider_Luma, SLOT(setValue(int)));
-
-    connect(ui->checkBox_EnableChroma, SIGNAL(toggled(bool)), ui->horizontalSlider_Chroma, SLOT(setEnabled(bool)));
-    connect(ui->checkBox_EnableChroma, SIGNAL(toggled(bool)), ui->spinBox_Chroma, SLOT(setEnabled(bool)));
-    connect(ui->checkBox_EnableLuma, SIGNAL(toggled(bool)), ui->horizontalSlider_Luma, SLOT(setEnabled(bool)));
-    connect(ui->checkBox_EnableLuma, SIGNAL(toggled(bool)), ui->spinBox_Luma, SLOT(setEnabled(bool)));
 }
 
 //default destructor
@@ -106,30 +88,14 @@ int ImageSaveJpegMenu::getRestartInterval()
     return ui->spinBox_RestartInterval->value();
 }
 
-//returns the quality value for the Luma channel individually - opencv between 0 - 100, 0 = done use
-int ImageSaveJpegMenu::getLumaQuality()
-{
-    if(ui->checkBox_EnableLuma->isChecked())
-        return ui->spinBox_Luma->value();
-    return 0;
-}
-
-//returns the quality value for the Chroma channel individually - opencv between 0 - 100, 0 = done use
-int ImageSaveJpegMenu::getChromaQuality()
-{
-    if(ui->checkBox_EnableChroma->isChecked())
-        return ui->spinBox_Chroma->value();
-    return 0;
-}
-
 //returns 1 if progressive scan is enabled, 0 if not used
 int ImageSaveJpegMenu::getProgressiveScan()
 {
-    return ui->checkBox_ProgressiveScan->isChecked();
+    return static_cast<int>(ui->checkBox_ProgressiveScan->isChecked());
 }
 
 //returns 1 if optomized baseline is enabled, 0 if not used
 int ImageSaveJpegMenu::getBaselineOptimized()
 {
-    return ui->checkBox_Optomized->isChecked();
+    return static_cast<int>(ui->checkBox_Optomized->isChecked());
 }
