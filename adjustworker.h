@@ -86,7 +86,6 @@ private:
     const cv::Mat *masterImage_m;
     cv::Mat *previewImage_m;
     cv::UMat implicitOclImage_m;
-    cv::Mat lookUpTable_m;
     std::vector <cv::UMat> splitChannelsTmp_m;
 };
 

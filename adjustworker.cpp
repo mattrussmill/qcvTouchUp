@@ -77,7 +77,7 @@ AdjustWorker::AdjustWorker(const cv::Mat *masterImage, cv::Mat *previewImage, QM
     emit updateStatus("Adjust Menu initializing...");
     //QElapsedTimer timer;
     //timer.start();
-    lookUpTable_m = cv::Mat(1, 256, CV_8U);
+    cv::Mat lookUpTable(1, 256, CV_8UC1);
 
     //OpenCL initialization step to build the OpenCL calls in GPU before the worker is called with an attached image
     cv::ocl::Context ctx = cv::ocl::Context::getDefault();
@@ -190,6 +190,7 @@ void AdjustWorker::performImageAdjustments(float * parameter)
                 || parameter[AdjustMenu::Shadows] != 0.0f)
         {
             //fill LUT for gamma adjustment
+            cv::Mat lookUpTable(1, 256, CV_8UC1);
             float tmpGamma;
             for(int i = 0; i < 256; i++)
             {
@@ -250,17 +251,18 @@ void AdjustWorker::performImageAdjustments(float * parameter)
                 else if(tmpGamma < 0)
                     tmpGamma = 0;
 
-                lookUpTable_m.data[i] = tmpGamma;
+                lookUpTable.data[i] = tmpGamma;
             }
 
             //replace pixel values based on their LUT value
-            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable_m, splitChannelsTmp_m[1]);
+            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable, splitChannelsTmp_m[1]);
         }
 
         //--adjust the number of colors available of not at initial value of 255
         if(parameter[AdjustMenu::Depth] < 255)
         {
             //create and normalize LUT for 0 to 180 for Hue; replace pixel intensities based on their LUT value
+            cv::Mat lookUpTable(1, 256, CV_8UC1);
             float scaleFactor = 1.0f - (parameter[AdjustMenu::Depth] * (180.0f / 255.0f)) / 180.0f;
             int mod;
             for(int i = 0; i < 180; i++)
@@ -270,16 +272,16 @@ void AdjustWorker::performImageAdjustments(float * parameter)
                 mod = (i + 1) % HUE_DEPTH_SEPARATION;
                 if( mod <= HUE_DEPTH_SEPARATION / 2)
                 {
-                    lookUpTable_m.data[i] = static_cast<uchar>(static_cast<float>(i + 1) - roundf(mod * scaleFactor));
+                    lookUpTable.data[i] = static_cast<uchar>(static_cast<float>(i + 1) - roundf(mod * scaleFactor));
                     //qDebug() << "Data %30 =< 15 : " << lookUpTable_m.data[i];
                 }
                 else
                 {
-                    lookUpTable_m.data[i] = static_cast<uchar>(static_cast<float>(i + 1) + roundf(((HUE_DEPTH_SEPARATION - mod) * scaleFactor) ));
+                    lookUpTable.data[i] = static_cast<uchar>(static_cast<float>(i + 1) + roundf(((HUE_DEPTH_SEPARATION - mod) * scaleFactor) ));
                     //qDebug() << "Data %30 > 15 : " << lookUpTable_m.data[i];
                 }
             }
-            cv::LUT(splitChannelsTmp_m.at(0), lookUpTable_m, splitChannelsTmp_m[0]);
+            cv::LUT(splitChannelsTmp_m.at(0), lookUpTable, splitChannelsTmp_m[0]);
 
             //create and normalize LUT from 0 to largest intensity / saturation values, then scale from 0 to 255
             float tmp;
@@ -294,16 +296,16 @@ void AdjustWorker::performImageAdjustments(float * parameter)
                     tmp = static_cast<float>(i + 1) - roundf(mod * scaleFactor);
                     if(tmp > 255.0f)
                         tmp = 255.0f;
-                    lookUpTable_m.data[i] = static_cast<uchar>(tmp);
+                    lookUpTable.data[i] = static_cast<uchar>(tmp);
                     //qDebug() << "Data %128 =< 64 : " << lookUpTable_m.data[i];
                 }
                 else
                 {
-                    lookUpTable_m.data[i] = static_cast<uchar>(static_cast<float>(i + 1) + floorf(((INTENSITY_DEPTH_SEPARATION - mod) * scaleFactor) ));
+                    lookUpTable.data[i] = static_cast<uchar>(static_cast<float>(i + 1) + floorf(((INTENSITY_DEPTH_SEPARATION - mod) * scaleFactor) ));
                     //qDebug() << "Data %128 > 64 : " << lookUpTable_m.data[i];
                 }
             }
-            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable_m, splitChannelsTmp_m[1]); //sat
+            cv::LUT(splitChannelsTmp_m.at(1), lookUpTable, splitChannelsTmp_m[1]); //sat
             //cv::LUT(splitChannelsTmp_m.at(2), lookUpTable_m, splitChannelsTmp_m[2]); //int
         }
         cv::merge(splitChannelsTmp_m, implicitOclImage_m);
