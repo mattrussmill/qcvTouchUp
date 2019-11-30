@@ -65,6 +65,7 @@
 #include <QScrollBar>
 #include <QPixmap>
 #include <algorithm>
+#include "mousewheelctrleatereventfilter.h"
 
 #include <QDebug>
 
@@ -81,6 +82,8 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     imageLabel_m->setScaledContents(true);
     imageLabel_m->setVisible(false);
 
+    MouseWheelCtrlEaterEventFilter *wheelFilter = new MouseWheelCtrlEaterEventFilter(scrollArea_m);
+    scrollArea_m->viewport()->installEventFilter(wheelFilter);
     scrollArea_m->setObjectName("imageWidgetBackground");
     scrollArea_m->setAlignment(Qt::AlignCenter);
     scrollArea_m->setWidget(imageLabel_m);
@@ -228,7 +231,7 @@ void ImageWidget::clearImage()
 void ImageWidget::zoomIn()
 {
     if(!imageAttached()) return;
-    float tmpScalar = scalar_m * 1.125;
+    float tmpScalar = scalar_m * 1.125f;
     if (tmpScalar * imageLabel_m->width() > 32768 ||
             tmpScalar * imageLabel_m->height() > 32768)
     {
@@ -249,7 +252,7 @@ void ImageWidget::zoomIn()
 void ImageWidget::zoomOut()
 {
     if(!imageAttached()) return;
-    scalar_m *= 0.889;
+    scalar_m *= 0.889f;
     imageLabel_m->resize(scalar_m * attachedImage_m->size());
     if (fillScrollArea_m == true)
     {

@@ -60,6 +60,7 @@ class QImage;
 class QMenu;
 class QMutex;
 class QPixmap;
+class MouseWheelCtrlEaterEventFilter;
 
 class ImageWidget : public QWidget
 {
@@ -114,6 +115,7 @@ private:
     QAction *zoomActualAction_m;
     QScrollArea *scrollArea_m;
     const QImage *attachedImage_m = nullptr;
+    MouseWheelCtrlEaterEventFilter *wheelFilter;
     float scalar_m;
     bool fillScrollArea_m = true;
 };

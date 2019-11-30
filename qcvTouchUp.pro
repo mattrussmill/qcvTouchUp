@@ -34,6 +34,7 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     imagewidget.cpp \
+    mousewheelctrleatereventfilter.cpp \
     quickmenu.cpp \
     adjustmenu.cpp \
     mousewheeleatereventfilter.cpp \
@@ -58,6 +59,7 @@ HEADERS += \
     imagesavewebpmenu.h \
         mainwindow.h \
     imagewidget.h \
+    mousewheelctrleatereventfilter.h \
     quickmenu.h \
     adjustmenu.h \
     mousewheeleatereventfilter.h \
