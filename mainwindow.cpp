@@ -93,8 +93,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 
     //connect necessary internal mainwindow/ui slots
-    connect(ui->actionZoom_In, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomIn()));
-    connect(ui->actionZoom_Out, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomOut()));
+    connect(ui->actionZoom_In, &QAction::triggered, [=](){ui->imageWidget->zoomIn(ui->imageWidget->rect().center());}); //lambda
+    connect(ui->actionZoom_Out, &QAction::triggered, [=](){ui->imageWidget->zoomOut(ui->imageWidget->rect().center());}); //lambda
     connect(ui->actionZoom_Fit, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomFit()));
     connect(ui->actionZoom_Actual, SIGNAL(triggered()), ui->imageWidget, SLOT(zoomActual()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(getImagePath()));

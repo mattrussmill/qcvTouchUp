@@ -333,7 +333,6 @@ void ImageLabel::setRectRegionSelected(QRect roi)
         imageRegion_m = roi;
 
         //scale for widget region
-        //(static_cast<float>(this->width())) / this->pixmap()->width())
         roi.setTopLeft(QPoint(roi.topLeft().x() * ((static_cast<float>(this->width())) / this->pixmap()->width()),
                               roi.topLeft().y() * ((static_cast<float>(this->height())) / this->pixmap()->height())));
 

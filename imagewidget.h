@@ -92,8 +92,8 @@ signals:
 public slots:
     void setImage(const QImage *image);
     void clearImage();
-    void zoomIn();
-    void zoomOut();
+    void zoomIn(QPoint pointOfInterest);
+    void zoomOut(QPoint pointOfInterest);
     void zoomFit();
     void zoomActual();
     void updateDisplayedImage();
@@ -109,6 +109,7 @@ protected:
 
 private:
     void zoomAgain();
+    void adjustScrollBar(QPoint mousePosition, float scalar = 1.0f);
     QAction *zoomInAction_m;
     QAction *zoomOutAction_m;
     QAction *zoomFitAction_m;

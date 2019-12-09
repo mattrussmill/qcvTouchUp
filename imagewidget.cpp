@@ -47,6 +47,7 @@
 * 0.3           10/26/2018      Matthew R. Miller       Pixel Selection Added
 * 0.4           12/17/2018      Matthew R. Miller       ROI Selection Added
 * 0.5           10/21/2019      Matthew R. Miller       ROI Selection Moved Outside
+* 0.6           12/09/2019      Matthew R. Miller       Point of Interest Zoom
 ************************************************************************/
 
 #include "imagewidget.h"
@@ -68,6 +69,9 @@
 #include "mousewheelctrleatereventfilter.h"
 
 #include <QDebug>
+
+#define ZOOM_IN_SCALAR 1.125f
+#define ZOOM_OUT_SCALAR 0.889f
 
 /* The ImageWidget constructor takes in one argument which is the parent QWidget
  * to handle desctuction at termination, else is set to nullptr by default. The
@@ -107,8 +111,8 @@ ImageWidget::ImageWidget(QWidget *parent) : QWidget(parent),
     zoomOutAction_m->setIconVisibleInMenu(false);
     zoomFitAction_m->setIconVisibleInMenu(false);
     zoomActualAction_m->setIconVisibleInMenu(false);
-    connect(zoomInAction_m, SIGNAL(triggered()), this, SLOT(zoomIn()));
-    connect(zoomOutAction_m, SIGNAL(triggered()), this, SLOT(zoomOut()));
+    connect(zoomInAction_m, &QAction::triggered, [=](){zoomIn(scrollArea_m->viewport()->mapFromGlobal(QCursor::pos()));}); //lambda
+    connect(zoomOutAction_m, &QAction::triggered, [=](){zoomOut(scrollArea_m->viewport()->mapFromGlobal(QCursor::pos()));}); //lambda
     connect(zoomFitAction_m, SIGNAL(triggered()), this, SLOT(zoomFit()));
     connect(zoomActualAction_m, SIGNAL(triggered()), this, SLOT(zoomActual()));
 
@@ -224,22 +228,25 @@ void ImageWidget::clearImage()
     emit imageCleared();
 }
 
-/* The zoomIn method scales the image up by 1/8. If the image attempts to be scaled
+/* The zoomIn method scales the image up by 1/8 and then adjusts the scroll area to focus
+ * in on the pointOfInterest, scaling accordingly. If the image attempts to be scaled
  * larget than a short signed int's largest value, the image does not increase in size
  * as that is the largest size QImage supports. If the image property 'fillScrollArea'
  * was set as true, it is set as false and a signal is emitted notifying as such.*/
-void ImageWidget::zoomIn()
+void ImageWidget::zoomIn(QPoint pointOfInterest)
 {
     if(!imageAttached()) return;
-    float tmpScalar = scalar_m * 1.125f;
-    if (tmpScalar * imageLabel_m->width() > 32768 ||
-            tmpScalar * imageLabel_m->height() > 32768)
+    if (ZOOM_IN_SCALAR * imageLabel_m->width() > 32768 ||
+            ZOOM_IN_SCALAR * imageLabel_m->height() > 32768)
     {
         qWarning("ImageWidget displaying QImage at maximum size!");
         return;
     }
-    scalar_m = tmpScalar;
+
+    scalar_m *= ZOOM_IN_SCALAR;
     imageLabel_m->resize(scalar_m * attachedImage_m->size());
+    adjustScrollBar(pointOfInterest, ZOOM_IN_SCALAR);
+
     if (fillScrollArea_m == true)
     {
         fillScrollArea_m = false;
@@ -247,13 +254,17 @@ void ImageWidget::zoomIn()
     }
 }
 
-/* The zoomIn member scales the image down by about 1/8. If the image property 'fillScrollArea'
+/* The zoomIn member scales the image down by about 1/8 and then adjusts the scroll area to focus
+ * in on the pointOfInterest, scaling accordingly. If the image property 'fillScrollArea'
  * was set as true, it is set as false and a signal is emitted notifying as such.*/
-void ImageWidget::zoomOut()
+void ImageWidget::zoomOut(QPoint pointOfInterest)
 {
     if(!imageAttached()) return;
-    scalar_m *= 0.889f;
+
+    scalar_m *= ZOOM_OUT_SCALAR;
     imageLabel_m->resize(scalar_m * attachedImage_m->size());
+    adjustScrollBar(pointOfInterest, ZOOM_OUT_SCALAR);
+
     if (fillScrollArea_m == true)
     {
         fillScrollArea_m = false;
@@ -347,9 +358,9 @@ void ImageWidget::resizeEvent(QResizeEvent *event)
 
 /* An override of wheelEvent (mouse). First the function queries the Keyboard modifiers and
  * checks if the modifier is the CTRL key. If it is, the function checks if the movement of
- * the wheel was positive or negative to determine if the widget should zoom in or out. Both
- * Degrees and pixels are used in the calculation to support platforms that use both methods
- * of scrolling.*/
+ * the wheel was positive or negative to determine if the widget should zoom in or out. The
+ * zoom uses the cursor position mapped to the scrollArea_m viewport. Both degrees and pixels
+ * are used in the calculation to support platforms that use both methods of scrolling.*/
 void ImageWidget::wheelEvent(QWheelEvent *event)
 {
     if(imageAttached())
@@ -359,18 +370,23 @@ void ImageWidget::wheelEvent(QWheelEvent *event)
             QPoint numPixels = event->pixelDelta();
             QPoint numDegrees = event->angleDelta() / 8;
 
+
             if (!numPixels.isNull()) {
                 if(numPixels.y() > 0)
-                    zoomIn();
+                    zoomIn(scrollArea_m->viewport()->mapFromGlobal(QCursor::pos()));
                 else
-                    zoomOut();
+                    zoomOut(scrollArea_m->viewport()->mapFromGlobal(QCursor::pos()));
             } else if (!numDegrees.isNull()) {
                 QPoint numSteps = numDegrees / 15;
                 if(numSteps.y() > 0)
-                    zoomIn();
+                    zoomIn(scrollArea_m->viewport()->mapFromGlobal(QCursor::pos()));
+
                 else
-                    zoomOut();
+                    zoomOut(scrollArea_m->viewport()->mapFromGlobal(QCursor::pos()));
             }
+
+
+
             event->setAccepted(true);
             return;
         }
@@ -441,5 +457,36 @@ void ImageWidget::dropEvent(QDropEvent *event)
     {
         qDebug() << "Too many files dragged onto ImageWidget";
         emit droppedImageError();
+    }
+}
+
+/* This method adjusts the scroll bar according to the cursor's position. It first translates the
+ * coordinates from the referenced mouse position (which is expected to in reference to the scrollArea_m
+ * viewport) to the center of the viewport. It then calculates the normalized value of the pointOfInterest
+ * within the visible region of the imageLabel_m between the imageLabel_m's center and edge, adjusting by
+ * the scalar value provided if the image has changed size (as this happens before the widget updates).
+ * The scrollbar is then set to the normalized position from the center of the image*/
+void ImageWidget::adjustScrollBar(QPoint pointOfInterest, float scalar)
+{
+    if(scrollArea_m->viewport()->width() < imageLabel_m->width())
+    {
+        pointOfInterest.setX(pointOfInterest.x() - (scrollArea_m->viewport()->width() / 2));
+
+        float normalizedFromCenterX = (pointOfInterest.x() + imageLabel_m->visibleRegion().boundingRect().center().x())
+                                    * scalar / static_cast<float>(imageLabel_m->width());
+
+        scrollArea_m->horizontalScrollBar()->setValue(scrollArea_m->horizontalScrollBar()->maximum() * normalizedFromCenterX);
+        //qDebug() << percentFromCenterX;
+    }
+
+    if(scrollArea_m->viewport()->height() < imageLabel_m->height())
+    {
+        pointOfInterest.setY(pointOfInterest.y() - (scrollArea_m->viewport()->height() / 2));
+
+        float normalizedFromCenterY = (pointOfInterest.y() + imageLabel_m->visibleRegion().boundingRect().center().y())
+                                    * scalar / static_cast<float>(imageLabel_m->height());
+
+        scrollArea_m->verticalScrollBar()->setValue(scrollArea_m->verticalScrollBar()->maximum() * normalizedFromCenterY);
+        //qDebug() << percentFromCenterY;
     }
 }
