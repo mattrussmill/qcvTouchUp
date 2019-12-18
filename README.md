@@ -22,6 +22,6 @@ Version 3.3.1 of [OpenCV](https://opencv.org/releases/) is linked to this applic
 Currently Matthew R. Miller has been the only one to contribute to this project. Please visit the qcvTouchUp Wiki page on github for more information.
 
 ## LICENSE:     
-qcvTouchUp provides an image processing toolset for editing photographs, purposed and packaged for use in a desktop application user environment. Copyright (C) 2018,  Matthew R. Miller released under the GNU General Public License as published by the Free Software Foundation (version 3 of the License). The appropriate licensing files for this and supporting software can be found under the files LICENSE.txt, LICENSE.Qt.txt, and LICENSE.CV.txt.
+qcvTouchUp provides an image processing toolset for editing photographs, purposed and packaged for use in a desktop application user environment. qcvTouchUp is released under the GNU General Public License as published by the Free Software Foundation (version 3 of the License). The appropriate licensing files for this and supporting software can be found under the files LICENSE.txt, LICENSE.Qt.txt, and LICENSE.CV.txt.
 
       
