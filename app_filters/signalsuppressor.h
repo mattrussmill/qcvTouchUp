@@ -1,5 +1,5 @@
 /***********************************************************************
-* FILENAME :    main.cpp
+* FILENAME :    signalsuppressor.h
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing
@@ -28,45 +28,63 @@
 *       through their account at <https://github.com/mattrussmill>
 *
 * DESCRIPTION :
-*       This file creates the entry point for the program, instantiates
-*       the GUI interface and launches the QApplication.
+*       This object should be used when passing data between threads using a
+*       queued signal/slot connection in Qt where a fast thread is signaling
+*       a slower worker thread (fast thread -> slow thread) if the slower worker
+*       thread cannot keep up with requests and lags behind when processing
+*       the queued signals from the faster thread. This object allows for only
+*       the most recently signalled data to make it to the worker thread once
+*       the work has completed.
 *
 * NOTES :
-*       None.
+*       The passed data must exist as part of QVariant and the receiving slot
+*       must mimic the following pseudo code:
+*       RECEIVE_SUPPRESSOR(SignalSuppressor *ptr)
+*       {
+*          ...
+*          data = ptr->getNewData().toDATATYPE();
+*          performWork(data);
+*       }
 *
-* AUTHOR :  Matthew R. Miller       START DATE :    November 11, 2017
+*       Signaling to the SignalSuppressor must also be done via the new signaling
+*       method mimicing the following pseudo code:
+*       connect(*signalingObj, &Class::method, thisObj, SignalSuppressor::receiveNewData);
+*
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    January 11/23/2018
 *
 * CHANGES : N/A - N/A
 *
 * VERSION       DATE            WHO                     DETAIL
-* 0.1           11/11/2017      Matthew R. Miller       Initial Rev
+* 0.1           11/23/2018      Matthew R. Miller       Initial Rev
 *
 ************************************************************************/
+#ifndef SIGNALSUPPRESSOR_H
+#define SIGNALSUPPRESSOR_H
 
-#include "mainwindow.h"
-#include "app_filters/signalsuppressor.h"
-#include <QApplication>
-#include <QMetaType>
+#include <QObject>
+#include <QVariant>
+#include <QMutex>
 
-int main(int argc, char *argv[])
+class SignalSuppressor : public QObject
 {
-    QApplication a(argc, argv);
+    Q_OBJECT
+public:
+    explicit SignalSuppressor(QObject *parent = nullptr);
+    QVariant getNewData();
 
-    //load stylesheet
-    QFile styleFile(":/css/stylesheet.css");
-    styleFile.open(QFile::ReadOnly);
-    QString style(styleFile.readAll());
-    styleFile.close();
-    a.setStyleSheet(style);
+signals:
+    void suppressedSignal(SignalSuppressor *ptr);
 
-    //types registered for queued signal/slot connections
-    qRegisterMetaType<QVector<float>>("QVector<float>");
-    qRegisterMetaType<QVector<int>>("QVector<int>");
-    qRegisterMetaType<SignalSuppressor*>("SignalSuppressor*");
-    qRegisterMetaType<cv::Mat*>("cv::Mat*");
+public slots:
+    void receiveNewData(QVariant newData);
 
-    MainWindow w;
-    w.show();
+protected:
+    QMutex mutex;
 
-    return a.exec();
-}
+private:
+    QVariant data_m;
+    bool notWaitingForData = true;
+};
+
+#endif // SIGNALSUPPRESSOR_H

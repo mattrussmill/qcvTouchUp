@@ -501,7 +501,7 @@
   <customwidget>
    <class>QuickMenu</class>
    <extends>QWidget</extends>
-   <header location="global">quickmenu.h</header>
+   <header location="global">nav/quickmenu.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

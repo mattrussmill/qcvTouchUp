@@ -1,5 +1,5 @@
 /***********************************************************************
-* FILENAME :    main.cpp
+* FILENAME :    imagesavepngmenu.h
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing
@@ -28,45 +28,44 @@
 *       through their account at <https://github.com/mattrussmill>
 *
 * DESCRIPTION :
-*       This file creates the entry point for the program, instantiates
-*       the GUI interface and launches the QApplication.
+*       This widget is used to collect user input parameters for saving an
+*       image in the PNG file format.
 *
 * NOTES :
-*       None.
+*       The values captured are associated with cv::imwrite(), an OpenCV
+*       function.
 *
-* AUTHOR :  Matthew R. Miller       START DATE :    November 11, 2017
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    March 03/04/2019
 *
 * CHANGES : N/A - N/A
 *
 * VERSION       DATE            WHO                     DETAIL
-* 0.1           11/11/2017      Matthew R. Miller       Initial Rev
+* 0.1           07/21/2019      Matthew R. Miller       Initial Rev
 *
 ************************************************************************/
+#ifndef IMAGESAVEPNGMENU_H
+#define IMAGESAVEPNGMENU_H
 
-#include "mainwindow.h"
-#include "app_filters/signalsuppressor.h"
-#include <QApplication>
-#include <QMetaType>
+#include <QWidget>
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-
-    //load stylesheet
-    QFile styleFile(":/css/stylesheet.css");
-    styleFile.open(QFile::ReadOnly);
-    QString style(styleFile.readAll());
-    styleFile.close();
-    a.setStyleSheet(style);
-
-    //types registered for queued signal/slot connections
-    qRegisterMetaType<QVector<float>>("QVector<float>");
-    qRegisterMetaType<QVector<int>>("QVector<int>");
-    qRegisterMetaType<SignalSuppressor*>("SignalSuppressor*");
-    qRegisterMetaType<cv::Mat*>("cv::Mat*");
-
-    MainWindow w;
-    w.show();
-
-    return a.exec();
+namespace Ui {
+class ImageSavePngMenu;
 }
+
+class ImageSavePngMenu : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit ImageSavePngMenu(QWidget *parent = nullptr);
+    ~ImageSavePngMenu();
+    int getCompression();
+    int getStrategy();
+    int getBinaryLevel();
+
+private:
+    Ui::ImageSavePngMenu *ui;
+};
+
+#endif // IMAGESAVEPNGMENU_H

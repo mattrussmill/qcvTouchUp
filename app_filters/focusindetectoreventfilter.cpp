@@ -1,5 +1,5 @@
 /***********************************************************************
-* FILENAME :    main.cpp
+* FILENAME :    mouseclickdetectoreventfilter.cpp
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing
@@ -28,45 +28,35 @@
 *       through their account at <https://github.com/mattrussmill>
 *
 * DESCRIPTION :
-*       This file creates the entry point for the program, instantiates
-*       the GUI interface and launches the QApplication.
+*       This object emits a signal passing a bool that is true whenever a mouse
+*       button release event occurs. It does not interrupt further processing of
+*       the event.
 *
 * NOTES :
-*       None.
+*       Some QWidgets have scroll wheel interactions which cannot be disabled.
 *
-* AUTHOR :  Matthew R. Miller       START DATE :    November 11, 2017
+* AUTHOR :  Matthew R. Miller       START DATE :    March 6, 2018
 *
 * CHANGES : N/A - N/A
 *
-* VERSION       DATE            WHO                     DETAIL
-* 0.1           11/11/2017      Matthew R. Miller       Initial Rev
+* VERSION       DATE                    WHO                     DETAIL
+* 0.1           December 19, 2018       Matthew R. Miller       Initial Rev
 *
 ************************************************************************/
+#include "focusindetectoreventfilter.h"
+#include <QObject>
+#include <QEvent>
 
-#include "mainwindow.h"
-#include "app_filters/signalsuppressor.h"
-#include <QApplication>
-#include <QMetaType>
-
-int main(int argc, char *argv[])
+FocusInDetectorEventFilter::FocusInDetectorEventFilter(QObject *parent) : QObject(parent)
 {
-    QApplication a(argc, argv);
 
-    //load stylesheet
-    QFile styleFile(":/css/stylesheet.css");
-    styleFile.open(QFile::ReadOnly);
-    QString style(styleFile.readAll());
-    styleFile.close();
-    a.setStyleSheet(style);
+}
 
-    //types registered for queued signal/slot connections
-    qRegisterMetaType<QVector<float>>("QVector<float>");
-    qRegisterMetaType<QVector<int>>("QVector<int>");
-    qRegisterMetaType<SignalSuppressor*>("SignalSuppressor*");
-    qRegisterMetaType<cv::Mat*>("cv::Mat*");
-
-    MainWindow w;
-    w.show();
-
-    return a.exec();
+/*If the intercepted event is a mouse button release, emits a signal passing true to signal detection
+ * then returns false to continue event processing*/
+bool FocusInDetectorEventFilter::eventFilter(QObject *watched, QEvent *event)
+{
+    if(event->type() == QEvent::FocusIn)
+        emit focusDetected(true);
+    return false;
 }

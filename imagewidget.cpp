@@ -66,7 +66,7 @@
 #include <QScrollBar>
 #include <QPixmap>
 #include <algorithm>
-#include "mousewheelctrleatereventfilter.h"
+#include "app_filters/mousewheelctrleatereventfilter.h"
 
 #include <QDebug>
 

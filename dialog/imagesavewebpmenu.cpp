@@ -1,5 +1,5 @@
 /***********************************************************************
-* FILENAME :    main.cpp
+* FILENAME :    imagesavewebpmenu.cpp
 *
 * LICENSE:
 *       qcvTouchUp provides an image processing toolset for editing
@@ -28,45 +28,51 @@
 *       through their account at <https://github.com/mattrussmill>
 *
 * DESCRIPTION :
-*       This file creates the entry point for the program, instantiates
-*       the GUI interface and launches the QApplication.
+*       This widget is used to collect user input parameters for saving an
+*       image in the WebP file format.
 *
 * NOTES :
-*       None.
+*       The values captured are associated with cv::imwrite(), an OpenCV
+*       function.
 *
-* AUTHOR :  Matthew R. Miller       START DATE :    November 11, 2017
+*
+* AUTHOR :  Matthew R. Miller       START DATE :    March 03/04/2019
 *
 * CHANGES : N/A - N/A
 *
 * VERSION       DATE            WHO                     DETAIL
-* 0.1           11/11/2017      Matthew R. Miller       Initial Rev
+* 0.1           07/21/2019      Matthew R. Miller       Initial Rev
 *
 ************************************************************************/
+#include "imagesavewebpmenu.h"
+#include "ui_imagesavewebpmenu.h"
+#include "app_filters/mousewheeleatereventfilter.h"
 
-#include "mainwindow.h"
-#include "app_filters/signalsuppressor.h"
-#include <QApplication>
-#include <QMetaType>
-
-int main(int argc, char *argv[])
+//constructor installs event filter to disable scroll wheel, sets initial states, and connects signals / slots
+ImageSaveWebpMenu::ImageSaveWebpMenu(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::ImageSaveWebpMenu)
 {
-    QApplication a(argc, argv);
+    ui->setupUi(this);
 
-    //load stylesheet
-    QFile styleFile(":/css/stylesheet.css");
-    styleFile.open(QFile::ReadOnly);
-    QString style(styleFile.readAll());
-    styleFile.close();
-    a.setStyleSheet(style);
+    //install event filter
+    MouseWheelEaterEventFilter *filter = new MouseWheelEaterEventFilter(this);
+    ui->horizontalSlider_Quality->installEventFilter(filter);
+    ui->spinBox_Quality->installEventFilter(filter);
 
-    //types registered for queued signal/slot connections
-    qRegisterMetaType<QVector<float>>("QVector<float>");
-    qRegisterMetaType<QVector<int>>("QVector<int>");
-    qRegisterMetaType<SignalSuppressor*>("SignalSuppressor*");
-    qRegisterMetaType<cv::Mat*>("cv::Mat*");
+    //connect signals slots
+    connect(ui->horizontalSlider_Quality, SIGNAL(valueChanged(int)), ui->spinBox_Quality, SLOT(setValue(int)));
+    connect(ui->spinBox_Quality, SIGNAL(valueChanged(int)), ui->horizontalSlider_Quality, SLOT(setValue(int)));
+}
 
-    MainWindow w;
-    w.show();
+//default destructor
+ImageSaveWebpMenu::~ImageSaveWebpMenu()
+{
+    delete ui;
+}
 
-    return a.exec();
+//returns the overall quality value for the WebP image - opencv between 1 - 100
+int ImageSaveWebpMenu::getQuality()
+{
+    return ui->spinBox_Quality->value();
 }

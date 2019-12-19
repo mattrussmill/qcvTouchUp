@@ -27,66 +27,66 @@ DEFINES += QT_OPENCV
 # These files are the QT source code and resources for qcvTouchUp
 SOURCES += \
     imagelabel.cpp \
-    imagesavedialog.cpp \
-    imagesavejpegmenu.cpp \
-    imagesavepngmenu.cpp \
-    imagesavewebpmenu.cpp \
-        main.cpp \
-        mainwindow.cpp \
+    main.cpp \
+    mainwindow.cpp \
     imagewidget.cpp \
-    mousewheelctrleatereventfilter.cpp \
-    quickmenu.cpp \
-    adjustmenu.cpp \
-    mousewheeleatereventfilter.cpp \
     bufferwrappersqcv.cpp \
-    filtermenu.cpp \
-    temperaturemenu.cpp \
-    transformmenu.cpp \
-    signalsuppressor.cpp \
-    focusindetectoreventfilter.cpp \
-    #colorslicemenu.cpp \
-    #colorselectionwidget.cpp \
-    adjustworker.cpp \
-    filterworker.cpp \
-    temperatureworker.cpp \
-    transformworker.cpp
+    nav/quickmenu.cpp \
+    dialog/imagesavedialog.cpp \
+    dialog/imagesavejpegmenu.cpp \
+    dialog/imagesavepngmenu.cpp \
+    dialog/imagesavewebpmenu.cpp \
+    app_filters/mousewheelctrleatereventfilter.cpp \
+    app_filters/mousewheeleatereventfilter.cpp \
+    app_filters/signalsuppressor.cpp \
+    app_filters/focusindetectoreventfilter.cpp \
+    editing/menus/adjustmenu.cpp \
+    editing/menus/filtermenu.cpp \
+    editing/menus/temperaturemenu.cpp \
+    editing/menus/transformmenu.cpp \
+    #editing/menus/colorslicemenu.cpp \
+    #editing/menus/colorselectionwidget.cpp \
+    editing/workers/adjustworker.cpp \
+    editing/workers/filterworker.cpp \
+    editing/workers/temperatureworker.cpp \
+    editing/workers/transformworker.cpp
 
 HEADERS += \
     imagelabel.h \
-    imagesavedialog.h \
-    imagesavejpegmenu.h \
-    imagesavepngmenu.h \
-    imagesavewebpmenu.h \
-        mainwindow.h \
+    mainwindow.h \
     imagewidget.h \
-    mousewheelctrleatereventfilter.h \
-    quickmenu.h \
-    adjustmenu.h \
-    mousewheeleatereventfilter.h \
     bufferwrappersqcv.h \
-    filtermenu.h \
-    temperaturemenu.h \
-    transformmenu.h \
-    signalsuppressor.h \
-    focusindetectoreventfilter.h \
-    #colorslicemenu.h \
-    #colorselectionwidget.h \
-    adjustworker.h \
-    filterworker.h \
-    temperatureworker.h \
-    transformworker.h
+    nav/quickmenu.h \
+    dialog/imagesavedialog.h \
+    dialog/imagesavejpegmenu.h \
+    dialog/imagesavepngmenu.h \
+    dialog/imagesavewebpmenu.h \
+    app_filters/mousewheelctrleatereventfilter.h \
+    app_filters/mousewheeleatereventfilter.h \
+    app_filters/signalsuppressor.h \
+    app_filters/focusindetectoreventfilter.h \
+    editing/menus/adjustmenu.h \
+    editing/menus/filtermenu.h \
+    editing/menus/temperaturemenu.h \
+    editing/menus/transformmenu.h \
+    #editing/menus/colorslicemenu.h \
+    #editing/menus/colorselectionwidget.h \
+    editing/workers/adjustworker.h \
+    editing/workers/filterworker.h \
+    editing/workers/temperatureworker.h \
+    editing/workers/transformworker.h
 
 FORMS += \
-    imagesavejpegmenu.ui \
-    imagesavepngmenu.ui \
-    imagesavewebpmenu.ui \
-        mainwindow.ui \
-    adjustmenu.ui \
-    filtermenu.ui \
-    temperaturemenu.ui \
-    transformmenu.ui
-    #colorslicemenu.ui \
-    #colorselectionwidget.ui
+    mainwindow.ui \
+    dialog/imagesavejpegmenu.ui \
+    dialog/imagesavepngmenu.ui \
+    dialog/imagesavewebpmenu.ui \
+    editing/menus/adjustmenu.ui \
+    editing/menus/filtermenu.ui \
+    editing/menus/temperaturemenu.ui \
+    editing/menus/transformmenu.ui
+    #editing/menus/colorslicemenu.ui \
+    #editing/menus/colorselectionwidget.ui
 
 RESOURCES += \
     resources.qrc

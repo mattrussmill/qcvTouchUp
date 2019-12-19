@@ -43,15 +43,15 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "quickmenu.h"
-#include "adjustmenu.h"
-#include "filtermenu.h"
-#include "temperaturemenu.h"
-#include "transformmenu.h"
+#include "nav/quickmenu.h"
+#include "editing/menus/adjustmenu.h"
+#include "editing/menus/filtermenu.h"
+#include "editing/menus/temperaturemenu.h"
+#include "editing/menus/transformmenu.h"
 //#include "colorslicemenu.h"
 #include "bufferwrappersqcv.h"
 #include "imagewidget.h"
-#include "imagesavedialog.h"
+#include "dialog/imagesavedialog.h"
 #include "imagelabel.h"
 #include <QWidget>
 #include <QApplication>
@@ -352,6 +352,5 @@ void MainWindow::generateAboutDialog()
                                       "<a href='https://opencv.org/'>OpenCV Library</a> via the following "
                                       "<a href='https://opencv.org/license/'>3-Clause BSD license</a>. "
                                       "License files have been provided with the installation package as well "
-                                      "as with the <a href='https://github.com/mattrussmill/qcvTouchUp'>source code</a>. "
-                                      "Copyright (C) 2018,  Matthew R. Miller");
+                                      "as with the <a href='https://github.com/mattrussmill/qcvTouchUp'>source code</a>. ");
 }
