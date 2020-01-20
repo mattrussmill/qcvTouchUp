@@ -236,8 +236,8 @@ void ImageWidget::clearImage()
 void ImageWidget::zoomIn(QPoint pointOfInterest)
 {
     if(!imageAttached()) return;
-    if (ZOOM_IN_SCALAR * imageLabel_m->width() > 32768 ||
-            ZOOM_IN_SCALAR * imageLabel_m->height() > 32768)
+    if (ZOOM_IN_SCALAR * imageLabel_m->width() > 24000 ||
+            ZOOM_IN_SCALAR * imageLabel_m->height() > 24000) //32768 max allowed by QImage
     {
         qWarning("ImageWidget displaying QImage at maximum size!");
         return;
@@ -260,6 +260,12 @@ void ImageWidget::zoomIn(QPoint pointOfInterest)
 void ImageWidget::zoomOut(QPoint pointOfInterest)
 {
     if(!imageAttached()) return;
+    if (ZOOM_OUT_SCALAR * imageLabel_m->width() < 20 ||
+            ZOOM_OUT_SCALAR * imageLabel_m->height() < 20)
+    {
+        qWarning("ImageWidget displaying QImage at minimum size!");
+        return;
+    }
 
     scalar_m *= ZOOM_OUT_SCALAR;
     imageLabel_m->resize(scalar_m * attachedImage_m->size());
