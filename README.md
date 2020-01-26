@@ -14,7 +14,7 @@ Version 3.3.1 of [OpenCV](https://opencv.org/releases/) is linked to this applic
 ### Release (Windows)
 * Install [MSVC 2017](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) x64 runtime libraries.
 * Copy the binary from the Release folder for the qcvTouchUp project into its own directory (e.g. qcvRelease).
-* In that directory, run [windeployqt](https://doc.qt.io/Qt-5/windows-deployment.html) --qmldir \qcvTouchUp --release ..\qcvRelease\qcvTouchUp.exe in the Qt specific terminal
+* In that directory, run [windeployqt](https://doc.qt.io/Qt-5/windows-deployment.html) --qmldir ..\qcvTouchUp\nav --release qcvTouchUp.exe in the Qt specific terminal
 * Delete translations folder, it is not needed
 * Copy in the core331, highgui331, imgcodecs331, and imgproc331 dlls from the appropriate OpenCV build directory
 
