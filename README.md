@@ -1,5 +1,5 @@
 # qcvTouchUp
-Image Editor (work in progress)
+Image Editor - to test it out download the [RELEASE](https://github.com/mattrussmill/qcvTouchUp/releases) and follow the instructions to try it out! 
 
 ## ABOUT:
 The qcvTouchUp application is designed to be a light-weight image viewing and editing application that focuses on providing an intuitive interface for performing some of the most common photo editing tasks. The project currently exists as a entry point into learning the ins and outs of the Qt C++ Framework.
